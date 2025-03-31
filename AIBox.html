@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>메인페이지</title>
+        <link rel="stylesheet" href="./css/boot_custom.css">
+        <link rel="stylesheet" href="./css/design.css">
+        <link rel="stylesheet" href="./css/custom.css">
+        <link rel="stylesheet" as="style" crossorigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css">
+        <style>
+            .main-ai-box {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: stretch;
+                gap: 30px;
+                height: 100%;
+                min-height: 200px;
+            } .main-ai-box ul {
+                display: flex;
+                align-items: stretch;
+                gap: 30px;
+                width: 100%;
+                height: 100%;
+                min-height: 200px;
+            } .main-ai-box ul li {
+                display: flex;
+                flex-direction: column;
+                width: calc(100% / 3);
+                padding: 1.5rem 1.8rem;
+                border: 4px solid #60A5B2;
+                border-radius: 24px;
+                height: 100%;
+                min-height: 200px;
+            } .main-ai-box ul li .ai-title {
+                font-size: 2.9rem;
+                font-weight: 700;
+                display: block;
+                text-align: center;
+                padding-bottom: 1.3rem;
+                border-bottom: 3px solid #cccccc;
+                margin-bottom: 1rem;
+            } .main-ai-box ul li .ai-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            } .main-ai-box ul li .ai-content p {
+                font-size: 1.8rem;
+                padding: 0 3rem;
+                word-break: keep-all;
+                word-wrap: break-word;
+                text-align: center;
+            } .ai_link_btn {
+                width: 30%;
+                margin: 0 auto;
+                padding: 1.1rem;
+                border-radius: 100px;
+                border: 0;
+                background-color: #60A5B2;
+                color: #fff;
+                font-size: 1.8rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="data-box">
+                <div class="board-top">
+                    <h3 class="fs_30 fw_700">업무 자동화 AI</h3>
+                    <a href="#"><p class="text-gray">더보기</p><img src="./img/more.svg"></a>
+                </div>
+                <div class="main-ai-box">
+                    <ul>
+                        <li>
+                            <span class="ai-title">생활기록부</span>
+                            <div class="ai-content"><p class="fw_500">생기부 작성을 자동화 시켜주는 AI입니다.</p></div>
+                            <button class="ai_link_btn fw_500">바로가기</button>
+                        </li>
+                        <li>
+                            <span class="ai-title">문제 제작</span>
+                            <div class="ai-content"><p class="fw_500">문제(지필평가, 형성평가 등)를 만들어주는 AI입니다.</p></div>
+                            <button class="ai_link_btn fw_500">바로가기</button>
+                        </li>
+                        <li>
+                            <span class="ai-title">가정통신문</span>
+                            <div class="ai-content"><p class="fw_500">가정통신문이나 학생 편지를 작성해주는 AI입니다.</p></div>
+                            <button class="ai_link_btn fw_500">바로가기</button>
+                        </li>
+                    </ul>
+                    <ul>
+                        <li>
+                            <span class="ai-title">활동지 제작</span>
+                            <div class="ai-content"><p class="fw_500">각종 활동지 디자인을 뽑아주는 AI입니다.</p></div>
+                            <button class="ai_link_btn fw_500">바로가기</button>
+                        </li>
+                        <li>
+                            <span class="ai-title">업무 비서</span>
+                            <div class="ai-content"><p class="fw_500">파일을 넣으면 업무에 대한 상세한 설명을 도와주는 비서 AI입니다.</p></div>
+                            <button class="ai_link_btn fw_500">바로가기</button>
+                        </li>
+                        <li>
+                            <span class="ai-title">블로그 작성</span>
+                            <div class="ai-content"><p class="fw_500">블로그 초안을 작성해주는 AI입니다.</p></div>
+                            <button class="ai_link_btn fw_500">바로가기</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
