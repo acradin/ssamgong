@@ -1,0 +1,125 @@
+# Python 관련
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.ipynb_checkpoints/
+.pytest_cache/
+
+# C 관련
+*.o
+*.ko
+*.obj
+*.elf
+*.ilk
+*.map
+*.exp
+*.gch
+*.pch
+*.lib
+*.a
+*.la
+*.lo
+*.dll
+*.so
+*.so.*
+*.dylib
+*.exe
+*.out
+*.app
+
+# IDE/편집기 관련
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# 운영체제 관련
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 환경 설정 파일
+.env
+.venv
+env/
+venv/
+ENV/
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# 로그 파일
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 빌드 결과물
+dist/
+build/
+out/
+
+# 데이터 파일 (필요에 따라 주석 처리)
+# *.csv
+# *.json
+# *.xlsx
+
+# FPGA/Vivado 관련
+*.jou
+*.log
+*.debug
+*.str
+*.zip
+*.tmp
+*.rst
+*.os
+*.js
+*.pb
+*.dcp
+*.hwdef
+*.vds
+*.veo
+*.wdf
+*.vdi
+*/*/synth_1/
+*/*/impl_1/
+
+# 미디어 파일 (필요에 따라 주석 처리)
+# *.mp4
+# *.jpg
+# *.png
+# *.gif
+
+project1.py
+my_langchain.py
+문제집.pdf
+EEE3210_W4-2_Carrier Transport_문제집.md
+problem_generator.py
