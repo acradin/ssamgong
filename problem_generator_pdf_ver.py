@@ -15,9 +15,9 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-# API 키 설정 (.env 파일에서 로드, 실제 코드에서는 직접 값을 넣지 않는 것이 좋음)
+# API 키 설정 (.env 파일에서 로드)
 load_dotenv()
-os.environ["OPENAI_API_KEY"] = "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"  # 보안을 위해 .env 파일이나 환경변수에서 로드하는 것이 좋음
+os.environ["OPENAI_API_KEY"] = os.getenv("my_api_key")
 
 # PDF 로더 설정
 def load_pdf(pdf_path):
