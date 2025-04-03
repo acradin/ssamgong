@@ -15,7 +15,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-# API 키 설정 (.env 파일에서 로드, 실제 코드에서는 직접 값을 넣지 않는 것이 좋음)
+# API 키 설정 (.env 파일에서 로드)
 load_dotenv()
 os.environ["OPENAI_API_KEY"] = os.getenv("my_api_key")
 
