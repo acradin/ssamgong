@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>메인페이지</title>
+        <link rel="stylesheet" href="./css/boot_custom.css">
+        <link rel="stylesheet" href="./css/design.css">
+        <link rel="stylesheet" href="./css/custom.css">
+        <link rel="stylesheet" href="./css/default_dev.css">
+        <link rel="stylesheet" href="./css/flatpickr.min.css">
+        <script src="./js/jquery.min.js"></script>
+        <script src="./js/bootstrap.bundle.min.js"></script>
+        <script src="./js/flatpickr.min.js"></script>
+        <script src="./js/flatpickr.ko.js"></script>
+        <style>
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 240px;
+                height: 100vh;
+                padding: 2.5rem;
+                box-shadow: 3px 0 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
+                z-index: 1000;
+            }
+
+            #admin_logo {
+                text-align: center;
+                scale: 0.8;
+            }
+
+            .menu-item {
+                display: flex;
+                align-items: center;
+                padding: 1.5rem 1rem 1.5rem 4rem;
+                margin-bottom: 2rem;
+                border-radius: 8px;
+                color: #4C4C4C;
+                text-decoration: none;
+                box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
+                font-weight: 600;
+                font-size: 1.7rem;
+            }
+
+            .menu-item.active {
+                border: 2px solid #1AA6B3;
+                color: #1AA6B3;
+            }
+
+            .menu-item img {
+                width: 20px;
+                margin-right: 10px;
+            }
+
+            .main-content {
+                margin-left: 240px;
+                flex: 1;
+                padding: 2rem;
+            }
+            
+            #search_select{
+                text-align: left;
+                width: 100px;
+                padding: 10px;
+                font-size: 16px;
+                border: none;
+                border-right: 1px solid #1BA7B4;;
+                border-radius: 0px;
+                background-color: white;
+                color: #333;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                background-repeat: no-repeat;
+                background-position: right 10px center;
+                background-size: 15px;
+            }
+            
+            #search_select:focus {
+                border-color: white;
+                outline: none;
+                border-right: 1px solid #1BA7B4;;
+            }
+
+            .sch_ip {
+                padding-left: 1rem !important;
+            }
+
+            .filter-buttons {
+                display: flex;
+                gap: 10px;
+                margin: 1rem 0;
+            }
+
+            .filter-btn {
+                position: relative;
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                padding: 0.5rem 1.5rem;
+                border-radius: 1.5rem;
+                border: 2px solid #1BA7B4;
+                background-color: #fff;
+                color: #1BA7B4;
+                font-size: 14px;
+            }
+
+            .filter-btn.active {
+                background-color: #1BA7B4;
+                color: #fff;
+            }
+            
+            .filter-btn[aria-expanded="true"] {
+                border-radius: 1.5rem 1.5rem 0 0;
+                border-color: var(--primary);
+            }
+
+            .filter-buttons .dropdown-menu {
+                width: 100%;
+                min-width: auto;
+                margin-top: 0;
+                border-radius: 0 0 1.5rem 1.5rem;
+                border: 2px solid #1BA7B4;
+                left: 0;
+                top: -3px !important;
+            } .dropdown-icon {
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 12px;  /* 크기 줄임 */
+                height: 12px;  /* 크기 줄임 */
+                background-image: url("./img/polygon.svg");
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: contain;
+                transition: 0.3s all;
+                z-index: 1;  /* 추가: 아이콘이 텍스트 위에 보이도록 */
+                pointer-events: none;
+            } .filter-btn[aria-expanded="true"] .dropdown-icon {
+                transform: translateY(-50%) rotate(180deg);
+            } .line1_text {
+                position: relative;
+                text-align: center;
+                margin-right: 20px;
+            }
+
+            .date-range-input {
+                width: 274px;
+                border: none;
+                outline: none;
+                text-align: center;
+                cursor: pointer;
+                color: #1BA7B4;
+                font-size: 15px;
+                font-weight: 500;
+                padding-right: 25px;
+            }
+
+            .date-range-input::placeholder {
+                color: #1BA7B4;
+            }
+
+            /* flatpickr 커스텀 스타일 */
+            .flatpickr-calendar {
+                margin: 0 !important;
+                border: 2px solid #1BA7B4 !important;
+                border-top: none !important;
+                border-radius: 0 0 1.5rem 1.5rem !important;
+                box-shadow: none !important;
+                margin-top: -2px !important;
+            }
+
+            .flatpickr-day.selected {
+                background: #1BA7B4 !important;
+                border-color: #1BA7B4 !important;
+            }
+
+            .flatpickr-calendar::before,
+            .flatpickr-calendar::after {
+                display: none;
+            }
+
+            .table-container {
+                max-height: calc(100vh - 300px);
+                overflow: hidden;
+                border: 2px solid #44C1CC;
+                border-radius: 1rem;
+            }
+
+            .table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+
+            .table thead {
+                background-color: #44C1CC;
+                color: white;
+                margin: 0;
+                text-align: center;
+                font-weight: normal;
+                position: sticky;
+                top: 0;
+                z-index: 1;
+            }
+
+            .table thead tr:first-child th:first-child {
+                border-top-left-radius: 0.7rem;
+            }
+
+            .table thead tr:first-child th:last-child {
+                border-top-right-radius: 0.7rem;
+            }
+
+            .table tbody tr:last-child td:first-child {
+                border-bottom-left-radius: 0.7rem;
+            }
+
+            .table tbody tr:last-child td:last-child {
+                border-bottom-right-radius: 0.7rem;
+            }
+
+            .table th {
+                border-bottom: none !important;
+                border-top: none !important;
+                padding: 1rem;
+                text-align: center;
+                vertical-align: middle
+            }
+
+            .table td {
+                border-top: none !important;
+                border-right: 1px solid rgba(68, 193, 204, 0.5);
+                border-bottom: 1px solid rgba(68, 193, 204, 0.5);
+                padding: 1rem;
+                text-align: center;
+                vertical-align: middle
+            }
+
+            .table tbody {
+                display: block;
+                overflow-y: auto;
+                max-height: calc(100vh - 380px);  /* thead 높이 고려 */
+            }
+
+            .table thead tr, 
+            .table tbody tr {
+                display: table;
+                width: 100%;
+                table-layout: fixed;
+            }
+
+            .table tbody::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .table tbody::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+
+            .table tbody::-webkit-scrollbar-thumb {
+                background: #44C1CC;
+                border-radius: 4px;
+            }
+
+            .table tbody::-webkit-scrollbar-thumb:hover {
+                background: #3BA7B1;
+            }
+
+            .table tbody {
+                scrollbar-width: thin;
+                scrollbar-color: #44C1CC rgba(68, 193, 204, 0.1);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="d-flex">
+            <!-- 사이드바 -->
+            <div class="sidebar">
+                <div id="admin_logo" class="logo mb-5">
+                    <img src="./img/admin_logo.svg" alt="쌤공" class="mr-1">
+                </div>
+                <div class="menu">
+                    <a href="#" class="menu-item">
+                        <img src="./img/dashboard.svg" alt="">
+                        챗봇 관리
+                    </a>
+                    <a href="#" class="menu-item">
+                        <img src="./img/dashboard.svg" alt="">
+                        결과 조회
+                    </a>
+                    <a href="#" class="menu-item active">
+                        <img src="./img/dashboard.svg" alt="">
+                        포인트 조회
+                    </a>
+                    <a href="#" class="menu-item">
+                        <img src="./img/dashboard.svg" alt="">
+                        챗봇 생성
+                    </a>
+                </div>
+            </div>
+    
+            <!-- 메인 컨텐츠 -->
+            <div class="main-content">
+                <div class="flex-bw mt_10 mb_50">
+                    <div class="flex-c">
+                        <a href="./" class="mr_20 logo"><img src="./img/logo.svg"></a>
+                        <div class="relative">
+                            <form class="sch_ip align-items-center" method="get" name="frm_search" id="frm_search" action="./search_update" novalidate="novalidate">
+                                <select id="search_select" name="search_option" style="    margin-left: 5px;">
+                                    <option value="title">제목</option>
+                                    <option value="content">내용</option>
+                                    <option value="author">작성자</option>
+                                </select>
+                                <input type="search" id="searchinput" name="searchinput" class="form-control fs_14 flex-fill border-0" placeholder="검색어를 입력해주세요" value="">
+                                <button type="submit" class="btn btn-icon flex-shrink-0"><img src="./img/ico_search.svg" style="width:2rem;"></button>
+                            </form>
+                            <script>
+                                $("#frm_search").validate({
+                                    submitHandler: function() {
+                                        return true;
+                                    },
+                                    rules: {
+                                        searchinput: {
+                                            required: true,
+                                        },
+                                    },
+                                    messages: {
+                                        searchinput: {
+                                            required: "검색어를 입력해주세요",
+                                        },
+                                    },
+                                    errorPlacement: function(error, element) {
+                                        $(element)
+                                            .closest("form")
+                                            .find("span[for='" + element.attr("id") + "']")
+                                            .append(error);
+                                    },
+                                });
+                            </script>
+                            <div class="search-bot-box" id="searchbox">
+                            <div class="recent-search">
+                                <h3 class="fs_17 fw_700">최근 검색어</h3>
+                                <ul>
+                                    <ul>
+                                        <li>최근 검색어가 없습니다.</li>
+                                    </ul>
+                                </ul>
+                            </div>
+                            <div class="recommended-search">
+                                <h3 class="fs_17 fw_700">추천 검색어</h3>
+                                <ul>
+                                    <li>
+                                        <a href="./search_update?searchinput=비상연락망"><p>비상연락망</p></a>
+                                    </li>
+                                    <li>
+                                        <a href="./search_update?searchinput=이름표"><p>이름표</p></a>
+                                    </li>
+                                    <li>
+                                        <a href="./search_update?searchinput=학급 홈페이지"><p>학급 홈페이지</p></a>
+                                    </li>
+                                    <li>
+                                        <a href="./search_update?searchinput=기초조사서"><p>기초조사서</p></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <script>
+                        
+                            document.addEventListener('DOMContentLoaded', (event) => {
+                                const searchInput = document.getElementById('searchinput');
+                                const searchBox = document.getElementById('searchbox');
+                                const mobileSearchInput = document.getElementById('mobileSearchInput');
+                                const body = document.body;
+                        
+                                function handleSearchInputClick(event) {
+                                    console.log('Search input clicked'); // Debug log
+                                    searchBox.classList.add('active');
+                                    body.classList.add('no-scroll');
+                                    mobileSearchInput.focus(); // 모바일 검색 input에 포커스
+                                    event.stopPropagation(); // 이벤트 전파 막기
+                                }
+                        
+                                function handleDocumentClick(event) {
+                                    if (!searchBox.contains(event.target) && !searchInput.contains(event.target)) {
+                                        console.log('Click outside searchbox'); // Debug log
+                                        searchBox.classList.remove('active');
+                                        body.classList.remove('no-scroll');
+                                    }
+                                }
+                        
+                                function handleBackButtonClick(event) {
+                                    console.log('Back button clicked'); // Debug log
+                                    searchBox.classList.remove('active');
+                                    body.classList.remove('no-scroll');
+                                    event.stopPropagation(); // 이벤트 전파 막기
+                                }
+                        
+                                searchInput.addEventListener('click', handleSearchInputClick);
+                                document.addEventListener('click', handleDocumentClick);
+                            });
+                        </script>
+                        </div>
+                    </div>
+                    <div class="flex-c">
+                        <!-- 로그인 -->
+                        <div class="flex-c">
+                            <div class="hd_profile">
+                                <img src="https://ssemgong.com/uploads/mt_image1_1072_1_1743442040.png" alt="Kou" onerror="this.src=\'https://ssemgong.com/img/profile_no_img.svg\'">
+                            </div>
+                            <div class="hd-name">
+                                <div class="flex-c">
+                                    <p class="fw_300 fs_14 mr_10 lh-25">Kou</p><!-- 이름 -->
+                                    <img src="./img/ic_ip_select.svg">
+                                </div>
+                                <ul>
+                                    <li><a href="./mypage">마이페이지</a></li>
+                                    <li><a href="./logout">로그아웃</a></li>
+                                    <li><a href="./community_faq">고객센터</a></li>
+                                </ul>
+                            </div>
+                            <div class="hb-point">
+                                <p>0P</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-bw">
+                    <h2 class="fs_28 fw_600">포인트 조회</h2>
+    
+                    <!-- 필터 버튼 -->
+                    <div class="filter-buttons">
+                        <button class="filter-btn fs_15 fw_500 active">최신순</button>
+                        <button class="filter-btn fs_15 fw_500">포인트순</button>
+                        <button id="date-filter" class="filter-btn fs_15 fw_500" type="button">
+                            <input type="text" class="date-range-input" placeholder="기간별" readonly>
+                            <div class="dropdown-icon"></div>
+                        </button>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                flatpickr(".date-range-input", {
+                                    locale: "ko",
+                                    mode: "range",
+                                    dateFormat: "Y-m-d",
+                                    disableMobile: "true",
+                                    maxDate: "today",
+                                    monthSelectorType: "static",
+                                    placeholder: "기간별",
+                                    position: "auto right",
+                                    positionElement: document.querySelector('#date-filter'),
+                                    onChange: function(selectedDates, dateStr) {
+                                        if(selectedDates.length === 2) {
+                                            const input = document.querySelector('.date-range-input');
+                                            input.setAttribute('value', dateStr);
+                                        }
+                                    },
+                                    onOpen: function() {
+                                        const btn = document.querySelector('#date-filter');
+                                        btn.setAttribute('aria-expanded', 'true');
+                                    },
+                                    onClose: function() {
+                                        const btn = document.querySelector('#date-filter');
+                                        btn.setAttribute('aria-expanded', 'false');
+                                    }
+                                });
+                            });
+                        </script>
+                        <div class="dropdown" id="filter">
+                            <button class="filter-btn fs_15 fw_500" type="button" data-toggle="dropdown" aria-expanded="false">
+                                <div class="line1_text" id="filter_text">챗봇별</div>
+                                <div class="dropdown-icon"></div>
+                            </button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" onclick="f_get_box_list_orderby('1');">최신순</button>
+                                <button class="dropdown-item" onclick="f_get_box_list_orderby('2');">인기순</button>
+                                <button class="dropdown-item" onclick="f_get_box_list_orderby('3');">조회순</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- 테이블 -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>번호</th>
+                                <th>사용자 정보</th>
+                                <th>포인트</th>
+                                <th>유형</th>
+                                <th>내용</th>
+                                <th>일시</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    닉네임: 테스트사용자<br>
+                                    ID: test_user
+                                </td>
+                                <td>+0</td>
+                                <td>chatbot_use</td>
+                                <td>챗봇사용 (무료 사용 기간: 남은 7일)</td>
+                                <td>2025-04-06 04:37:06</td>
+                            </tr>
+                            <script>
+                                function generateTestData() {
+                                    const tbody = document.querySelector('.table tbody');
+                                    const nicknames = ['테스트사용자', '홍길동', '김철수', '이영희', '박지민'];
+                                    const types = ['chatbot_use', 'point_earn', 'point_use', 'signup_bonus'];
+                                    const contents = [
+                                        '챗봇사용 (무료 사용 기간: 남은 7일)',
+                                        '챗봇 생성 보상',
+                                        '포인트 사용',
+                                        '회원가입 보너스',
+                                        '일일 출석 보상'
+                                    ];
+                                    const points = ['+100', '+500', '-200', '+1000', '+50', '-300'];
+                                    
+                                    // 기존 데이터 삭제
+                                    tbody.innerHTML = '';
+                                    
+                                    // 100개 데이터 생성
+                                    for(let i = 1; i <= 100; i++) {
+                                        // 랜덤 날짜 생성 (최근 1년 이내)
+                                        const date = new Date();
+                                        date.setDate(date.getDate() - Math.floor(Math.random() * 365));
+                                        const formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
+                                        
+                                        // 랜덤 데이터 선택
+                                        const nickname = nicknames[Math.floor(Math.random() * nicknames.length)];
+                                        const userId = `user_${Math.floor(Math.random() * 1000)}`;
+                                        const type = types[Math.floor(Math.random() * types.length)];
+                                        const content = contents[Math.floor(Math.random() * contents.length)];
+                                        const point = points[Math.floor(Math.random() * points.length)];
+                                        
+                                        // 행 생성
+                                        const tr = document.createElement('tr');
+                                        tr.innerHTML = `
+                                            <td>${i}</td>
+                                            <td>
+                                                닉네임: ${nickname}<br>
+                                                ID: ${userId}
+                                            </td>
+                                            <td>${point}</td>
+                                            <td>${type}</td>
+                                            <td>${content}</td>
+                                            <td>${formattedDate}</td>
+                                        `;
+                                        
+                                        tbody.appendChild(tr);
+                                    }
+                                }
+
+                                // 페이지 로드 시 실행
+                                document.addEventListener('DOMContentLoaded', generateTestData);
+                            </script>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
