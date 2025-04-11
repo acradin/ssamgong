@@ -144,7 +144,7 @@
             }
 
             .date-range-input {
-                width: 274px;
+                width: 275px;
                 border: none;
                 outline: none;
                 text-align: center;
@@ -177,6 +177,14 @@
             .flatpickr-calendar::before,
             .flatpickr-calendar::after {
                 display: none;
+            }
+
+            #chatbot_table {
+                width: calc(35% - 10px);
+            }
+
+            #log_table {
+                width: calc(65% - 10px);
             }
 
             .table-container {
@@ -227,7 +235,13 @@
                 vertical-align: middle
             }
 
-            .table td {
+            #chatbot_table .table td {
+                border-top: none !important;
+                padding: 0.9rem;
+                padding-left: 1.5rem;
+            }
+
+            #log_table .table td {
                 border-top: none !important;
                 border-right: 1px solid rgba(68, 193, 204, 0.5);
                 border-bottom: 1px solid rgba(68, 193, 204, 0.5);
@@ -236,9 +250,19 @@
                 vertical-align: middle
             }
 
+            #log_table .table tr:hover {
+                background-color: rgba(68, 193, 204, 0.15);
+                cursor: pointer;
+            }
+
+            tr.selected {
+                background-color: rgba(68, 193, 204, 0.15);;
+            }
+
             .table tbody {
                 display: block;
                 overflow-y: auto;
+                min-height: calc(100vh - 380px);
                 max-height: calc(100vh - 380px);  /* thead 높이 고려 */
             }
 
@@ -271,6 +295,21 @@
                 scrollbar-width: thin;
                 scrollbar-color: #44C1CC rgba(68, 193, 204, 0.1);
             }
+
+            .message-bubble {
+                padding: 10px;
+                width: 75%;
+                border-radius: 10px;
+                border: 1px solid #44C1CC;
+            }
+
+            .message-bubble.bot-bubble {
+                margin-right: auto;
+            }
+
+            .message-bubble.user-bubble {
+                margin-left: auto;
+            }
         </style>
     </head>
     <body>
@@ -285,11 +324,11 @@
                         <img src="./img/dashboard.svg" alt="">
                         챗봇 관리
                     </a>
-                    <a href="./admin_result.html" class="menu-item">
+                    <a href="./admin_result.html" class="menu-item active">
                         <img src="./img/dashboard.svg" alt="">
                         결과 조회
                     </a>
-                    <a href="./admin_point.html" class="menu-item active">
+                    <a href="./admin_point.html" class="menu-item">
                         <img src="./img/dashboard.svg" alt="">
                         포인트 조회
                     </a>
@@ -428,7 +467,7 @@
                 </div>
 
                 <div class="flex-bw">
-                    <h2 class="fs_28 fw_600">포인트 조회</h2>
+                    <h2 class="fs_28 fw_600">결과 조회</h2>
     
                     <!-- 필터 버튼 -->
                     <div class="filter-buttons">
@@ -467,99 +506,163 @@
                                 });
                             });
                         </script>
-                        <div class="dropdown" id="filter">
-                            <button class="filter-btn fs_15 fw_500" type="button" data-toggle="dropdown" aria-expanded="false">
-                                <div class="line1_text" id="filter_text">챗봇별</div>
-                                <div class="dropdown-icon"></div>
-                            </button>
-                            <div class="dropdown-menu">
-                                <button class="dropdown-item" onclick="f_get_box_list_orderby('1');">최신순</button>
-                                <button class="dropdown-item" onclick="f_get_box_list_orderby('2');">인기순</button>
-                                <button class="dropdown-item" onclick="f_get_box_list_orderby('3');">조회순</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
-    
-                <!-- 테이블 -->
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>번호</th>
-                                <th>사용자 정보</th>
-                                <th>포인트</th>
-                                <th>유형</th>
-                                <th>내용</th>
-                                <th>일시</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>
-                                    닉네임: 테스트사용자<br>
-                                    ID: test_user
-                                </td>
-                                <td>+0</td>
-                                <td>chatbot_use</td>
-                                <td>챗봇사용 (무료 사용 기간: 남은 7일)</td>
-                                <td>2025-04-06 04:37:06</td>
-                            </tr>
-                            <script>
-                                function generateTestData() {
-                                    const tbody = document.querySelector('.table tbody');
-                                    const nicknames = ['테스트사용자', '홍길동', '김철수', '이영희', '박지민'];
-                                    const types = ['chatbot_use', 'point_earn', 'point_use', 'signup_bonus'];
-                                    const contents = [
-                                        '챗봇사용 (무료 사용 기간: 남은 7일)',
-                                        '챗봇 생성 보상',
-                                        '포인트 사용',
-                                        '회원가입 보너스',
-                                        '일일 출석 보상'
-                                    ];
-                                    const points = ['+100', '+500', '-200', '+1000', '+50', '-300'];
-                                    
-                                    // 기존 데이터 삭제
-                                    tbody.innerHTML = '';
-                                    
-                                    // 100개 데이터 생성
-                                    for(let i = 1; i <= 100; i++) {
-                                        // 랜덤 날짜 생성 (최근 1년 이내)
-                                        const date = new Date();
-                                        date.setDate(date.getDate() - Math.floor(Math.random() * 365));
-                                        const formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
+                
+                <div class="flex-c gap_20">
+                    <!-- 테이블 -->
+                    <div id="chatbot_table" class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>대화내역</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="message-bubble user-bubble">
+                                            유저 채팅
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="message-bubble bot-bubble">
+                                            봇 채팅
+                                        </div>
+                                    </td>
+                                </tr>
+                                <script>
+                                    function generateChatData() {
+                                        const tbody = document.querySelector('#chatbot_table tbody');
                                         
-                                        // 랜덤 데이터 선택
-                                        const nickname = nicknames[Math.floor(Math.random() * nicknames.length)];
-                                        const userId = `user_${Math.floor(Math.random() * 1000)}`;
-                                        const type = types[Math.floor(Math.random() * types.length)];
-                                        const content = contents[Math.floor(Math.random() * contents.length)];
-                                        const point = points[Math.floor(Math.random() * points.length)];
+                                        // 가상의 대화 데이터
+                                        const conversations = [
+                                            {
+                                                user: "안녕하세요, 생활기록부 작성 도움을 받고 싶습니다.",
+                                                bot: "안녕하세요! 생활기록부 작성을 도와드리겠습니다. 어떤 영역의 도움이 필요하신가요?\n1. 자율활동\n2. 동아리활동\n3. 진로활동"
+                                            },
+                                            {
+                                                user: "동아리활동 작성을 도와주세요.",
+                                                bot: "네, 동아리활동 작성을 도와드리겠습니다. 어떤 동아리 활동을 하셨나요?"
+                                            },
+                                            {
+                                                user: "과학 탐구 동아리에서 활동했어요.",
+                                                bot: "과학 탐구 동아리 활동이군요. 주로 어떤 실험이나 프로젝트를 진행하셨나요?"
+                                            }
+                                        ];
                                         
-                                        // 행 생성
-                                        const tr = document.createElement('tr');
-                                        tr.innerHTML = `
-                                            <td>${i}</td>
-                                            <td>
-                                                닉네임: ${nickname}<br>
-                                                ID: ${userId}
-                                            </td>
-                                            <td>${point}</td>
-                                            <td>${type}</td>
-                                            <td>${content}</td>
-                                            <td>${formattedDate}</td>
-                                        `;
+                                        // 기존 데이터 삭제
+                                        tbody.innerHTML = '';
                                         
-                                        tbody.appendChild(tr);
-                                    }
-                                }
+                                        // 대화 데이터 생성
+                                        for(let i = 0; i < 3; i++) {
+                                            conversations.forEach((conv) => {
+                                                // 사용자 메시지 tr
+                                                const userRow = document.createElement('tr');
+                                                userRow.className = 'user-message-row';
+                                                userRow.innerHTML = `
+                                                    <td>
+                                                        <div class="message-bubble user-bubble">
+                                                            ${conv.user}
+                                                        </div>
+                                                    </td>
+                                                `;
+                                                tbody.appendChild(userRow);
 
-                                // 페이지 로드 시 실행
-                                document.addEventListener('DOMContentLoaded', generateTestData);
-                            </script>
-                        </tbody>
-                    </table>
+                                                // 봇 메시지 tr
+                                                const botRow = document.createElement('tr');
+                                                botRow.className = 'bot-message-row';
+                                                botRow.innerHTML = `
+                                                    <td>
+                                                        <div class="message-bubble bot-bubble">
+                                                            ${conv.bot}
+                                                        </div>
+                                                    </td>
+                                                `;
+                                                tbody.appendChild(botRow);
+                                            });
+                                        }
+                                    }
+                                    document.addEventListener('DOMContentLoaded', generateChatData);
+                                </script>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 테이블 -->
+                    <div id="log_table" class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>세션 ID</th>
+                                    <th>사용자 정보</th>
+                                    <th>챗봇 이름</th>
+                                    <th>카테고리</th>
+                                    <th>일시</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>
+                                        닉네임: 테스트사용자<br>
+                                        ID: test_user
+                                    </td>
+                                    <td>+0</td>
+                                    <td>chatbot_use</td>
+                                    <td>2025-04-06 04:37:06</td>
+                                </tr>
+                                <script>
+                                    function generateTestData() {
+                                        const tbody = document.querySelector('#log_table tbody');
+                                        const nicknames = ['테스트사용자', '홍길동', '김철수', '이영희', '박지민'];
+                                        const types = ['chatbot_use', 'point_earn', 'point_use', 'signup_bonus'];
+                                        const points = ['+100', '+500', '-200', '+1000', '+50', '-300'];
+                                        
+                                        // 기존 데이터 삭제
+                                        tbody.innerHTML = '';
+                                        
+                                        // 100개 데이터 생성
+                                        for(let i = 1; i <= 100; i++) {
+                                            // 랜덤 날짜 생성 (최근 1년 이내)
+                                            const date = new Date();
+                                            date.setDate(date.getDate() - Math.floor(Math.random() * 365));
+                                            const formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
+                                            
+                                            // 랜덤 데이터 선택
+                                            const nickname = nicknames[Math.floor(Math.random() * nicknames.length)];
+                                            const userId = `user_${Math.floor(Math.random() * 1000)}`;
+                                            const type = types[Math.floor(Math.random() * types.length)];
+                                            const point = points[Math.floor(Math.random() * points.length)];
+                                            
+                                            // 행 생성
+                                            const tr = document.createElement('tr');
+                                            if (i === 3) {
+                                                tr.classList.add('selected');
+                                            }
+                                            tr.innerHTML = `
+                                                <td>${i}</td>
+                                                <td>
+                                                    닉네임: ${nickname}<br>
+                                                    ID: ${userId}
+                                                </td>
+                                                <td>${point}</td>
+                                                <td>${type}</td>
+                                                <td>${formattedDate}</td>
+                                            `;
+                                            
+                                            tbody.appendChild(tr);
+                                        }
+                                    }
+
+                                    // 페이지 로드 시 실행
+                                    document.addEventListener('DOMContentLoaded', generateTestData);
+                                </script>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
