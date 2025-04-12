@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>메인페이지</title>
+        <link rel="stylesheet" href="./css/boot_custom.css">
+        <link rel="stylesheet" href="./css/design.css">
+        <link rel="stylesheet" href="./css/custom.css">
+        <link rel="stylesheet" href="./css/default_dev.css">
+        <link rel="stylesheet" href="./css/flatpickr.min.css">
+        <script src="./js/jquery.min.js"></script>
+        <script src="./js/bootstrap.bundle.min.js"></script>
+        <script src="./js/flatpickr.min.js"></script>
+        <script src="./js/flatpickr.ko.js"></script>
+        <style>
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 240px;
+                height: 100vh;
+                padding: 2.5rem;
+                box-shadow: 3px 0 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
+                z-index: 1000;
+            }
+
+            #admin_logo {
+                text-align: center;
+                scale: 0.8;
+            }
+
+            .menu-item {
+                display: flex;
+                align-items: center;
+                padding: 1.5rem 1rem 1.5rem 4rem;
+                margin-bottom: 2rem;
+                border-radius: 8px;
+                color: #4C4C4C;
+                text-decoration: none;
+                box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
+                font-weight: 600;
+                font-size: 1.7rem;
+            }
+
+            .menu-item.active {
+                border: 2px solid #1AA6B3;
+                color: #1AA6B3;
+            }
+
+            .menu-item img {
+                width: 20px;
+                margin-right: 10px;
+            }
+
+            .main-content {
+                margin-left: 240px;
+                flex: 1;
+                padding: 2rem 4rem;
+            }
+            
+            #search_select{
+                text-align: left;
+                width: 100px;
+                padding: 10px;
+                font-size: 16px;
+                border: none;
+                border-right: 1px solid #1BA7B4;;
+                border-radius: 0px;
+                background-color: white;
+                color: #333;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                background-repeat: no-repeat;
+                background-position: right 10px center;
+                background-size: 15px;
+            }
+            
+            #search_select:focus {
+                border-color: white;
+                outline: none;
+                border-right: 1px solid #1BA7B4;;
+            }
+
+            .sch_ip {
+                padding-left: 1rem !important;
+            }
+
+            .create-container {
+                width: 100%;
+                min-height: calc(100vh - 300px);
+                max-height: calc(100vh - 300px);
+                overflow: hidden;
+                padding: 2rem 3rem;
+                border: 2px solid #44C1CC;
+                border-radius: 1rem;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: #44C1CC rgba(68, 193, 204, 0.1);
+            } .ai_create_btn {
+                display: block;
+                margin: 3.5rem 0 0 auto;
+                padding: 1.5rem 5rem;
+                border-radius: 100px;
+                border: 0;
+                background-color: #44C1CC;
+                color: #fff;
+                font-size: 1.8rem;
+                font-weight: 600;
+                text-align: center;
+            } .ai_cancel_btn {
+                display: block;
+                margin: 3.5rem auto 0 0;
+                padding: 1.5rem 5rem;
+                border-radius: 100px;
+                border: 0;
+                background-color: #ACACAC;
+                color: #fff;
+                font-size: 1.8rem;
+                font-weight: 600;
+                text-align: center;
+            }
+
+            .create-container::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .create-container::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+
+            .create-container::-webkit-scrollbar-thumb {
+                background: #44C1CC;
+                border-radius: 4px;
+            }
+
+            .create-container::-webkit-scrollbar-thumb:hover {
+                background: #3BA7B1;
+            }
+
+            .custom-input {
+                width: 100%;
+                padding: 1rem 1.5rem;
+                height: 4.5rem;
+                font-weight: 600;
+                border: none;
+                border-radius: 5px;
+                background-color: #F1F1F1;
+            }
+
+            .custom-input2 {
+                flex: 1;
+                padding: 1rem 1.5rem;
+                height: 4.5rem;
+                font-weight: 600;
+                border: none;
+                border-radius: 5px;
+                background-color: #F1F1F1;
+            }
+
+            .custom-textarea {
+                width: 100%;
+                padding: 1rem 1.5rem;
+                height: 8rem;
+                font-weight: 600;
+                border: none;
+                border-radius: 5px;
+                background-color: #F1F1F1;
+                resize: none;
+            }
+
+            .custom-input::placeholder, .custom-input2::placeholder, .custom-textarea::placeholder {
+                color: #4C4C4C;
+            }
+
+            .create-container input[type="radio"] {
+                appearance: none;
+                width: 1.8rem;
+                height: 1.8rem;
+                border: 2px solid #44C1CC;
+                border-radius: 50%;
+                margin: 0;
+                position: relative;
+            }
+
+            .create-container input[type="radio"]:checked {
+                border-color: #44C1CC;
+            }
+
+            .create-container input[type="radio"]:checked:before {
+                content: '';
+                position: absolute;
+                width: 1rem;
+                height: 1rem;
+                background: #44C1CC;
+                border-radius: 50%;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+
+            .delete_btn {
+                display: block;
+                padding: 1rem 1.5rem;
+                height: 4.5rem;
+                font-weight: 600;
+                border: none;
+                border-radius: 5px;
+                background-color: #FF6366;
+                color: #fff;
+                text-align: center;
+            }
+
+            .add_btn {
+                display: block;
+                margin: 0 auto;
+                scale: 0.8;
+                border: none;
+                background-color: #fff;
+            }
+
+            .v_list_btn {
+                display: block;
+                padding: 1rem 1.5rem;
+                height: 4.5rem;
+                font-weight: 600;
+                border: none;
+                border-radius: 5px;
+                background-color: #F1F1F1;
+                color: #4C4C4C;
+                text-align: center;
+            } .dropdown-icon {
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 12px;  /* 크기 줄임 */
+                height: 12px;  /* 크기 줄임 */
+                background-image: url("./img/polygon1.svg");
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: contain;
+                transition: 0.3s all;
+                z-index: 1;  /* 추가: 아이콘이 텍스트 위에 보이도록 */
+                pointer-events: none;
+            } .v_list_btn[aria-expanded="true"] .dropdown-icon {
+                transform: translateY(-50%) rotate(180deg);
+            } .line1_text {
+                position: relative;
+                text-align: center;
+                margin-right: 20px;
+            } .dropdown-menu {
+                width: 100%;
+                min-width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="d-flex">
+            <!-- 사이드바 -->
+            <div class="sidebar">
+                <div id="admin_logo" class="logo mb-5">
+                    <img src="./img/admin_logo.svg" alt="쌤공" class="mr-1">
+                </div>
+                <div class="menu">
+                    <a href="#" class="menu-item">
+                        <img src="./img/dashboard.svg" alt="">
+                        챗봇 관리
+                    </a>
+                    <a href="./admin_result.html" class="menu-item">
+                        <img src="./img/dashboard.svg" alt="">
+                        결과 조회
+                    </a>
+                    <a href="./admin_point.html" class="menu-item">
+                        <img src="./img/dashboard.svg" alt="">
+                        포인트 조회
+                    </a>
+                    <a href="./admin_createbot.html" class="menu-item active">
+                        <img src="./img/dashboard.svg" alt="">
+                        챗봇 생성
+                    </a>
+                </div>
+            </div>
+    
+            <!-- 메인 컨텐츠 -->
+            <div class="main-content">
+                <div class="flex-bw mt_10 mb_50">
+                    <div class="flex-c">
+                        <a href="./" class="mr_20 logo"><img src="./img/logo.svg"></a>
+                        <div class="relative">
+                            <form class="sch_ip align-items-center" method="get" name="frm_search" id="frm_search" action="./search_update" novalidate="novalidate">
+                                <select id="search_select" name="search_option" style="    margin-left: 5px;">
+                                    <option value="title">제목</option>
+                                    <option value="content">내용</option>
+                                    <option value="author">작성자</option>
+                                </select>
+                                <input type="search" id="searchinput" name="searchinput" class="form-control fs_14 flex-fill border-0" placeholder="검색어를 입력해주세요" value="">
+                                <button type="submit" class="btn btn-icon flex-shrink-0"><img src="./img/ico_search.svg" style="width:2rem;"></button>
+                            </form>
+                            <script>
+                                $("#frm_search").validate({
+                                    submitHandler: function() {
+                                        return true;
+                                    },
+                                    rules: {
+                                        searchinput: {
+                                            required: true,
+                                        },
+                                    },
+                                    messages: {
+                                        searchinput: {
+                                            required: "검색어를 입력해주세요",
+                                        },
+                                    },
+                                    errorPlacement: function(error, element) {
+                                        $(element)
+                                            .closest("form")
+                                            .find("span[for='" + element.attr("id") + "']")
+                                            .append(error);
+                                    },
+                                });
+                            </script>
+                            <div class="search-bot-box" id="searchbox">
+                            <div class="recent-search">
+                                <h3 class="fs_17 fw_700">최근 검색어</h3>
+                                <ul>
+                                    <ul>
+                                        <li>최근 검색어가 없습니다.</li>
+                                    </ul>
+                                </ul>
+                            </div>
+                            <div class="recommended-search">
+                                <h3 class="fs_17 fw_700">추천 검색어</h3>
+                                <ul>
+                                    <li>
+                                        <a href="./search_update?searchinput=비상연락망"><p>비상연락망</p></a>
+                                    </li>
+                                    <li>
+                                        <a href="./search_update?searchinput=이름표"><p>이름표</p></a>
+                                    </li>
+                                    <li>
+                                        <a href="./search_update?searchinput=학급 홈페이지"><p>학급 홈페이지</p></a>
+                                    </li>
+                                    <li>
+                                        <a href="./search_update?searchinput=기초조사서"><p>기초조사서</p></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <script>
+                        
+                            document.addEventListener('DOMContentLoaded', (event) => {
+                                const searchInput = document.getElementById('searchinput');
+                                const searchBox = document.getElementById('searchbox');
+                                const mobileSearchInput = document.getElementById('mobileSearchInput');
+                                const body = document.body;
+                        
+                                function handleSearchInputClick(event) {
+                                    console.log('Search input clicked'); // Debug log
+                                    searchBox.classList.add('active');
+                                    body.classList.add('no-scroll');
+                                    mobileSearchInput.focus(); // 모바일 검색 input에 포커스
+                                    event.stopPropagation(); // 이벤트 전파 막기
+                                }
+                        
+                                function handleDocumentClick(event) {
+                                    if (!searchBox.contains(event.target) && !searchInput.contains(event.target)) {
+                                        console.log('Click outside searchbox'); // Debug log
+                                        searchBox.classList.remove('active');
+                                        body.classList.remove('no-scroll');
+                                    }
+                                }
+                        
+                                function handleBackButtonClick(event) {
+                                    console.log('Back button clicked'); // Debug log
+                                    searchBox.classList.remove('active');
+                                    body.classList.remove('no-scroll');
+                                    event.stopPropagation(); // 이벤트 전파 막기
+                                }
+                        
+                                searchInput.addEventListener('click', handleSearchInputClick);
+                                document.addEventListener('click', handleDocumentClick);
+                            });
+                        </script>
+                        </div>
+                    </div>
+                    <div class="flex-c">
+                        <!-- 로그인 -->
+                        <div class="flex-c">
+                            <div class="hd_profile">
+                                <img src="https://ssemgong.com/uploads/mt_image1_1072_1_1743442040.png" alt="Kou" onerror="this.src=\'https://ssemgong.com/img/profile_no_img.svg\'">
+                            </div>
+                            <div class="hd-name">
+                                <div class="flex-c">
+                                    <p class="fw_300 fs_14 mr_10 lh-25">Kou</p><!-- 이름 -->
+                                    <img src="./img/ic_ip_select.svg">
+                                </div>
+                                <ul>
+                                    <li><a href="./mypage">마이페이지</a></li>
+                                    <li><a href="./logout">로그아웃</a></li>
+                                    <li><a href="./community_faq">고객센터</a></li>
+                                </ul>
+                            </div>
+                            <div class="hb-point">
+                                <p>0P</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-bw my_10">
+                    <h2 class="fs_28 fw_600">챗봇 생성</h2>
+                </div>
+
+                <div class="create-container">
+                    <div class="mb_20">
+                        <h2 class="fs_22 fw_600 mb_14">챗봇 이름</h2>
+                        <input class="custom-input" type="text" placeholder="챗봇 이름 입력" />
+                    </div>
+                    <div class="mb_20">
+                        <h2 class="fs_22 fw_600 mb_14">카테고리</h2>
+                        <label class="d-flex align-items-center gap_10 mb_12">
+                            <input type="radio" name="category" checked>
+                            <input class="custom-input2" type="text" placeholder="카테고리 1 이름" />
+                            <button class="delete_btn">삭제하기</button>
+                        </label>
+                        <label class="d-flex align-items-center gap_10 mb_12">
+                            <input type="radio" name="category">
+                            <input class="custom-input2" type="text" placeholder="카테고리 2 이름" />
+                            <button class="delete_btn">삭제하기</button>
+                        </label>
+                        <button class="add_btn"><img src="./img/plus.svg" alt="추가하기"></button>
+                    </div>
+                    <div class="mb_20">
+                        <h2 class="fs_22 fw_600 mb_14">프롬프트</h2>
+                        <input class="custom-input mb_10" type="text" placeholder="프롬프트 제목" />
+                        <textarea class="custom-textarea" placeholder="프롬프트 내용"></textarea>
+                    </div>
+                    <div class="mb_20">
+                        <h2 class="fs_22 fw_600 mb_14">변수</h2>
+                        <div>
+                            <div class="flex-c gap_10 mb_10">
+                                <input class="custom-input2" type="text" placeholder="변수 이름" />
+                                <div class="dropdown" id="v_list">
+                                    <button class="v_list_btn fs_15 fw_500" type="button" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="line1_text" id="v_list_text">변수 타입</div>
+                                        <div class="dropdown-icon"></div>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <button class="dropdown-item" onclick="f_get_box_list_orderby('1');">최신순</button>
+                                        <button class="dropdown-item" onclick="f_get_box_list_orderby('2');">인기순</button>
+                                        <button class="dropdown-item" onclick="f_get_box_list_orderby('3');">조회순</button>
+                                    </div>
+                                </div>
+                                <button class="delete_btn">삭제하기</button>
+                            </div>
+                            <input class="custom-input" type="text" placeholder="변수 내용" />
+                        </div>
+                        <button class="add_btn"><img src="./img/plus.svg" alt="추가하기"></button>
+                    </div>
+                </div>
+
+                <div class="flex-c gap_20">
+                    <button class="ai_create_btn">챗봇 생성</button>
+                    <button class="ai_cancel_btn">취소</button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
