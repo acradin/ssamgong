@@ -55,6 +55,8 @@
                 margin-left: 240px;
                 flex: 1;
                 padding: 2rem 4rem;
+                overflow-x: hidden;  /* 추가: 메인 컨텐츠 영역 넘침 방지 */
+                width: calc(100% - 240px);
             }
             
             #search_select{
@@ -86,8 +88,8 @@
 
             .create-container {
                 width: 100%;
-                min-height: calc(100vh - 300px);
-                max-height: calc(100vh - 300px);
+                min-height: calc(100vh - 410px);
+                max-height: calc(100vh - 410px);
                 overflow: hidden;
                 padding: 2rem 3rem;
                 border: 2px solid #44C1CC;
@@ -198,6 +200,55 @@
                 transform: translate(-50%, -50%);
             }
 
+            .scroll-container {
+                width: 100%;
+                overflow-x: scroll;  /* auto 대신 scroll 사용 */
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;  /* Firefox */
+                scrollbar-color: #ECECEC #fff;
+            }
+
+            .button-wrapper {
+                display: flex;  /* flex 대신 inline-flex 사용 */
+                gap: 10px;
+                padding-bottom: 5px;
+                width: max-content;
+            }
+
+            .bot_list_btn {
+                white-space: nowrap;
+                padding: 1.4rem 2rem;
+                font-weight: 600;
+                border: none;
+                border-radius: 5px;
+                background-color: #ECECEC;
+                color: #4C4C4C;
+            }
+
+            .bot_list_btn.selected {
+                background-color: #44C1CC;
+                color: #fff;
+            }
+
+            /* 스크롤바 스타일 */
+            .scroll-container::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .scroll-container::-webkit-scrollbar-track {
+                background: #fff;
+                border-radius: 4px;
+            }
+
+            .scroll-container::-webkit-scrollbar-thumb {
+                background: #ECECEC;
+                border-radius: 4px;
+            }
+
+            .scroll-container::-webkit-scrollbar-thumb:hover {
+                background: #DBDBDB;  /* 호버 시 약간 더 진한 색상으로 변경 */
+            }
+
             .delete_btn {
                 display: block;
                 padding: 1rem 1.5rem;
@@ -262,7 +313,7 @@
                     <img src="./img/admin_logo.svg" alt="쌤공" class="mr-1">
                 </div>
                 <div class="menu">
-                    <a href="./admin_managebot.html" class="menu-item">
+                    <a href="./admin_managebot.html" class="menu-item active">
                         <img src="./img/dashboard.svg" alt="">
                         챗봇 관리
                     </a>
@@ -274,7 +325,7 @@
                         <img src="./img/dashboard.svg" alt="">
                         포인트 조회
                     </a>
-                    <a href="./admin_createbot.html" class="menu-item active">
+                    <a href="./admin_createbot.html" class="menu-item">
                         <img src="./img/dashboard.svg" alt="">
                         챗봇 생성
                     </a>
@@ -409,14 +460,33 @@
                 </div>
 
                 <div class="flex-bw my_10">
-                    <h2 class="fs_28 fw_600">챗봇 생성</h2>
+                    <h2 class="fs_32 fw_600">챗봇 관리</h2>
+                </div>
+
+                <div class="scroll-container mb_20">
+                    <div class="button-wrapper">
+                        <button class="bot_list_btn selected">생활기록부</button>
+                        <button class="bot_list_btn">문제 제작</button>
+                        <button class="bot_list_btn">가정통신문</button>
+                        <button class="bot_list_btn">활동지 작성</button>
+                        <button class="bot_list_btn">업무 비서</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                        <button class="bot_list_btn">새로운 챗봇</button>
+                    </div>
+                </div>
+
+                <div class="flex-bw my_10">
+                    <h2 class="fs_28 fw_600">생활기록부</h2>
                 </div>
 
                 <div class="create-container">
-                    <div class="mb_20">
-                        <h2 class="fs_22 fw_600 mb_14">챗봇 이름</h2>
-                        <input class="custom-input" type="text" placeholder="챗봇 이름 입력" />
-                    </div>
                     <div class="mb_20">
                         <h2 class="fs_22 fw_600 mb_14">카테고리</h2>
                         <label class="d-flex align-items-center gap_10 mb_12">
@@ -429,7 +499,6 @@
                             <input class="custom-input2" type="text" placeholder="카테고리 2 이름" />
                             <button class="delete_btn">삭제하기</button>
                         </label>
-                        <button class="add_btn"><img src="./img/plus.svg" alt="추가하기"></button>
                     </div>
                     <div class="mb_20">
                         <h2 class="fs_22 fw_600 mb_14">프롬프트</h2>
@@ -461,8 +530,8 @@
                 </div>
 
                 <div class="flex-c gap_20">
-                    <button class="ai_create_btn">챗봇 생성</button>
-                    <button class="ai_cancel_btn">취소</button>
+                    <button class="ai_create_btn">저장하기</button>
+                    <button class="ai_cancel_btn" onclick="location.href='./admin_managebot.html'">취소</button>
                 </div>
             </div>
         </div>
