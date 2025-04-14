@@ -1,0 +1,521 @@
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    padding: 2.5rem;
+    box-shadow: 3px 0 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
+    z-index: 1000;
+}
+
+#adminLogo {
+    text-align: center;
+    scale: 0.8;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 1rem 1.5rem 4rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    color: #4C4C4C;
+    text-decoration: none;
+    box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
+    font-weight: 600;
+    font-size: 1.7rem;
+}
+
+.menu-item.active {
+    border: 2px solid #1AA6B3;
+    color: #1AA6B3;
+}
+
+.menu-item img {
+    width: 20px;
+    margin-right: 10px;
+}
+
+#main-container {
+    margin-left: 240px;
+    flex: 1;
+    padding: 2rem 4rem;
+    overflow-x: hidden;  /* 추가: 메인 컨텐츠 영역 넘침 방지 */
+    width: calc(100% - 240px);
+}
+
+#search_select{
+    text-align: left;
+    width: 100px;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-right: 1px solid #1BA7B4;;
+    border-radius: 0px;
+    background-color: white;
+    color: #333;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 15px;
+}
+
+#search_select:focus {
+    border-color: white;
+    outline: none;
+    border-right: 1px solid #1BA7B4;;
+}
+
+.sch_ip {
+    padding-left: 1rem !important;
+}
+
+
+#ai-container {
+    width: 100%;
+    min-height: calc(100vh - 300px);
+    max-height: calc(100vh - 300px);
+    overflow: hidden;
+    padding: 2rem 3rem;
+    border: 2px solid #44C1CC;
+    border-radius: 1rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #44C1CC rgba(68, 193, 204, 0.1);
+}
+
+#ai-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#ai-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#ai-container::-webkit-scrollbar-thumb {
+    background: #44C1CC;
+    border-radius: 4px;
+}
+
+#ai-container::-webkit-scrollbar-thumb:hover {
+    background: #3BA7B1;
+}
+
+.btn-accept {
+    display: block;
+    border-radius: 100px;
+    border: 0;
+    background-color: #44C1CC;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+} .btn-cancel {
+    display: block;
+    margin: 3.5rem auto 0 0;
+    padding: 1.5rem 5rem;
+    border-radius: 100px;
+    border: 0;
+    background-color: #ACACAC;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.custom-input {
+    width: 100%;
+    flex: 1;
+    padding: 1rem 1.5rem;
+    height: 4.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    background-color: #F1F1F1;
+}
+
+.custom-textarea {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    height: 8rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    background-color: #F1F1F1;
+    resize: none;
+}
+
+.custom-input::placeholder,.custom-textarea::placeholder {
+    color: #4C4C4C;
+}
+
+#ai-container input[type="radio"] {
+    appearance: none;
+    width: 1.8rem;
+    height: 1.8rem;
+    border: 2px solid #44C1CC;
+    border-radius: 50%;
+    margin: 0;
+    position: relative;
+}
+
+#ai-container input[type="radio"]:checked {
+    border-color: #44C1CC;
+}
+
+#ai-container input[type="radio"]:checked:before {
+    content: '';
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    background: #44C1CC;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.btn-delete {
+    display: block;
+    padding: 1rem 1.5rem;
+    height: 4.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    background-color: #FF6366;
+    color: #fff;
+    text-align: center;
+}
+
+.btn-add {
+    display: block;
+    margin: 0 auto;
+    scale: 0.8;
+    border: none;
+    background-color: #fff;
+}
+
+#scroll-ai-container {
+    width: 100%;
+    overflow-x: scroll;  /* auto 대신 scroll 사용 */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;  /* Firefox */
+    scrollbar-color: #ECECEC #fff;
+}
+
+#scroll-ai-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+#scroll-ai-container::-webkit-scrollbar-track {
+    background: #fff;
+    border-radius: 4px;
+}
+
+#scroll-ai-container::-webkit-scrollbar-thumb {
+    background: #ECECEC;
+    border-radius: 4px;
+}
+
+#scroll-ai-container::-webkit-scrollbar-thumb:hover {
+    background: #DBDBDB;  /* 호버 시 약간 더 진한 색상으로 변경 */
+}
+
+.button-horizontal-wrapper {
+    display: flex;  /* flex 대신 inline-flex 사용 */
+    gap: 10px;
+    padding-bottom: 5px;
+    width: max-content;
+}
+
+.btn-bot {
+    white-space: nowrap;
+    padding: 1.4rem 2rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    background-color: #ECECEC;
+    color: #4C4C4C;
+}
+
+.btn-bot.selected {
+    background-color: #44C1CC;
+    color: #fff;
+}
+
+.btn-active {
+    display: block;
+    padding: 1rem 1.5rem;
+    width: 9rem;
+    height: 4.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 25px;
+    background-color: #ABABAB;
+    color: #fff;
+    text-align: center;
+}
+
+.btn-active.activated {
+    background-color: #252EDE;
+}
+
+.btn-variable-type {
+    display: block;
+    padding: 1rem 1.5rem;
+    height: 4.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    background-color: #F1F1F1;
+    color: #4C4C4C;
+    text-align: center;
+}
+
+.dropdown-icon {
+   position: absolute;
+   right: 15px;
+   top: 50%;
+   transform: translateY(-50%);
+   width: 12px;  /* 크기 줄임 */
+   height: 12px;  /* 크기 줄임 */
+   background-position: center;
+   background-repeat: no-repeat;
+   background-size: contain;
+   transition: 0.3s all;
+   z-index: 1;  /* 추가: 아이콘이 텍스트 위에 보이도록 */
+   pointer-events: none;
+} .dropdown-icon.polygon {
+   background-image: url("../img/polygon.svg");
+} .dropdown-icon.polygon-01 {
+    background-image: url("../img/polygon1.svg");
+} .dropdown button[aria-expanded="true"] .dropdown-icon, #date-filter[aria-expanded="true"] .dropdown-icon {
+    transform: translateY(-50%) rotate(180deg);
+} .dropdown-text {
+   position: relative;
+   text-align: center;
+   margin-right: 20px;
+} #variable-type .dropdown-menu {
+   width: 100%;
+   min-width: 100%;
+}
+
+/* flatpickr 커스텀 스타일 */
+.input-date {
+    width: 275px;
+    border: none;
+    outline: none;
+    text-align: center;
+    cursor: pointer;
+    color: #1BA7B4;
+    font-size: 15px;
+    font-weight: 500;
+    padding-right: 25px;
+}
+
+.input-date::placeholder {
+    color: #1BA7B4;
+}
+.flatpickr-calendar {
+    margin: 0 !important;
+    border: 2px solid #1BA7B4 !important;
+    border-top: none !important;
+    border-radius: 0 0 1.5rem 1.5rem !important;
+    box-shadow: none !important;
+    margin-top: -2px !important;
+}
+
+.flatpickr-day.selected {
+    background: #1BA7B4 !important;
+    border-color: #1BA7B4 !important;
+}
+
+.flatpickr-calendar::before,
+.flatpickr-calendar::after {
+    display: none;
+}
+
+
+#filter-box {
+    display: flex;
+    gap: 10px;
+    margin: 1rem 0;
+}
+
+#filter-box .dropdown-menu {
+    width: 100%;
+    min-width: auto;
+    margin-top: 0;
+    border-radius: 0 0 1.5rem 1.5rem;
+    border: 2px solid #1BA7B4;
+    left: 0;
+    top: -3px !important;
+}
+
+.btn-filter {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem 1.5rem;
+    border-radius: 1.5rem;
+    border: 2px solid #1BA7B4;
+    background-color: #fff;
+    color: #1BA7B4;
+    font-size: 14px;
+}
+
+.btn-filter.active {
+    background-color: #1BA7B4;
+    color: #fff;
+}
+
+.btn-filter[aria-expanded="true"] {
+    border-radius: 1.5rem 1.5rem 0 0;
+    border-color: var(--primary);
+}
+
+.table-container {
+    max-height: calc(100vh - 300px);
+    overflow: hidden;
+    border: 2px solid #44C1CC;
+    border-radius: 1rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+table thead {
+    background-color: #44C1CC;
+    color: white;
+    margin: 0;
+    text-align: center;
+    font-weight: normal;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+table thead tr:first-child th:first-child {
+    border-top-left-radius: 0.7rem;
+}
+
+table thead tr:first-child th:last-child {
+    border-top-right-radius: 0.7rem;
+}
+
+table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 0.7rem;
+}
+
+table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 0.7rem;
+}
+
+table th {
+    border-bottom: none !important;
+    border-top: none !important;
+    padding: 1rem;
+    text-align: center;
+    vertical-align: middle
+}
+
+table tbody {
+    display: block;
+    overflow-y: auto;
+    min-height: calc(100vh - 380px);
+    max-height: calc(100vh - 380px);  /* thead 높이 고려 */
+}
+
+table thead tr, 
+table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+table tbody::-webkit-scrollbar {
+    width: 8px;
+}
+
+table tbody::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+table tbody::-webkit-scrollbar-thumb {
+    background: #44C1CC;
+    border-radius: 4px;
+}
+
+table tbody::-webkit-scrollbar-thumb:hover {
+    background: #3BA7B1;
+}
+
+table tbody {
+    scrollbar-width: thin;
+    scrollbar-color: #44C1CC rgba(68, 193, 204, 0.1);
+}
+
+#point-table td {
+    border-top: none !important;
+    border-right: 1px solid rgba(68, 193, 204, 0.5);
+    border-bottom: 1px solid rgba(68, 193, 204, 0.5);
+    padding: 1rem;
+    text-align: center;
+    vertical-align: middle
+}
+
+
+#chatbot-container {
+    width: calc(35% - 10px);
+}
+
+#log-container {
+    width: calc(65% - 10px);
+}
+
+#chatbot-container table td {
+    border-top: none !important;
+    padding: 0.9rem;
+    padding-left: 1.5rem;
+}
+
+#log-container table td {
+    border-top: none !important;
+    border-right: 1px solid rgba(68, 193, 204, 0.5);
+    border-bottom: 1px solid rgba(68, 193, 204, 0.5);
+    padding: 1rem;
+    text-align: center;
+    vertical-align: middle
+}
+
+#log-container table tr:hover {
+    background-color: rgba(68, 193, 204, 0.15);
+    cursor: pointer;
+}
+
+tr.selected {
+    background-color: rgba(68, 193, 204, 0.15);;
+}
+
+.message-bubble {
+    padding: 10px;
+    width: 75%;
+    border-radius: 10px;
+    border: 1px solid #44C1CC;
+}
+
+.message-bubble.bot-bubble {
+    margin-right: auto;
+}
+
+.message-bubble.user-bubble {
+    margin-left: auto;
+}

@@ -7,316 +7,17 @@
         <link rel="stylesheet" href="./css/custom.css">
         <link rel="stylesheet" href="./css/default_dev.css">
         <link rel="stylesheet" href="./css/flatpickr.min.css">
+        <link rel="stylesheet" href="./css/admin.css">
         <script src="./js/jquery.min.js"></script>
         <script src="./js/bootstrap.bundle.min.js"></script>
         <script src="./js/flatpickr.min.js"></script>
         <script src="./js/flatpickr.ko.js"></script>
-        <style>
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 240px;
-                height: 100vh;
-                padding: 2.5rem;
-                box-shadow: 3px 0 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
-                z-index: 1000;
-            }
-
-            #admin_logo {
-                text-align: center;
-                scale: 0.8;
-            }
-
-            .menu-item {
-                display: flex;
-                align-items: center;
-                padding: 1.5rem 1rem 1.5rem 4rem;
-                margin-bottom: 2rem;
-                border-radius: 8px;
-                color: #4C4C4C;
-                text-decoration: none;
-                box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.1);  /* 좌측과 하단에만 그림자 */
-                font-weight: 600;
-                font-size: 1.7rem;
-            }
-
-            .menu-item.active {
-                border: 2px solid #1AA6B3;
-                color: #1AA6B3;
-            }
-
-            .menu-item img {
-                width: 20px;
-                margin-right: 10px;
-            }
-
-            .main-content {
-                margin-left: 240px;
-                flex: 1;
-                padding: 2rem 4rem;
-            }
-            
-            #search_select{
-                text-align: left;
-                width: 100px;
-                padding: 10px;
-                font-size: 16px;
-                border: none;
-                border-right: 1px solid #1BA7B4;;
-                border-radius: 0px;
-                background-color: white;
-                color: #333;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                background-repeat: no-repeat;
-                background-position: right 10px center;
-                background-size: 15px;
-            }
-            
-            #search_select:focus {
-                border-color: white;
-                outline: none;
-                border-right: 1px solid #1BA7B4;;
-            }
-
-            .sch_ip {
-                padding-left: 1rem !important;
-            }
-
-            .filter-buttons {
-                display: flex;
-                gap: 10px;
-                margin: 1rem 0;
-            }
-
-            .filter-btn {
-                position: relative;
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-                padding: 0.5rem 1.5rem;
-                border-radius: 1.5rem;
-                border: 2px solid #1BA7B4;
-                background-color: #fff;
-                color: #1BA7B4;
-                font-size: 14px;
-            }
-
-            .filter-btn.active {
-                background-color: #1BA7B4;
-                color: #fff;
-            }
-            
-            .filter-btn[aria-expanded="true"] {
-                border-radius: 1.5rem 1.5rem 0 0;
-                border-color: var(--primary);
-            }
-
-            .filter-buttons .dropdown-menu {
-                width: 100%;
-                min-width: auto;
-                margin-top: 0;
-                border-radius: 0 0 1.5rem 1.5rem;
-                border: 2px solid #1BA7B4;
-                left: 0;
-                top: -3px !important;
-            } .dropdown-icon {
-                position: absolute;
-                right: 15px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 12px;  /* 크기 줄임 */
-                height: 12px;  /* 크기 줄임 */
-                background-image: url("./img/polygon.svg");
-                background-position: center;
-                background-repeat: no-repeat;
-                background-size: contain;
-                transition: 0.3s all;
-                z-index: 1;  /* 추가: 아이콘이 텍스트 위에 보이도록 */
-                pointer-events: none;
-            } .filter-btn[aria-expanded="true"] .dropdown-icon {
-                transform: translateY(-50%) rotate(180deg);
-            } .line1_text {
-                position: relative;
-                text-align: center;
-                margin-right: 20px;
-            }
-
-            .date-range-input {
-                width: 275px;
-                border: none;
-                outline: none;
-                text-align: center;
-                cursor: pointer;
-                color: #1BA7B4;
-                font-size: 15px;
-                font-weight: 500;
-                padding-right: 25px;
-            }
-
-            .date-range-input::placeholder {
-                color: #1BA7B4;
-            }
-
-            /* flatpickr 커스텀 스타일 */
-            .flatpickr-calendar {
-                margin: 0 !important;
-                border: 2px solid #1BA7B4 !important;
-                border-top: none !important;
-                border-radius: 0 0 1.5rem 1.5rem !important;
-                box-shadow: none !important;
-                margin-top: -2px !important;
-            }
-
-            .flatpickr-day.selected {
-                background: #1BA7B4 !important;
-                border-color: #1BA7B4 !important;
-            }
-
-            .flatpickr-calendar::before,
-            .flatpickr-calendar::after {
-                display: none;
-            }
-
-            #chatbot_table {
-                width: calc(35% - 10px);
-            }
-
-            #log_table {
-                width: calc(65% - 10px);
-            }
-
-            .table-container {
-                max-height: calc(100vh - 300px);
-                overflow: hidden;
-                border: 2px solid #44C1CC;
-                border-radius: 1rem;
-            }
-
-            .table {
-                width: 100%;
-                border-collapse: separate;
-                border-spacing: 0;
-            }
-
-            .table thead {
-                background-color: #44C1CC;
-                color: white;
-                margin: 0;
-                text-align: center;
-                font-weight: normal;
-                position: sticky;
-                top: 0;
-                z-index: 1;
-            }
-
-            .table thead tr:first-child th:first-child {
-                border-top-left-radius: 0.7rem;
-            }
-
-            .table thead tr:first-child th:last-child {
-                border-top-right-radius: 0.7rem;
-            }
-
-            .table tbody tr:last-child td:first-child {
-                border-bottom-left-radius: 0.7rem;
-            }
-
-            .table tbody tr:last-child td:last-child {
-                border-bottom-right-radius: 0.7rem;
-            }
-
-            .table th {
-                border-bottom: none !important;
-                border-top: none !important;
-                padding: 1rem;
-                text-align: center;
-                vertical-align: middle
-            }
-
-            #chatbot_table .table td {
-                border-top: none !important;
-                padding: 0.9rem;
-                padding-left: 1.5rem;
-            }
-
-            #log_table .table td {
-                border-top: none !important;
-                border-right: 1px solid rgba(68, 193, 204, 0.5);
-                border-bottom: 1px solid rgba(68, 193, 204, 0.5);
-                padding: 1rem;
-                text-align: center;
-                vertical-align: middle
-            }
-
-            #log_table .table tr:hover {
-                background-color: rgba(68, 193, 204, 0.15);
-                cursor: pointer;
-            }
-
-            tr.selected {
-                background-color: rgba(68, 193, 204, 0.15);;
-            }
-
-            .table tbody {
-                display: block;
-                overflow-y: auto;
-                min-height: calc(100vh - 380px);
-                max-height: calc(100vh - 380px);  /* thead 높이 고려 */
-            }
-
-            .table thead tr, 
-            .table tbody tr {
-                display: table;
-                width: 100%;
-                table-layout: fixed;
-            }
-
-            .table tbody::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            .table tbody::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 4px;
-            }
-
-            .table tbody::-webkit-scrollbar-thumb {
-                background: #44C1CC;
-                border-radius: 4px;
-            }
-
-            .table tbody::-webkit-scrollbar-thumb:hover {
-                background: #3BA7B1;
-            }
-
-            .table tbody {
-                scrollbar-width: thin;
-                scrollbar-color: #44C1CC rgba(68, 193, 204, 0.1);
-            }
-
-            .message-bubble {
-                padding: 10px;
-                width: 75%;
-                border-radius: 10px;
-                border: 1px solid #44C1CC;
-            }
-
-            .message-bubble.bot-bubble {
-                margin-right: auto;
-            }
-
-            .message-bubble.user-bubble {
-                margin-left: auto;
-            }
-        </style>
     </head>
     <body>
         <div class="d-flex">
             <!-- 사이드바 -->
-            <div class="sidebar">
-                <div id="admin_logo" class="logo mb-5">
+            <div id="sidebar">
+                <div id="adminLogo" class="logo mb-5">
                     <img src="./img/admin_logo.svg" alt="쌤공" class="mr-1">
                 </div>
                 <div class="menu">
@@ -340,7 +41,7 @@
             </div>
     
             <!-- 메인 컨텐츠 -->
-            <div class="main-content">
+            <div id="main-container">
                 <div class="flex-bw mt_10 mb_50">
                     <div class="flex-c">
                         <a href="./" class="mr_20 logo"><img src="./img/logo.svg"></a>
@@ -470,16 +171,16 @@
                     <h2 class="fs_28 fw_600">결과 조회</h2>
     
                     <!-- 필터 버튼 -->
-                    <div class="filter-buttons">
-                        <button class="filter-btn fs_15 fw_500 active">최신순</button>
-                        <button class="filter-btn fs_15 fw_500">포인트순</button>
-                        <button id="date-filter" class="filter-btn fs_15 fw_500" type="button">
-                            <input type="text" class="date-range-input" placeholder="기간별" readonly>
-                            <div class="dropdown-icon"></div>
+                    <div id="filter-box">
+                        <button class="btn-filter fs_15 fw_500 active">최신순</button>
+                        <button class="btn-filter fs_15 fw_500">포인트순</button>
+                        <button id="date-filter" class="btn-filter fs_15 fw_500" type="button">
+                            <input type="text" class="input-date" placeholder="기간별" readonly>
+                            <div class="dropdown-icon polygon"></div>
                         </button>
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
-                                flatpickr(".date-range-input", {
+                                flatpickr(".input-date", {
                                     locale: "ko",
                                     mode: "range",
                                     dateFormat: "Y-m-d",
@@ -491,7 +192,7 @@
                                     positionElement: document.querySelector('#date-filter'),
                                     onChange: function(selectedDates, dateStr) {
                                         if(selectedDates.length === 2) {
-                                            const input = document.querySelector('.date-range-input');
+                                            const input = document.querySelector('.input-date');
                                             input.setAttribute('value', dateStr);
                                         }
                                     },
@@ -511,8 +212,8 @@
                 
                 <div class="flex-c gap_20">
                     <!-- 테이블 -->
-                    <div id="chatbot_table" class="table-container">
-                        <table class="table">
+                    <div id="chatbot-container" class="table-container">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>대화내역</th>
@@ -535,7 +236,7 @@
                                 </tr>
                                 <script>
                                     function generateChatData() {
-                                        const tbody = document.querySelector('#chatbot_table tbody');
+                                        const tbody = document.querySelector('#chatbot-container tbody');
                                         
                                         // 가상의 대화 데이터
                                         const conversations = [
@@ -592,8 +293,8 @@
                     </div>
 
                     <!-- 테이블 -->
-                    <div id="log_table" class="table-container">
-                        <table class="table">
+                    <div id="log-container" class="table-container">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>세션 ID</th>
@@ -616,7 +317,7 @@
                                 </tr>
                                 <script>
                                     function generateTestData() {
-                                        const tbody = document.querySelector('#log_table tbody');
+                                        const tbody = document.querySelector('#log-container tbody');
                                         const nicknames = ['테스트사용자', '홍길동', '김철수', '이영희', '박지민'];
                                         const types = ['chatbot_use', 'point_earn', 'point_use', 'signup_bonus'];
                                         const points = ['+100', '+500', '-200', '+1000', '+50', '-300'];

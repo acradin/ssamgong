@@ -5,153 +5,22 @@
         <link rel="stylesheet" href="./css/boot_custom.css">
         <link rel="stylesheet" href="./css/design.css">
         <link rel="stylesheet" href="./css/custom.css">
+        <link rel="stylesheet" href="./css/ai.css">
         <script src="./js/jquery.min.js"></script>
         <script src="./js/bootstrap.bundle.min.js"></script>
-        <style>
-            .ai-box {
-                width: 60%;
-                margin: 0 auto;
-            } .ai-box h3 {
-                text-align: center;
-                margin-bottom: 3rem;
-            } .ai-category {
-                display: flex;
-                align-items: stretch;
-                justify-content: center;
-                gap: 30px;
-                margin-bottom: 2.5rem;
-            } .ai-category .category {
-                width: 15%;
-                padding: 0.8rem;
-                border-radius: 25px;
-                border: 3px solid #44C1CC;
-                text-align: center;
-                color: #44C1CC;
-                font-size: 1.8rem;
-            } .ai-category .category.selected {
-                color: #fff;
-                background-color: #44C1CC;
-            } .ai-option {
-                display: flex;
-                border-radius: 10px;
-                border: 3px solid #44C1CC;
-                font-size: 1.9rem;
-                margin-bottom: 2rem;
-            } .ai-option div.title {
-                width: 17%;
-                padding: 1.8rem 0;
-                border-radius: 5px 0 0 5px;
-                background-color: #44C1CC;
-                color: #fff;
-                text-align: center;
-            } .ai-option .content {
-                width: 83%;
-                padding: 1.8rem;
-                text-align: center;
-            } .dropdown .content {
-                position: relative;
-            } .dropdown-icon {
-                position: absolute;
-                right: 15px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 20px;
-                height: 20px;
-                background-image: url("./img/polygon.svg");
-                background-position: center;
-                background-repeat: no-repeat;
-                background-size: contain;
-                transition: 0.3s all;
-            } .dropdown .content[aria-expanded="true"] .dropdown-icon {
-                transform: translateY(-50%) rotate(180deg);
-            } .ai-option .dropdown-menu {
-                width: 83%;
-            } .dropdown-item.selected {
-                background:#F5F6F8;
-                color: var(--primary);
-            } .ai_create_btn {
-                width: 20%;
-                display: block;
-                margin: 3.5rem auto 0;
-                padding: 1.1rem;
-                border-radius: 100px;
-                border: 0;
-                background-color: #44C1CC;
-                color: #fff;
-                font-size: 1.8rem;
-                text-align: center;
-            }
-
-            input {
-                /* 기본 스타일 초기화 */
-                border: none;
-                outline: none;
-                background: none;
-                box-shadow: none;
-                resize: none;  /* textarea 크기 조절 비활성화 */
-                
-                /* 기본 여백 제거 */
-                margin: 0;
-                padding: 0;
-
-                /* 폰트 상속 */
-                font-family: inherit;
-                font-size: inherit;
-                color: inherit;
-
-                /* iOS의 기본 스타일 제거 */
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-            }
-
-            /* input 특정 타입별 추가 스타일 제거 */
-            input[type="search"]::-webkit-search-decoration,
-            input[type="search"]::-webkit-search-cancel-button,
-            input[type="search"]::-webkit-search-results-button,
-            input[type="search"]::-webkit-search-results-decoration {
-                display: none;
-            }
-
-            /* 자동완성 배경색 제거 */
-            input:-webkit-autofill,
-            input:-webkit-autofill:hover,
-            input:-webkit-autofill:focus {
-                -webkit-box-shadow: 0 0 0px 1000px transparent inset;
-                transition: background-color 5000s ease-in-out 0s;
-            }
-
-            .placeholder {
-                color: #DBDBDB;
-            }
-
-            /* placeholder 스타일 초기화 */
-            ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-                color: #DBDBDB;
-                opacity: 1;
-            }
-
-            :-ms-input-placeholder { /* Internet Explorer 10-11 */
-                color: #DBDBDB;
-            }
-
-            ::-ms-input-placeholder { /* Microsoft Edge */
-                color: #DBDBDB;
-            }
-        </style>
     </head>
     <body>
         <div class="container" style="height: 100vh;">
-            <div class="ai-box">
+            <div id="ai-create-container">
                 <h3 class="fs_40 fw_700">생활기록부</h3>
-                <div class="ai-category">
-                    <a class="fw_600 category" href="./생기부_행발.html">행발</a>
-                    <span class="fw_600 category selected">교과세특</span>
-                    <a class="fw_600 category" href="./생기부_창체.html">창체</a>
+                <div id="ai-category">
+                    <a class="fw_600" href="./생기부_행발.html">행발</a>
+                    <span class="fw_600 selected">교과세특</span>
+                    <a class="fw_600" href="./생기부_창체.html">창체</a>
                 </div>
-                <div class="ai-option dropdown">
+                <div class="ai-variable dropdown">
                     <div class="title"><span>교과</span></div>
-                    <div id="subject" class="content" type="button" data-toggle="dropdown" aria-expanded="false">
+                    <div id="subject" class="ai-input-field" type="button" data-toggle="dropdown" aria-expanded="false">
                         <span id="subject_placeholder" class="placeholder">객관식 (국어, 영어, 수학, 사회, 역사, 과학 등)</span>
                         <span id="selected_subject"></span>
                         <div class="dropdown-icon"></div>
@@ -166,17 +35,17 @@
                     </div>
                     <input id="subject_value" type="hidden" />
                 </div>
-                <div class="ai-option">
+                <div class="ai-variable">
                     <div class="title"><span>활동 내용</span></div>
                     <input
-                        class="content"
+                        class="ai-input-field"
                         type="text"
                         placeholder="단답식 (예시: 신문 만들기)" />
                 </div>
-                <div class="ai-option">
+                <div class="ai-variable">
                     <div class="title"><span>인원 수</span></div>
                     <input
-                        class="content"
+                        class="ai-input-field"
                         type="number"
                         placeholder="단답식"
                         min="1" 
@@ -184,9 +53,9 @@
                         onkeydown="return event.keyCode !== 190"
                         oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/^0+/, '')" />
                 </div>
-                <div class="ai-option dropdown">
+                <div class="ai-variable dropdown">
                     <div class="title"><span>글자 수</span></div>
-                    <div id="text_length" class="content" type="button" data-toggle="dropdown" aria-expanded="false">
+                    <div id="text_length" class="ai-input-field" type="button" data-toggle="dropdown" aria-expanded="false">
                         <span id="length_placeholder" class="placeholder">객관식 (600, 700, 1000, 1500 바이트 중 하나 선택)</span>
                         <span id="selected_length"></span>
                         <div class="dropdown-icon"></div>
@@ -199,7 +68,7 @@
                     </div>
                     <input id="text_length_value" type="hidden" />
                 </div>
-                <button class="ai_create_btn fw_500">생성하기</button>
+                <button class="btn-create fw_500">생성하기</button>
             </div>
         </div>
     </body>
