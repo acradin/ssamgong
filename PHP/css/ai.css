@@ -1,0 +1,303 @@
+#ai-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 30px;
+    height: 100%;
+    min-height: 200px;
+} #ai-container ul {
+    display: flex;
+    align-items: stretch;
+    gap: 30px;
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+} #ai-container ul li {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% / 3);
+    padding: 1.5rem 1.8rem;
+    border: 4px solid #44C1CC;
+    border-radius: 24px;
+    height: 100%;
+    min-height: 200px;
+} #ai-container ul li .ai-name {
+    font-size: 2.9rem;
+    font-weight: 700;
+    display: block;
+    text-align: center;
+    padding-bottom: 1.3rem;
+    border-bottom: 3px solid #cccccc;
+    margin-bottom: 1rem;
+} #ai-container ul li .ai-lore {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+} #ai-container ul li .ai-lore p {
+    font-size: 1.8rem;
+    padding: 0 3rem;
+    word-break: keep-all;
+    word-wrap: break-word;
+    text-align: center;
+} .btn-ai-link {
+    width: 30%;
+    margin: 0 auto;
+    padding: 1.1rem;
+    border-radius: 100px;
+    border: 0;
+    background-color: #44C1CC;
+    color: #fff;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+#ai-create-container {
+    width: 60%;
+    margin: 0 auto;
+} #ai-create-container h3 {
+    text-align: center;
+    margin-bottom: 3rem;
+} #ai-create-container.result-box {
+    width: 75%;
+}
+
+#ai-category {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 2.5rem;
+} #ai-category a, #ai-category span {
+    width: 15%;
+    padding: 0.8rem;
+    border-radius: 25px;
+    border: 3px solid #44C1CC;
+    text-align: center;
+    color: #44C1CC;
+    font-size: 1.8rem;
+} #ai-category .selected {
+    color: #fff;
+    background-color: #44C1CC;
+}
+
+.ai-variable {
+    display: flex;
+    border-radius: 10px;
+    border: 3px solid #44C1CC;
+    font-size: 1.9rem;
+    margin-bottom: 2rem;
+} .ai-variable div.title {
+    width: 17%;
+    padding: 1.8rem 0;
+    border-radius: 5px 0 0 5px;
+    background-color: #44C1CC;
+    color: #fff;
+    text-align: center;
+} .ai-variable .ai-input-field {
+    width: 83%;
+    padding: 1.8rem;
+    text-align: center;
+}
+
+.ai-input-field {
+    position: relative;
+} .dropdown-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background-image: url("../img/polygon.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    transition: transform 0.3s;
+} .ai-input-field[aria-expanded="true"] .dropdown-icon, .date-picker-wrapper.active .dropdown-icon {
+    transform: translateY(-50%) rotate(180deg);
+} .ai-variable .dropdown-menu {
+    width: 83%;
+} .dropdown-item.selected {
+    background:#F5F6F8;
+    color: var(--primary);
+}
+
+
+.btn-create {
+    width: 20%;
+    display: block;
+    margin: 3.5rem auto 0;
+    padding: 1.1rem;
+    border-radius: 100px;
+    border: 0;
+    background-color: #44C1CC;
+    color: #fff;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.btn-create.result-page {
+    width: 12%;
+    margin: 1.5rem 0 0 auto;
+    padding: 0.9rem;
+    font-size: 1.6rem;
+}
+
+
+.file-input-wrapper {
+    position: relative;
+    text-align: center;
+}
+
+input {
+    /* 기본 스타일 초기화 */
+    border: none;
+    outline: none;
+    background: none;
+    box-shadow: none;
+    resize: none;  /* textarea 크기 조절 비활성화 */
+    
+    /* 기본 여백 제거 */
+    margin: 0;
+    padding: 0;
+
+    /* 폰트 상속 */
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+
+    /* iOS의 기본 스타일 제거 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* input 특정 타입별 추가 스타일 제거 */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.placeholder {
+    color: #DBDBDB;
+}
+
+/* 파일 선택됐을 때 */
+.placeholder.has-file {
+    color: black;
+}
+
+/* placeholder 스타일 초기화 */
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #DBDBDB;
+    opacity: 1;
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #DBDBDB;
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+    color: #DBDBDB;
+}
+
+.flatpickr-calendar {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    font-size: 14px;
+
+    margin-top: 15px !important;
+    transform: translate(0, 10px) !important;
+}
+
+.flatpickr-calendar:before,
+.flatpickr-calendar:after {
+    margin-top: 10px;
+}
+
+.flatpickr-day.selected {
+    background: #44C1CC !important;
+    border-color: #44C1CC !important;
+}
+
+.flatpickr-day:hover {
+    background: #e6f3f5;
+}
+
+#activityDate {
+    text-align: center;
+    cursor: pointer;
+}
+
+#activityDate::placeholder {
+    color: #DBDBDB;
+}
+
+.date-picker-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.date-picker-wrapper input {
+    width: 100%;
+    border: none;
+    outline: none;
+    text-align: center;
+    padding-right: 40px;
+}
+
+.history-result-box {
+    display: flex;
+    height: 40vh;
+    align-items: stretch;
+    gap: 3rem;
+    margin-bottom: 3rem;
+} .history-box {
+    width: calc(30% - 1.5rem);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+} .result-box {
+    width: calc(70% - 1.5rem);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+} .add-request-box {
+    width: 100%;
+    height: 8vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+} .box-border {
+    flex: 1;
+    min-height: 0;
+    border: 3px solid #44C1CC;
+    border-radius: 10px;
+    padding: 1rem;
+} .title-text {
+    display: block;
+    color: #44C1CC;
+    margin-bottom: 0.8rem;
+}
