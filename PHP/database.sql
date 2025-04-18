@@ -1,10 +1,13 @@
--- 데이터베이스 생성
-CREATE DATABASE IF NOT EXISTS chatbot_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- 문자셋 설정
+SET NAMES utf8mb4;
+SET character_set_client = utf8mb4;
+SET character_set_connection = utf8mb4;
+SET character_set_results = utf8mb4;
 
-USE chatbot_test;
-
--- 기존 데이터 삭제
+-- 외래 키 제약조건 비활성화
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- 기존 테이블 모두 삭제
 DROP TABLE IF EXISTS chat_messages;
 DROP TABLE IF EXISTS chat_variable_values;
 DROP TABLE IF EXISTS chat_sessions;
@@ -12,10 +15,21 @@ DROP TABLE IF EXISTS chatbot_usage;
 DROP TABLE IF EXISTS chatbot_variable_t;
 DROP TABLE IF EXISTS point_t;
 DROP TABLE IF EXISTS point_history_t;
+DROP TABLE IF EXISTS chatbot_prompt_t;
+DROP TABLE IF EXISTS chatbot_history_t;
 DROP TABLE IF EXISTS category_t;
 DROP TABLE IF EXISTS member_t;
-DROP TABLE IF EXISTS chatbot_prompt_t;
+
+-- 외래 키 제약조건 다시 활성화
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- 데이터베이스 문자셋 설정
+ALTER DATABASE chatbot_test CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 데이터베이스 생성
+CREATE DATABASE IF NOT EXISTS chatbot_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE chatbot_test;
 
 -- 회원 테이블
 CREATE TABLE IF NOT EXISTS member_t (

@@ -261,6 +261,10 @@
     background-color: #252EDE;
 }
 
+.variable-item {
+    margin-bottom: 3rem;
+}
+
 .btn-variable-type {
     display: block;
     padding: 1rem 1.5rem;

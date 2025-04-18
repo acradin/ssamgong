@@ -192,12 +192,6 @@
                             <input class="custom-input" type="text" placeholder="카테고리 1 이름" />
                             <button class="btn-delete">삭제하기</button>
                         </label>
-                        <label class="d-flex align-items-center gap_10 mb_12">
-                            <input type="radio" name="category">
-                            <input class="custom-input" type="text" placeholder="카테고리 2 이름" />
-                            <button class="btn-delete">삭제하기</button>
-                        </label>
-                        <button class="btn-add"><img src="../img/plus.svg" alt="추가하기"></button>
                     </div>
                     <div class="mb_20">
                         <h2 class="fs_22 fw_600 mb_14">프롬프트</h2>
@@ -206,18 +200,19 @@
                     </div>
                     <div class="mb_20">
                         <h2 class="fs_22 fw_600 mb_14">변수</h2>
-                        <div>
+                        <div class="variable-item">
                             <div class="flex-c gap_10 mb_10">
                                 <input class="custom-input" type="text" placeholder="변수 이름" />
                                 <div class="dropdown" id="variable-type">
                                     <button class="btn-variable-type fs_15 fw_500" type="button" data-toggle="dropdown" aria-expanded="false">
-                                        <div class="dropdown-text" id="variable-type_text">변수 타입</div>
+                                        <div class="dropdown-text">변수 타입</div>
                                         <div class="dropdown-icon polygon-01"></div>
                                     </button>
                                     <div class="dropdown-menu">
-                                        <button class="dropdown-item" onclick="f_get_box_list_orderby('1');">최신순</button>
-                                        <button class="dropdown-item" onclick="f_get_box_list_orderby('2');">인기순</button>
-                                        <button class="dropdown-item" onclick="f_get_box_list_orderby('3');">조회순</button>
+                                        <button class="dropdown-item" data-value="text">텍스트</button>
+                                        <button class="dropdown-item" data-value="select">선택</button>
+                                        <button class="dropdown-item" data-value="date">날짜</button>
+                                        <button class="dropdown-item" data-value="file">파일</button>
                                     </div>
                                 </div>
                                 <button class="btn-delete">삭제하기</button>
@@ -230,9 +225,199 @@
 
                 <div class="flex-c gap_20">
                     <button class="btn-accept">챗봇 생성</button>
-                    <button class="btn-cancel">취소</button>
+                    <button class="btn-cancel" onclick="window.location.href='./admin_createbot.php'">취소</button>
                 </div>
             </div>
         </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 변수 타입 드롭다운 이벤트 리스너
+            function attachVariableTypeListeners() {
+                document.querySelectorAll('.btn-variable-type').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const dropdown = this.closest('.dropdown');
+                        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+                        
+                        // 다른 모든 드롭다운 닫기
+                        document.querySelectorAll('.dropdown').forEach(otherDropdown => {
+                            if (otherDropdown !== dropdown) {
+                                otherDropdown.querySelector('.dropdown-menu')?.classList.remove('show');
+                                otherDropdown.querySelector('button').setAttribute('aria-expanded', 'false');
+                            }
+                        });
+
+                        // 현재 드롭다운 토글
+                        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                        this.setAttribute('aria-expanded', !isExpanded);
+                        dropdownMenu.classList.toggle('show');
+                    });
+                });
+
+                document.querySelectorAll('.dropdown-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const dropdown = this.closest('.dropdown');
+                        const dropdownText = dropdown.querySelector('.dropdown-text');
+                        const button = dropdown.querySelector('button');
+                        
+                        dropdownText.textContent = this.textContent;
+                        dropdown.querySelector('.dropdown-menu').classList.remove('show');
+                        button.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+
+            // 초기 드롭다운 이벤트 리스너 연결
+            attachVariableTypeListeners();
+
+            // 변수 추가 버튼
+            const variableAddBtn = document.querySelector('.mb_20:nth-child(4) .btn-add');
+            variableAddBtn.addEventListener('click', function() {
+                const newVariable = document.createElement('div');
+                newVariable.className = 'variable-item';
+                newVariable.innerHTML = `
+                    <div class="flex-c gap_10 mb_10">
+                        <input class="custom-input" type="text" placeholder="변수 이름" />
+                        <div class="dropdown" id="variable-type">
+                            <button class="btn-variable-type fs_15 fw_500" type="button" data-toggle="dropdown" aria-expanded="false">
+                                <div class="dropdown-text">변수 타입</div>
+                                <div class="dropdown-icon polygon-01"></div>
+                            </button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" data-value="text">텍스트</button>
+                                <button class="dropdown-item" data-value="select">선택</button>
+                                <button class="dropdown-item" data-value="date">날짜</button>
+                                <button class="dropdown-item" data-value="file">파일</button>
+                            </div>
+                        </div>
+                        <button class="btn-delete">삭제하기</button>
+                    </div>
+                    <input class="custom-input" type="text" placeholder="변수 내용" />
+                `;
+                this.insertAdjacentElement('beforebegin', newVariable);
+                attachVariableTypeListeners(); // 새로 추가된 드롭다운에 이벤트 리스너 연결
+            });
+
+            // 문서 클릭 시 드롭다운 닫기
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('show');
+                        menu.closest('.dropdown').querySelector('button').setAttribute('aria-expanded', 'false');
+                    });
+                }
+            });
+
+            // 변수 삭제 버튼
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn-delete')) {
+                    e.preventDefault();
+                    const variableItem = e.target.closest('.variable-item');
+                    if (variableItem) {
+                        if (confirm('정말로 이 변수를 삭제하시겠습니까?')) {
+                            variableItem.remove();
+                        }
+                    }
+                }
+            });
+
+            // 챗봇 생성 버튼
+            document.querySelector('.btn-accept').addEventListener('click', async function() {
+                try {
+                    // 챗봇 이름 가져오기
+                    const botName = document.querySelector('.mb_20:nth-child(1) .custom-input').value.trim();
+                    if (!botName) {
+                        alert('챗봇 이름을 입력해주세요.');
+                        return;
+                    }
+
+                    // 카테고리 정보 수집
+                    const categoryInput = document.querySelector('input[name="category"]:checked')
+                        .closest('label')
+                        .querySelector('.custom-input');
+                    const categoryName = categoryInput.value.trim();
+                    
+                    if (!categoryName) {
+                        alert('카테고리 이름을 입력해주세요.');
+                        return;
+                    }
+
+                    // 프롬프트 정보 수집
+                    const promptTitle = document.querySelector('.mb_20:nth-child(3) .custom-input').value.trim();
+                    const promptContent = document.querySelector('.mb_20:nth-child(3) .custom-textarea').value.trim();
+
+                    if (!promptTitle || !promptContent) {
+                        alert('프롬프트 제목과 내용을 입력해주세요.');
+                        return;
+                    }
+
+                    // 변수 정보 수집
+                    const variables = [];
+                    document.querySelectorAll('.variable-item').forEach(varItem => {
+                        const nameInput = varItem.querySelector('.custom-input');
+                        const typeDropdown = varItem.querySelector('.dropdown-text');
+                        const descInput = varItem.querySelector('.custom-input:last-child');
+                        
+                        if (nameInput && typeDropdown && descInput) {
+                            const name = nameInput.value.trim();
+                            const type = typeDropdown.dataset.value || 'text';
+                            const description = descInput.value.trim();
+
+                            if (name && description) {
+                                variables.push({
+                                    cv_name: name,
+                                    cv_type: type,
+                                    cv_description: description
+                                });
+                            }
+                        }
+                    });
+
+                    if (variables.length === 0) {
+                        alert('최소 하나의 변수를 입력해주세요.');
+                        return;
+                    }
+
+                    // 데이터 전송
+                    const response = await fetch('create_chatbot.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            bot_name: botName,
+                            categories: [{  // categories 배열로 변경
+                                name: categoryName,
+                                is_selected: true
+                            }],
+                            prompt: {
+                                cp_title: promptTitle,
+                                cp_content: promptContent
+                            },
+                            variables: variables
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('챗봇이 성공적으로 생성되었습니다.');
+                        window.location.href = 'admin_managebot.php';
+                    } else {
+                        throw new Error(result.message || '챗봇 생성에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('오류가 발생했습니다: ' + error.message);
+                }
+            });
+        });
+        </script>
     </body>
 </html>

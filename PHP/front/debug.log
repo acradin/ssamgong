@@ -1,0 +1,125 @@
+2025-04-18 23:05:51 - Request started
+2025-04-18 23:05:51 - Received data
+{"prompt":{"parent_ct_idx":"10","ct_idx":"1","cp_title":"테스트 카테고리 2 프롬프트","cp_content":"테스트 프롬프트","cp_wdate":"2025-04-18 21:05:51"},"variables":[{"cv_name":"테스트 카테고리 2 변수 1","cv_type":"text","cv_description":"테스트 변수","ct_idx":"1","cv_order":1,"cv_wdate":"2025-04-18 21:05:51"}]}
+2025-04-18 23:05:51 - Decoded data
+Array
+(
+    [prompt] => Array
+        (
+            [parent_ct_idx] => 10
+            [ct_idx] => 1
+            [cp_title] => 테스트 카테고리 2 프롬프트
+            [cp_content] => 테스트 프롬프트
+            [cp_wdate] => 2025-04-18 21:05:51
+        )
+
+    [variables] => Array
+        (
+            [0] => Array
+                (
+                    [cv_name] => 테스트 카테고리 2 변수 1
+                    [cv_type] => text
+                    [cv_description] => 테스트 변수
+                    [ct_idx] => 1
+                    [cv_order] => 1
+                    [cv_wdate] => 2025-04-18 21:05:51
+                )
+
+        )
+
+)
+
+2025-04-18 23:05:51 - Database connected
+2025-04-18 23:14:14 - Request started
+2025-04-18 23:14:14 - Received data
+{"prompt":{"parent_ct_idx":"10","ct_idx":"15","cp_title":"테스트 카테고리 2 프롬프트","cp_content":"테스트 프롬프트"},"variables":[{"cv_name":"테스트 카테고리 2 변수","cv_type":"text","cv_description":"테스트 변수","ct_idx":"15","cv_order":1,"cv_wdate":"2025-04-18 21:14:14"}]}
+2025-04-18 23:14:14 - Decoded data
+Array
+(
+    [prompt] => Array
+        (
+            [parent_ct_idx] => 10
+            [ct_idx] => 15
+            [cp_title] => 테스트 카테고리 2 프롬프트
+            [cp_content] => 테스트 프롬프트
+        )
+
+    [variables] => Array
+        (
+            [0] => Array
+                (
+                    [cv_name] => 테스트 카테고리 2 변수
+                    [cv_type] => text
+                    [cv_description] => 테스트 변수
+                    [ct_idx] => 15
+                    [cv_order] => 1
+                    [cv_wdate] => 2025-04-18 21:14:14
+                )
+
+        )
+
+)
+
+2025-04-18 23:14:14 - Database connected
+2025-04-18 23:19:57 - Request started
+2025-04-18 23:19:57 - Received data
+{"prompt":{"parent_ct_idx":"10","ct_idx":"16","cp_title":"테스트 카테고리 3 프롬프트","cp_content":"프롬프트"},"variables":[{"cv_name":"테스트 카테고리 3 변수","cv_type":"text","cv_description":"변수 설명","ct_idx":"16","cv_order":1,"cv_wdate":"2025-04-18 21:19:57"}]}
+2025-04-18 23:19:57 - Decoded data
+Array
+(
+    [prompt] => Array
+        (
+            [parent_ct_idx] => 10
+            [ct_idx] => 16
+            [cp_title] => 테스트 카테고리 3 프롬프트
+            [cp_content] => 프롬프트
+        )
+
+    [variables] => Array
+        (
+            [0] => Array
+                (
+                    [cv_name] => 테스트 카테고리 3 변수
+                    [cv_type] => text
+                    [cv_description] => 변수 설명
+                    [ct_idx] => 16
+                    [cv_order] => 1
+                    [cv_wdate] => 2025-04-18 21:19:57
+                )
+
+        )
+
+)
+
+2025-04-18 23:19:57 - Database connected
+2025-04-18 23:28:38 - Request started
+2025-04-18 23:28:38 - Received data
+{"prompt":{"parent_ct_idx":"10","ct_idx":"12","cp_title":"테스트 카테고리 2 프롬프트","cp_content":"테스트 프롬프트"},"variables":[{"cv_name":"테스트 카테고리 2 변수 1","cv_type":"text","cv_description":"테스트 변수","ct_idx":"12","cv_order":1,"cv_wdate":"2025-04-18 21:28:38"}]}
+2025-04-18 23:28:38 - Decoded data
+Array
+(
+    [prompt] => Array
+        (
+            [parent_ct_idx] => 10
+            [ct_idx] => 12
+            [cp_title] => 테스트 카테고리 2 프롬프트
+            [cp_content] => 테스트 프롬프트
+        )
+
+    [variables] => Array
+        (
+            [0] => Array
+                (
+                    [cv_name] => 테스트 카테고리 2 변수 1
+                    [cv_type] => text
+                    [cv_description] => 테스트 변수
+                    [ct_idx] => 12
+                    [cv_order] => 1
+                    [cv_wdate] => 2025-04-18 21:28:38
+                )
+
+        )
+
+)
+
+2025-04-18 23:28:38 - Database connected
