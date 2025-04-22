@@ -33,6 +33,22 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                             </div>
                         </div>
 
+                        <!-- 챗봇 설명 입력 필드 추가 -->
+                        <div class="form-group row" id="bot_description_container">
+                            <label class="col-sm-2 col-form-label">챗봇 설명 <b class="text-danger">*</b></label>
+                            <div class="col-sm-10">
+                                <div class="position-relative">
+                                    <textarea class="form-control" name="bot_description" id="bot_description" rows="3" 
+                                        placeholder="챗봇에 대한 설명을 입력해주세요" 
+                                        maxlength="40"
+                                        onkeyup="checkLength(this)"></textarea>
+                                    <div class="text-right text-muted mt-1">
+                                        <small><span id="bot_description_length">0</span>/40자</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">카테고리 <b class="text-danger">*</b></label>
                             <div class="col-sm-10">
@@ -59,13 +75,16 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                                 <div class="variable-item mb-3">
                                     <div class="d-flex align-items-center mb-2">
                                         <input type="text" class="form-control flex-grow-1 mr-2" name="variable_name[]" placeholder="변수 이름" />
-                                        <select class="form-control mr-2" name="variable_type[]" style="width: auto; min-width: 120px;">
+                                        <select class="form-control mr-2 variable-type-select" name="variable_type[]" style="width: auto; min-width: 120px;">
                                             <option value="text">텍스트</option>
                                             <option value="select">선택</option>
                                             <option value="date">날짜</option>
                                             <option value="file">파일</option>
                                         </select>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
+                                    </div>
+                                    <div class="select-options-container" style="display: none;">
+                                        <input type="text" class="form-control mb-2" name="variable_options[]" placeholder="선택 옵션을 쉼표(,)로 구분하여 입력해주세요. 예: 옵션1,옵션2,옵션3" />
                                     </div>
                                     <input type="text" class="form-control" name="variable_desc[]" placeholder="변수 내용" />
                                 </div>
@@ -89,6 +108,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                         const botSelect = $('#bot_select');
                         const botNameInput = $('#bot_name');
                         const categoryInput = $('input[name="category_name"]');
+                        const botDescriptionTextarea = $('#bot_description');
                         let existingCategories = []; // 기존 카테고리 목록 저장
                         
                         // 챗봇 선택 시 카테고리 목록 가져오기
@@ -98,15 +118,32 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                                 return;
                             }
                             
-                            fetch(`get_categories.php?parent_idx=${parentId}`)
-                                .then(response => response.json())
-                                .then(data => {
+                            // 기존 카테고리 목록 가져오기
+                            $.ajax({
+                                url: 'get_categories.php',
+                                type: 'GET',
+                                data: { parent_idx: parentId },
+                                dataType: 'json',
+                                success: function(data) {
                                     existingCategories = data.map(category => category.ct_name.toLowerCase());
-                                })
-                                .catch(error => {
+                                    
+                                    // 현재 입력된 카테고리 이름 검사
+                                    const currentCategoryName = categoryInput.val().toLowerCase();
+                                    const feedbackDiv = categoryInput.parent().siblings('.invalid-feedback');
+                                    
+                                    if (existingCategories.includes(currentCategoryName)) {
+                                        feedbackDiv.text('이미 존재하는 카테고리 이름입니다.').show();
+                                        categoryInput.addClass('is-invalid');
+                                    } else {
+                                        feedbackDiv.text('').hide();
+                                        categoryInput.removeClass('is-invalid');
+                                    }
+                                },
+                                error: function(error) {
                                     console.error('카테고리 로드 오류:', error);
                                     existingCategories = [];
-                                });
+                                }
+                            });
                         }
                         
                         // 카테고리 이름 입력 시 중복 체크
@@ -123,17 +160,6 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                             }
                         });
                         
-                        // 챗봇 선택 변경 시 이벤트
-                        botSelect.change(function() {
-                            const selectedValue = $(this).val();
-                            updateBotNameState();
-                            loadExistingCategories(selectedValue);
-                            
-                            // 카테고리 입력 필드 초기화
-                            categoryInput.val('').removeClass('is-invalid');
-                            categoryInput.parent().siblings('.invalid-feedback').text('').hide();
-                        });
-                        
                         // 초기 상태 설정
                         function updateBotNameState() {
                             const selectedValue = botSelect.val();
@@ -141,20 +167,55 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                                 // 기존 챗봇 선택 시
                                 botNameInput.val('').prop('disabled', true).prop('required', false);
                                 botNameInput.css('background-color', '#e9ecef');
+                                
+                                // 설명 필드도 readonly로 변경
+                                fetch(`get_chatbot_description.php?ct_idx=${selectedValue}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            botDescriptionTextarea.val(data.description)
+                                                .prop('readonly', true)
+                                                .css('background-color', '#e9ecef')
+                                                .css('cursor', 'not-allowed');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('설명 로드 오류:', error);
+                                        botDescriptionTextarea.val('')
+                                            .prop('readonly', false)
+                                            .css('background-color', '')
+                                            .css('cursor', '');
+                                    });
                             } else {
-                                // 새로운 챗봇 생성 선택 시
+                                // 새로운 챗봇 생성 시
                                 botNameInput.prop('disabled', false).prop('required', true);
                                 botNameInput.css('background-color', '');
+                                
+                                // 설명 필드 초기화 및 편집 가능하게 변경
+                                botDescriptionTextarea.val('')
+                                    .prop('readonly', false)
+                                    .css('background-color', '')
+                                    .css('cursor', '');
                             }
                         }
 
+                        // 챗봇 선택 변경 시 이벤트
+                        botSelect.change(function() {
+                            updateBotNameState();
+                            // 선택된 챗봇의 카테고리 목록 가져오기
+                            loadExistingCategories($(this).val());
+                        });
+
+                        // 페이지 로드 시 초기 실행
+                        updateBotNameState();
+
                         // 변수 추가 버튼 클릭
                         $('.btn-add').click(function() {
-                            const template = `
+                            const variableTemplate = `
                                 <div class="variable-item mb-3">
                                     <div class="d-flex align-items-center mb-2">
                                         <input type="text" class="form-control flex-grow-1 mr-2" name="variable_name[]" placeholder="변수 이름" />
-                                        <select class="form-control mr-2" name="variable_type[]" style="width: auto; min-width: 120px;">
+                                        <select class="form-control mr-2 variable-type-select" name="variable_type[]" style="width: auto; min-width: 120px;">
                                             <option value="text">텍스트</option>
                                             <option value="select">선택</option>
                                             <option value="date">날짜</option>
@@ -162,10 +223,13 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                                         </select>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
                                     </div>
+                                    <div class="select-options-container" style="display: none;">
+                                        <input type="text" class="form-control mb-2" name="variable_options[]" placeholder="선택 옵션을 쉼표(,)로 구분하여 입력해주세요. 예: 옵션1,옵션2,옵션3" />
+                                    </div>
                                     <input type="text" class="form-control" name="variable_desc[]" placeholder="변수 내용" />
                                 </div>
                             `;
-                            $('#variables-container').append(template);
+                            $('#variables-container').append(variableTemplate);
                         });
 
                         // 폼 유효성 검사
@@ -233,6 +297,25 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                                     f.category_name.focus();
                                     return false;
                                 }
+
+                                // 폼 검증에 설명 필드 추가
+                                if (!f.bot_description.value) {
+                                    jalert("챗봇 설명을 입력해주세요.");
+                                    f.bot_description.focus();
+                                    return false;
+                                }
+
+                                // 선택형 변수의 옵션 검증
+                                $('.variable-type-select').each(function() {
+                                    if ($(this).val() === 'select') {
+                                        const optionsInput = $(this).closest('.variable-item').find('input[name="variable_options[]"]');
+                                        if (!optionsInput.val()) {
+                                            jalert("선택형 변수의 옵션을 입력해주세요.");
+                                            optionsInput.focus();
+                                            return false;
+                                        }
+                                    }
+                                });
 
                                 // Ajax 제출
                                 $.ajax({
@@ -317,6 +400,70 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                             }
                         });
                     }
+
+                    function checkLength(textarea) {
+                        const maxLength = 40;
+                        const currentLength = textarea.value.length;
+                        document.getElementById('bot_description_length').textContent = currentLength;
+                        
+                        if (currentLength > maxLength) {
+                            textarea.value = textarea.value.substring(0, maxLength);
+                        }
+                    }
+
+                    // 페이지 로드 시 초기 글자 수 표시
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const textarea = document.getElementById('bot_description');
+                        if (textarea) {
+                            checkLength(textarea);
+                        }
+                    });
+
+                    // 타입 선택 이벤트 핸들러
+                    function handleVariableTypeChange(select) {
+                        const optionsContainer = $(select).closest('.variable-item').find('.select-options-container');
+                        if ($(select).val() === 'select') {
+                            optionsContainer.slideDown();
+                        } else {
+                            optionsContainer.slideUp();
+                        }
+                    }
+
+                    // 페이지 로드 시 이벤트 바인딩
+                    $(document).ready(function() {
+                        // 기존 코드에 추가...
+                        
+                        // 변수 타입 변경 이벤트 처리
+                        $(document).on('change', '.variable-type-select', function() {
+                            handleVariableTypeChange(this);
+                        });
+
+                        // 변수 추가 버튼 클릭 시 새로운 템플릿 사용
+                        $('.btn-add').click(function() {
+                            $('#variables-container').append(variableTemplate);
+                        });
+
+                        // 폼 제출 시 유효성 검사에 옵션 검사 추가
+                        $("#frm_form").validate({
+                            submitHandler: function() {
+                                // 기존 검증 코드...
+
+                                // 선택형 변수의 옵션 검증
+                                $('.variable-type-select').each(function() {
+                                    if ($(this).val() === 'select') {
+                                        const optionsInput = $(this).closest('.variable-item').find('input[name="variable_options[]"]');
+                                        if (!optionsInput.val()) {
+                                            jalert("선택형 변수의 옵션을 입력해주세요.");
+                                            optionsInput.focus();
+                                            return false;
+                                        }
+                                    }
+                                });
+
+                                // 나머지 제출 코드...
+                            }
+                        });
+                    });
                     </script>
 
                     <style>

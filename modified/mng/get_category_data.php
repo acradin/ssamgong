@@ -43,10 +43,24 @@ try {
 
     // 변수 정보 조회
     $variables = $DB->rawQuery("
-        SELECT cv_idx, cv_name, cv_type, cv_description
+        SELECT cv_idx, cv_name, cv_type, cv_description, cv_options
         FROM chatbot_variable_t
         WHERE ct_idx = ? AND cv_status = 'Y'
         ORDER BY cv_order",
+        [$categoryId]
+    );
+
+    // 챗봇 설명 조회
+    $botDescription = $DB->rawQueryOne("
+        SELECT cd_description 
+        FROM chatbot_description_t 
+        WHERE ct_idx = (
+            SELECT parent_idx 
+            FROM category_t 
+            WHERE ct_idx = ?
+        )
+        ORDER BY cd_wdate DESC 
+        LIMIT 1",
         [$categoryId]
     );
 
@@ -64,7 +78,8 @@ try {
             'ct_status' => $category['parent_status']
         ],
         'prompt' => $prompt ?: null,
-        'variables' => $variables ?: []
+        'variables' => $variables ?: [],
+        'bot_description' => $botDescription['cd_description'] ?? ''
     ];
 
     // 출력 버퍼 클리어

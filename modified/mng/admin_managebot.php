@@ -156,6 +156,7 @@ function loadCategoryData(chatbotId, categoryId) {
                 const promptTitle = data.prompt?.cp_title || '';
                 const promptContent = data.prompt?.cp_content || '';
                 const variables = data.variables || [];
+                const botDescription = data.bot_description || '';
 
                 contentArea.innerHTML = `
                     <div class="form-group row align-items-center">
@@ -170,6 +171,13 @@ function loadCategoryData(chatbotId, categoryId) {
                                     ${data.parent_category?.ct_status === 'Y' ? '활성화' : '비활성화'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">챗봇 설명</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control" rows="3" readonly>${botDescription}</textarea>
                         </div>
                     </div>
 
@@ -208,6 +216,14 @@ function loadCategoryData(chatbotId, categoryId) {
                                                 <option>${variableTypeMap[variable.cv_type] || variable.cv_type}</option>
                                             </select>
                                         </div>
+                                        ${variable.cv_type === 'select' ? `
+                                            <div class="select-options mb-2">
+                                                <input type="text" class="form-control" value="${
+                                                    JSON.parse(variable.cv_options || '[]')
+                                                        .join(', ')
+                                                }" readonly />
+                                            </div>
+                                        ` : ''}
                                         <input type="text" class="form-control" value="${variable.cv_description}" readonly />
                                     </div>
                                 `).join('') :

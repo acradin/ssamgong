@@ -26,6 +26,16 @@ if (!$category) {
     exit;
 }
 
+// 챗봇 설명 조회
+$botDescription = $DB->rawQueryOne("
+    SELECT cd_description 
+    FROM chatbot_description_t 
+    WHERE ct_idx = ? 
+    ORDER BY cd_wdate DESC 
+    LIMIT 1",
+    [$category['parent_idx']]
+);
+
 // 프롬프트 정보 조회
 $prompt = $DB->rawQueryOne("
     SELECT cp_title, cp_content
@@ -36,7 +46,7 @@ $prompt = $DB->rawQueryOne("
 
 // 변수 정보 조회 (cv_status 조건 제거)
 $variables = $DB->rawQuery("
-    SELECT cv_idx, cv_name, cv_type, cv_description
+    SELECT cv_idx, cv_name, cv_type, cv_description, cv_options
     FROM chatbot_variable_t
     WHERE ct_idx = ?
     ORDER BY cv_order",
@@ -66,23 +76,39 @@ $variables = $DB->rawQuery("
                             <label class="col-sm-2 col-form-label">챗봇 이름 <b class="text-danger">*</b></label>
                             <div class="col-sm-10">
                                 <input type="text" class="form-control" value="<?= htmlspecialchars($category['parent_name']) ?>" readonly />
-                                                    </div>
-                                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">챗봇 설명 <b class="text-danger">*</b></label>
+                            <div class="col-sm-10">
+                                <div class="position-relative">
+                                    <input type="hidden" name="parent_idx" value="<?= $category['parent_idx'] ?>" />
+                                    <textarea class="form-control" name="bot_description" id="bot_description" rows="3" 
+                                        placeholder="챗봇에 대한 설명을 입력해주세요" 
+                                        maxlength="40"
+                                        onkeyup="checkLength(this)"><?= htmlspecialchars($botDescription['cd_description'] ?? '') ?></textarea>
+                                    <div class="text-right text-muted mt-1">
+                                        <small><span id="bot_description_length">0</span>/40자</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">카테고리 <b class="text-danger">*</b></label>
                             <div class="col-sm-10">
                                 <input type="text" class="form-control" name="category_name" value="<?= htmlspecialchars($category['ct_name']) ?>" />
-                                            </div>
-                                        </div>
+                            </div>
+                        </div>
 
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">프롬프트 <b class="text-danger">*</b></label>
                             <div class="col-sm-10">
                                 <input type="text" class="form-control mb-2" name="prompt_title" value="<?= htmlspecialchars($prompt['cp_title']) ?>" placeholder="프롬프트 제목" />
                                 <textarea class="form-control" name="prompt_content" rows="4" placeholder="프롬프트 내용"><?= htmlspecialchars($prompt['cp_content']) ?></textarea>
-                    </div>
-                </div>
+                            </div>
+                        </div>
 
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">변수 <b class="text-danger">*</b></label>
@@ -92,24 +118,29 @@ $variables = $DB->rawQuery("
                                     <div class="d-flex align-items-center mb-2">
                                         <input type="hidden" name="variable_idx[]" value="<?= $variable['cv_idx'] ?>" />
                                         <input type="text" class="form-control flex-grow-1 mr-2" name="variable_name[]" value="<?= htmlspecialchars($variable['cv_name']) ?>" />
-                                        <select class="form-control mr-2" name="variable_type[]" style="width: auto; min-width: 120px;">
+                                        <select class="form-control mr-2 variable-type-select" name="variable_type[]" style="width: auto; min-width: 120px;">
                                             <?php foreach ($variableTypeMap as $value => $label): ?>
                                             <option value="<?= $value ?>" <?= $variable['cv_type'] === $value ? 'selected' : '' ?>><?= $label ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
                                     </div>
+                                    <div class="select-options-container" style="display: <?= $variable['cv_type'] === 'select' ? 'block' : 'none' ?>;">
+                                        <input type="text" class="form-control mb-2" name="variable_options[]" 
+                                            value="<?= htmlspecialchars($variable['cv_options'] ? implode(', ', json_decode($variable['cv_options'], true)) : '') ?>" 
+                                            placeholder="선택 옵션을 쉼표(,)로 구분하여 입력해주세요. 예: 옵션1,옵션2,옵션3" />
+                                    </div>
                                     <input type="text" class="form-control" name="variable_desc[]" value="<?= htmlspecialchars($variable['cv_description']) ?>" />
                                 </div>
                                 <?php endforeach; ?>
-                </div>
+                            </div>
                             <div class="col-sm-10 offset-sm-2">
                                 <button type="button" class="btn btn-primary btn-sm btn-add d-inline-flex align-items-center">
                                     <i class="mdi mdi-plus mr-1"></i>
                                     <span>변수 추가</span>
                                 </button>
-            </div>
-        </div>
+                            </div>
+                        </div>
 
                         <p class="p-3 text-center">
                             <input type="submit" value="저장" class="btn btn-outline-primary" />
@@ -156,12 +187,16 @@ $variables = $DB->rawQuery("
                                     <div class="d-flex align-items-center mb-2">
                                         <input type="hidden" name="variable_idx[]" value="" />
                                         <input type="text" class="form-control flex-grow-1 mr-2" name="variable_name[]" placeholder="변수 이름" />
-                                        <select class="form-control mr-2" name="variable_type[]" style="width: auto; min-width: 120px;">
+                                        <select class="form-control mr-2 variable-type-select" name="variable_type[]" style="width: auto; min-width: 120px;">
                                             <?php foreach ($variableTypeMap as $value => $label): ?>
                                             <option value="<?= $value ?>"><?= $label ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
+                                    </div>
+                                    <div class="select-options-container" style="display: none;">
+                                        <input type="text" class="form-control mb-2" name="variable_options[]" 
+                                            placeholder="선택 옵션을 쉼표(,)로 구분하여 입력해주세요. 예: 옵션1,옵션2,옵션3" />
                                     </div>
                                     <input type="text" class="form-control" name="variable_desc[]" placeholder="변수 내용" />
                                 </div>
@@ -213,6 +248,13 @@ $variables = $DB->rawQuery("
 
                                 if (!isValid) return false;
 
+                                // 폼 유효성 검사에 설명 필드 검증 추가
+                                if (!f.bot_description.value) {
+                                    jalert("챗봇 설명을 입력해주세요.");
+                                    f.bot_description.focus();
+                                    return false;
+                                }
+
                                 return true;
                             }
                         });
@@ -263,6 +305,16 @@ $variables = $DB->rawQuery("
                                 }
                             });
                         });
+
+                        // 타입 선택 이벤트 핸들러 추가
+                        $(document).on('change', '.variable-type-select', function() {
+                            const optionsContainer = $(this).closest('.variable-item').find('.select-options-container');
+                            if ($(this).val() === 'select') {
+                                optionsContainer.slideDown();
+                            } else {
+                                optionsContainer.slideUp();
+                            }
+                        });
                     });
 
                     // 변수 삭제 함수
@@ -279,12 +331,30 @@ $variables = $DB->rawQuery("
                             }
                         });
                     }
+
+                    function checkLength(textarea) {
+                        const maxLength = 40;
+                        const currentLength = textarea.value.length;
+                        document.getElementById('bot_description_length').textContent = currentLength;
+                        
+                        if (currentLength > maxLength) {
+                            textarea.value = textarea.value.substring(0, maxLength);
+                        }
+                    }
+
+                    // 페이지 로드 시 초기 글자 수 표시
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const textarea = document.getElementById('bot_description');
+                        if (textarea) {
+                            checkLength(textarea);
+                        }
+                    });
                     </script>
                 </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/mng/foot.inc.php";
