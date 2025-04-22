@@ -101,14 +101,16 @@ if (!empty($subCategories)) {
     <h3 class="fs_40 fw_700 mt_20"><?= htmlspecialchars($category['ct_name']) ?></h3>
     
     <!-- 하위 카테고리 탭 -->
-    <div id="ai-category">
-        <?php foreach ($subCategories as $subCategory): ?>
-            <span class="fw_600 <?= ($subCategory['ct_idx'] === $defaultSubCategory['ct_idx']) ? 'selected' : '' ?>" 
-                  data-category-id="<?= $subCategory['ct_idx'] ?>">
-                <?= htmlspecialchars($subCategory['ct_name']) ?>
-            </span>
-        <?php endforeach; ?>
-    </div>
+    <?php if (count($subCategories) > 1): ?>
+        <div id="ai-category">
+            <?php foreach ($subCategories as $subCategory): ?>
+                <span class="fw_600 <?= ($subCategory['ct_idx'] === $defaultSubCategory['ct_idx']) ? 'selected' : '' ?>" 
+                    data-category-id="<?= $subCategory['ct_idx'] ?>">
+                    <?= htmlspecialchars($subCategory['ct_name']) ?>
+                </span>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
     
     <form id="variable-form" method="post" enctype="multipart/form-data">
         <input type="hidden" name="ct_idx" value="<?= $defaultSubCategory['ct_idx'] ?>">
