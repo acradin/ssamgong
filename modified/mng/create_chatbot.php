@@ -1,0 +1,126 @@
+<?php
+// 출력 버퍼링 시작
+ob_start();
+
+// 헤더 설정
+header('Content-Type: application/json; charset=utf-8');
+
+// 필요한 include 파일들
+include $_SERVER['DOCUMENT_ROOT'] . "/mng/head.inc.php";
+
+// 이전 출력 버퍼 제거
+ob_clean();
+
+try {
+    // 필수 파라미터 체크
+    if (!isset($_POST['act']) || $_POST['act'] !== 'create') {
+        throw new Exception('잘못된 접근입니다.');
+    }
+
+    $botSelect = $_POST['bot_select'] ?? '';
+    $botName = $_POST['bot_name'] ?? '';
+    $categoryName = $_POST['category_name'] ?? '';
+    $promptTitle = $_POST['prompt_title'] ?? '';
+    $promptContent = $_POST['prompt_content'] ?? '';
+    
+    // 변수 배열
+    $variableNames = $_POST['variable_name'] ?? [];
+    $variableTypes = $_POST['variable_type'] ?? [];
+    $variableDescs = $_POST['variable_desc'] ?? [];
+
+    // 필수값 검증
+    if (empty($botSelect) && empty($botName)) {
+        throw new Exception('챗봇을 선택하거나 새로운 챗봇 이름을 입력해주세요.');
+    }
+    if (empty($categoryName)) {
+        throw new Exception('카테고리 이름을 입력해주세요.');
+    }
+    if (empty($promptTitle)) {
+        throw new Exception('프롬프트 제목을 입력해주세요.');
+    }
+    if (empty($promptContent)) {
+        throw new Exception('프롬프트 내용을 입력해주세요.');
+    }
+    if (empty($variableNames)) {
+        throw new Exception('최소 하나의 변수를 입력해주세요.');
+    }
+
+    // 트랜잭션 시작
+    $DB->startTransaction();
+
+    try {
+        $parentId = null;
+
+        // 1. 챗봇(부모 카테고리) 처리
+        if ($botSelect) {
+            // 기존 챗봇 선택
+            $parentId = $botSelect;
+        } else {
+            // 새로운 챗봇 생성
+            if (empty($botName)) {
+                throw new Exception('챗봇 이름을 입력해주세요.');
+            }
+
+            // 최대 순서 값 조회
+            $maxOrder = $DB->rawQueryOne("SELECT MAX(ct_order) as max_order FROM category_t WHERE parent_idx IS NULL");
+            $nextOrder = ($maxOrder['max_order'] ?? 0) + 1;
+
+            // 새 챗봇 추가
+            $DB->rawQuery("INSERT INTO category_t (ct_name, ct_order, ct_status) VALUES (?, ?, 'Y')", 
+                [$botName, $nextOrder]);
+            $parentId = $DB->getInsertId();
+        }
+
+        // 2. 카테고리(자식) 생성
+        $DB->rawQuery("INSERT INTO category_t (ct_name, parent_idx, ct_status) VALUES (?, ?, 'Y')",
+            [$categoryName, $parentId]);
+        $categoryId = $DB->getInsertId();
+
+        // 3. 프롬프트 생성 - cp_wdate 추가 및 parent_ct_idx 포함
+        $DB->rawQuery("
+            INSERT INTO chatbot_prompt_t 
+            (parent_ct_idx, ct_idx, cp_title, cp_content, cp_wdate) 
+            VALUES (?, ?, ?, ?, NOW())",
+            [$parentId, $categoryId, $promptTitle, $promptContent]
+        );
+
+        // 4. 변수 생성
+        foreach ($variableNames as $index => $name) {
+            if (empty($name)) continue;
+            
+            $type = $variableTypes[$index] ?? 'text';
+            $desc = $variableDescs[$index] ?? '';
+            $order = $index + 1;
+
+            $DB->rawQuery("INSERT INTO chatbot_variable_t (ct_idx, cv_name, cv_type, cv_description, cv_order) 
+                VALUES (?, ?, ?, ?, ?)",
+                [$categoryId, $name, $type, $desc, $order]);
+        }
+
+        // 트랜잭션 커밋
+        $DB->commit();
+        
+        echo json_encode([
+            'success' => true,
+            'message' => '성공적으로 저장되었습니다.'
+        ]);
+
+    } catch (Exception $e) {
+        $DB->rollback();
+        throw new Exception($e->getMessage());
+    }
+
+} catch (Exception $e) {
+    if (isset($DB)) {
+        $DB->rollback();
+    }
+    
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
+}
+
+// 출력 버퍼 플러시
+ob_end_flush();
+?>
