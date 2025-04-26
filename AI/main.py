@@ -21,6 +21,7 @@ from problem_generator.stage5_problem_generation.problem_generator import (
 from problem_generator.stage7_export.pdf_exporter import ReportlabPdfExporter
 import shutil
 from langchain_openai import ChatOpenAI
+from chatbot.claude import run_claude
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -134,6 +135,18 @@ async def export_pdf(problems: list = Body(...)):
     return FileResponse(
         export_path, media_type="application/pdf", filename=f"problems_{file_id}.pdf"
     )
+
+
+@app.post("/run_claude/")
+async def run_claude_api(
+    system_prompt: str = Body(...),
+    user_prompt: str = Body(...),
+):
+    """
+    Claude LLM을 실행하는 API 엔드포인트
+    """
+    result = run_claude(system_prompt, user_prompt)
+    return {"result": result}
 
 
 # FastAPI 앱 실행 (uvicorn 사용)
