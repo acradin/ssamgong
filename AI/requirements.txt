@@ -1,0 +1,13 @@
+python-dotenv
+numpy
+matplotlib
+reportlab
+PyMuPDF
+openai
+langchain
+langchain-community
+langchain-core
+langchain-openai
+fastapi 
+python-multipart
+uvicorn

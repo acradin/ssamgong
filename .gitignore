@@ -1,0 +1,74 @@
+PHP/
+venv/
+.venv/
+__pycache__/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# 가상환경
+venv/
+.venv/
+env/
+ENV/
+
+# IDE/에디터
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS/툴 임시파일
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# 로그/임시/백업
+*.log
+*.bak
+*.tmp
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 환경설정/보안
+.env
+.env.*
+
+# 빌드/배포 산출물
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# PDF/Export/Upload 임시폴더
+uploads/
+exports/
+
+# mypy, coverage, pytest 등
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.cache/
+coverage.xml
+
+# VSCode settings
+.vscode/
+
+# pip wheel cache
+pip-wheel-metadata/
+
+# 기타
+*.sqlite3
+*.db 
