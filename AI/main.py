@@ -20,6 +20,7 @@ from problem_generator.stage5_problem_generation.problem_generator import (
 )
 from problem_generator.stage7_export.pdf_exporter import ReportlabPdfExporter
 import shutil
+from langchain_openai import ChatOpenAI
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -83,7 +84,11 @@ async def generate_problems(
             status_code=400, content={"error": "지원하지 않는 과목입니다."}
         )
     # 7. 문제 생성
-    problems = generator.generate(chunks, grade, num_problems)
+    retriever = vector_store.as_retriever()
+    if classified_subject == "수학":
+        problems = generator.generate(retriever, prompt or "")
+    else:
+        problems = generator.generate(retriever)
     session_id = str(uuid.uuid4())
     sessions[session_id] = {
         "history": [
@@ -108,8 +113,13 @@ async def edit_problems(
     history = session["history"]
     problems = session["problems"]
     history.append({"role": "user", "content": user_edit})
-    # 실제 LLM 기반 문제 수정 함수는 아래에서 구현 필요 (예시)
-    new_problems = problems  # TODO: LLM 기반 문제 수정 로직으로 대체
+    # LLM 기반 문제 수정 로직
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+    with open("AI/problem_generator/prompts/edit_problem.txt", encoding="utf-8") as f:
+        prompt_template = f.read()
+    prompt = prompt_template.format(problems=problems, user_edit=user_edit)
+    response = llm.invoke(prompt)
+    new_problems = response.content if hasattr(response, 'content') else response
     history.append({"role": "system", "content": str(new_problems)})
     session["problems"] = new_problems
     return {"session_id": session_id, "problems": new_problems, "history": history}
