@@ -1,3 +1,13 @@
+"""
+@file        document_chunker.py
+@author      MinJun Park
+@date        2025-04-30
+@description 문서 청킹(분할) 모듈
+             긴 문서를 LLM이 처리하기 좋은 크기로 분할하는 기능을 제공하는 모듈
+
+@update-log
+"""
+
 from typing import List, Any
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 

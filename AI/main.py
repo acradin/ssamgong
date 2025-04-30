@@ -1,3 +1,13 @@
+"""
+@file        main.py
+@author      MinJun Park
+@date        2025-04-30
+@description FastAPI 기반의 문제 생성 서버
+             PDF 파일로부터 문제를 생성하고, 편집, 내보내기 기능을 제공하는 메인 서버 애플리케이션
+
+@update-log
+"""
+
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, Body, UploadFile, File, Form

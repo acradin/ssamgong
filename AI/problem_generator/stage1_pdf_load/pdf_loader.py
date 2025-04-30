@@ -1,3 +1,13 @@
+"""
+@file        pdf_loader.py
+@author      MinJun Park
+@date        2025-04-30
+@description PDF 파일 로더 모듈
+             다양한 방식(PyPDFLoader, PyMuPDF, Vision)으로 PDF 파일을 로드하고 텍스트를 추출하는 기능 제공
+
+@update-log
+"""
+
 import base64
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document

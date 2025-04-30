@@ -1,3 +1,13 @@
+"""
+@file        subject_classifier.py
+@author      MinJun Park
+@date        2025-04-30
+@description 과목 분류 모듈
+             PDF에서 추출한 텍스트를 바탕으로 국어/수학/영어/과학 등 과목을 자동으로 분류하는 모듈
+
+@update-log
+"""
+
 from typing import List, Any
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate

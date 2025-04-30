@@ -1,3 +1,13 @@
+"""
+@file        vector_store.py
+@author      MinJun Park
+@date        2025-04-30
+@description 벡터 스토어 모듈
+             문서 청크를 임베딩 벡터로 변환하여 효율적인 검색/질의를 가능하게 하는 모듈
+
+@update-log
+"""
+
 from typing import Any, List
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
