@@ -38,8 +38,12 @@ app.add_middleware(
 # 환경 변수 로드
 load_dotenv()
 
-UPLOAD_DIR = "uploads"
-EXPORT_DIR = "exports"
+# 기본 디렉토리 설정
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+EXPORT_DIR = os.path.join(BASE_DIR, "exports")
+PROMPTS_DIR = os.path.join(BASE_DIR, "AI", "problem_generator", "prompts")
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(EXPORT_DIR, exist_ok=True)
 
@@ -60,36 +64,32 @@ async def generate_problems(
     file_path = os.path.join(UPLOAD_DIR, f"{file_id}.pdf")
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+
     # 2. PDF 로드
     pages = load_pdf(file_path)
+
     # 3. 문서 청킹
     chunker = RecursiveChunker()
     chunks = chunker.chunk(pages)
+
     # 4. 벡터스토어 구축
     vector_store = FaissVectorStoreAdapter()
-    vector_store.build(chunks)
-    # 5. 과목 분류
+    store = vector_store.from_documents(chunks)
+
+    # 5. 과목 분류 및 생성기 선택
     classifier = OpenAISubjectClassifier()
-    classified_subject = classifier.classify(subject, chunks)
-    # 6. 문제 생성기 선택
-    if classified_subject == "수학":
-        generator = MathProblemGenerator()
-    elif classified_subject == "국어":
-        generator = KoreanProblemGenerator()
-    elif classified_subject == "영어":
-        generator = EnglishProblemGenerator()
-    elif classified_subject == "과학":
-        generator = ScienceProblemGenerator()
-    else:
+    classified_subject = classifier.classify(file_path, pages)
+    try:
+        generator = classifier.get_problem_generator(classified_subject)
+    except ValueError:
         return JSONResponse(
             status_code=400, content={"error": "지원하지 않는 과목입니다."}
         )
-    # 7. 문제 생성
-    retriever = vector_store.as_retriever()
-    if classified_subject == "수학":
-        problems = generator.generate(retriever, prompt or "")
-    else:
-        problems = generator.generate(retriever)
+
+    # 6. 문제 생성
+    retriever = vector_store.as_retriever(store)
+    problems = generator.generate(retriever, prompt or "")
+
     session_id = str(uuid.uuid4())
     sessions[session_id] = {
         "history": [
@@ -107,22 +107,31 @@ async def edit_problems(
     user_edit: str = Body(...),
 ):
     session = sessions.get(session_id)
+
     if not session:
         return JSONResponse(
             status_code=404, content={"error": "세션을 찾을 수 없습니다."}
         )
+
     history = session["history"]
     problems = session["problems"]
+
     history.append({"role": "user", "content": user_edit})
+
     # LLM 기반 문제 수정 로직
     llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
-    with open("AI/problem_generator/prompts/edit_problem.txt", encoding="utf-8") as f:
+
+    with open(os.path.join(PROMPTS_DIR, "edit_problem.txt"), encoding="utf-8") as f:
         prompt_template = f.read()
+
     prompt = prompt_template.format(problems=problems, user_edit=user_edit)
     response = llm.invoke(prompt)
-    new_problems = response.content if hasattr(response, 'content') else response
+
+    new_problems = response.content if hasattr(response, "content") else response
+
     history.append({"role": "system", "content": str(new_problems)})
     session["problems"] = new_problems
+
     return {"session_id": session_id, "problems": new_problems, "history": history}
 
 
@@ -130,8 +139,10 @@ async def edit_problems(
 async def export_pdf(problems: list = Body(...)):
     file_id = str(uuid.uuid4())
     export_path = os.path.join(EXPORT_DIR, f"{file_id}.pdf")
+
     exporter = ReportlabPdfExporter()
     exporter.export(problems, export_path)
+
     return FileResponse(
         export_path, media_type="application/pdf", filename=f"problems_{file_id}.pdf"
     )

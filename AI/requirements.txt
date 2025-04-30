@@ -11,3 +11,6 @@ langchain-openai
 fastapi 
 python-multipart
 uvicorn
+anthropic
+faiss-cpu
+pypdf
