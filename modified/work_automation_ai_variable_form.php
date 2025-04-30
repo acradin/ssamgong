@@ -88,12 +88,45 @@ $subCategories = $DB->rawQuery("
 if (!empty($subCategories)) {
     $defaultSubCategory = $subCategories[0];
     $variables = $DB->rawQuery("
-        SELECT cv_idx, cv_name, cv_type, cv_description, cv_options
+        SELECT cv_idx, cv_name, cv_type, cv_description, cv_options, cv_required
         FROM chatbot_variable_t
         WHERE ct_idx = ? AND cv_status = 'Y'
         ORDER BY cv_order",
         [$defaultSubCategory['ct_idx']]
     );
+}
+
+// 사용자의 해당 챗봇 세션 조회
+$chatSessions = $DB->rawQuery("
+    SELECT cs.*, cvv.value, cv.cv_name, cv.cv_type
+    FROM chat_sessions cs
+    LEFT JOIN chat_variable_values cvv ON cs.cs_idx = cvv.cs_idx
+    LEFT JOIN chatbot_variable_t cv ON cvv.cv_idx = cv.cv_idx
+    WHERE cs.mt_idx = ? AND cs.ct_idx IN (
+        SELECT ct_idx FROM category_t WHERE parent_idx = ?
+    )
+    ORDER BY cs.created_at DESC",
+    [$_SESSION['_mt_idx'], $categoryId]
+);
+
+// 세션별로 데이터 재구성
+$formattedSessions = [];
+foreach ($chatSessions as $session) {
+    if (!isset($formattedSessions[$session['session_id']])) {
+        $formattedSessions[$session['session_id']] = [
+            'cs_idx' => $session['cs_idx'],
+            'created_at' => $session['created_at'],
+            'status' => $session['status'],
+            'variables' => []
+        ];
+    }
+    if ($session['cv_name']) {
+        $formattedSessions[$session['session_id']]['variables'][] = [
+            'name' => $session['cv_name'],
+            'value' => $session['value'],
+            'type' => $session['cv_type']
+        ];
+    }
 }
 ?>
 
@@ -115,71 +148,14 @@ if (!empty($subCategories)) {
     <form id="variable-form" method="post" enctype="multipart/form-data">
         <input type="hidden" name="ct_idx" value="<?= $defaultSubCategory['ct_idx'] ?>">
         
-        <?php foreach ($variables as $variable): ?>
-            <div class="ai-variable <?= $variable['cv_type'] === 'select' ? 'dropdown' : '' ?>">
-                <div class="title">
-                    <span><?= htmlspecialchars($variable['cv_name']) ?></span>
-                </div>
-                
-                <?php if ($variable['cv_type'] === 'text'): ?>
-                    <input
-                        class="ai-input-field"
-                        type="text"
-                        name="var_<?= $variable['cv_idx'] ?>"
-                        placeholder="<?= htmlspecialchars($variable['cv_description']) ?>"
-                        required />
-                        
-                <?php elseif ($variable['cv_type'] === 'select'): ?>
-                    <?php
-                    $options = json_decode($variable['cv_options'], true);
-                    $varId = "var_" . $variable['cv_idx'];
-                    ?>
-                    <div id="<?= $varId ?>_wrapper" class="ai-input-field" type="button" data-toggle="dropdown" aria-expanded="false">
-                        <span id="<?= $varId ?>_placeholder" class="placeholder"><?= htmlspecialchars($variable['cv_description']) ?></span>
-                        <span id="<?= $varId ?>_selected"></span>
-                        <div class="dropdown-icon"></div>
-                    </div>
-                    <div class="dropdown-menu">
-                        <?php foreach ($options as $idx => $option): ?>
-                            <button 
-                                id="<?= $varId ?>_<?= $idx ?>" 
-                                class="dropdown-item" 
-                                type="button"
-                                onclick="selectOption('<?= $varId ?>', '<?= $option ?>', <?= $idx ?>);">
-                                <?= htmlspecialchars($option) ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                    <input id="<?= $varId ?>" name="<?= $varId ?>" type="hidden" required />
-                    
-                <?php elseif ($variable['cv_type'] === 'date'): ?>
-                    <div class="ai-input-field date-picker-wrapper">
-                        <input
-                            type="text"
-                            id="var_<?= $variable['cv_idx'] ?>"
-                            name="var_<?= $variable['cv_idx'] ?>"
-                            class="date-picker"
-                            placeholder="날짜를 선택해주세요"
-                            readonly="readonly"
-                            required />
-                        <div class="dropdown-icon"></div>
-                    </div>
-                    
-                <?php elseif ($variable['cv_type'] === 'file'): ?>
-                    <div class="ai-input-field file-input-wrapper">
-                        <input 
-                            type="file" 
-                            id="var_<?= $variable['cv_idx'] ?>"
-                            name="var_<?= $variable['cv_idx'] ?>"
-                            accept=".pdf,.doc,.docx"
-                            required />
-                        <span class="file-placeholder">파일을 첨부해주세요</span>
-                    </div>
-                <?php endif; ?>
-            </div>
-        <?php endforeach; ?>
+        <div id="variables-container"></div>
         
-        <button type="submit" class="btn-create fw_500">생성하기</button>
+        <div class="button-group text-center">
+            <button type="submit" class="btn-create fw_500">생성하기</button>
+            <?php if (!empty($formattedSessions)): ?>
+                <button type="button" class="btn-history fw_500" onclick="showHistory()">이전 대화 보기</button>
+            <?php endif; ?>
+        </div>
     </form>
 </div>
                 
@@ -191,7 +167,130 @@ if (!empty($subCategories)) {
     </div>
 
 <script>
-// 하위 카테고리 클릭 시 변수 로드
+// DOM 로드 완료 후 실행되는 부분
+document.addEventListener('DOMContentLoaded', function() {
+    // 변수 컨테이너 추가
+    $('#variable-form').prepend('<div id="variables-container"></div>');
+    
+    // 초기 변수 필드 생성
+    const initialVariables = <?php echo json_encode($variables); ?>;
+    const variablesHtml = initialVariables.map(variable => {
+        let fieldHtml = `
+            <div class="ai-variable ${variable.cv_type === 'select' ? 'dropdown' : ''}">
+                <div class="title">
+                    <span>${variable.cv_name}</span>
+                </div>`;
+        
+        if (variable.cv_type === 'text') {
+            fieldHtml += `
+                <input
+                    class="ai-input-field"
+                    type="text"
+                    name="var_${variable.cv_idx}"
+                    placeholder="${variable.cv_description}"
+                    ${variable.cv_required === 'Y' ? 'required' : ''}
+                    ${variable.cv_name.includes('문제 수') ? 'max="20" type="number"' : ''} />`;
+        }
+        else if (variable.cv_type === 'select') {
+            const options = JSON.parse(variable.cv_options);
+            const varId = `var_${variable.cv_idx}`;
+            
+            fieldHtml += `
+                <div id="${varId}_wrapper" class="ai-input-field" type="button" data-toggle="dropdown" aria-expanded="false">
+                    <span id="${varId}_placeholder" class="placeholder">${variable.cv_description}</span>
+                    <span id="${varId}_selected"></span>
+                    <div class="dropdown-icon"></div>
+                </div>
+                <div class="dropdown-menu">`;
+            
+            options.forEach((option, idx) => {
+                fieldHtml += `
+                    <button 
+                        id="${varId}_${idx}" 
+                        class="dropdown-item" 
+                        type="button"
+                        onclick="selectOption('${varId}', '${option}', ${idx});">
+                        ${option}
+                    </button>`;
+            });
+            
+            fieldHtml += `
+                </div>
+                <input id="${varId}" name="${varId}" type="hidden" ${variable.cv_required === 'Y' ? 'required' : ''} />`;
+        }
+        else if (variable.cv_type === 'date') {
+            fieldHtml += `
+                <div class="ai-input-field date-picker-wrapper">
+                    <input
+                        type="text"
+                        id="var_${variable.cv_idx}"
+                        name="var_${variable.cv_idx}"
+                        class="date-picker"
+                        placeholder="날짜를 선택해주세요"
+                        readonly="readonly"
+                        ${variable.cv_required === 'Y' ? 'required' : ''} />
+                    <div class="dropdown-icon"></div>
+                </div>`;
+        }
+        else if (variable.cv_type === 'file') {
+            fieldHtml += `
+                <div class="ai-input-field file-input-wrapper">
+                    <input 
+                        type="file" 
+                        id="var_${variable.cv_idx}"
+                        name="var_${variable.cv_idx}"
+                        accept=".pdf,.doc,.docx"
+                        ${variable.cv_required === 'Y' ? 'required' : ''} />
+                    <span class="file-placeholder">파일을 첨부해주세요</span>
+                </div>`;
+        }
+        
+        fieldHtml += `</div>`;
+        return fieldHtml;
+    }).join('');
+    
+    // 변수 필드들을 컨테이너에 추가
+    $('#variables-container').html(variablesHtml);
+    
+    // date picker 초기화
+    flatpickr(".date-picker", {
+        locale: "ko",
+        dateFormat: "Y-m-d",
+        disableMobile: "true",
+        maxDate: "today",
+        monthSelectorType: "static",
+        placeholder: "날짜를 선택해주세요",
+        position: "auto right",
+        
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.element.closest('.date-picker-wrapper').classList.add('active');
+        },
+        
+        onClose: function(selectedDates, dateStr, instance) {
+            instance.element.closest('.date-picker-wrapper').classList.remove('active');
+        },
+
+        onChange: function(selectedDates, dateStr, instance) {
+            instance.element.setAttribute('value', dateStr);
+        }
+    });
+    
+    // 파일 입력 이벤트 바인딩
+    document.querySelectorAll('input[type="file"]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            const placeholder = this.parentElement.querySelector('.file-placeholder');
+            if (this.files.length > 0) {
+                placeholder.textContent = this.files[0].name;
+                placeholder.classList.add('has-file');
+            } else {
+                placeholder.textContent = '파일을 첨부해주세요';
+                placeholder.classList.remove('has-file');
+            }
+        });
+    });
+});
+
+// 기존의 카테고리 변경 이벤트 핸들러는 그대로 유지
 $('#ai-category span').click(function() {
     const categoryId = $(this).data('category-id');
     
@@ -211,7 +310,7 @@ $('#ai-category span').click(function() {
                 $('input[name="ct_idx"]').val(categoryId);
                 
                 // 기존 변수 필드들 제거
-                $('#variable-form .ai-variable').remove();
+                $('#variables-container').empty();
                 
                 // 새로운 변수 필드들 추가
                 const variablesHtml = response.variables.map(variable => {
@@ -228,7 +327,8 @@ $('#ai-category span').click(function() {
                                 type="text"
                                 name="var_${variable.cv_idx}"
                                 placeholder="${variable.cv_description}"
-                                required />`;
+                                ${variable.cv_required === 'Y' ? 'required' : ''}
+                                ${variable.cv_name.includes('문제 수') ? 'max="20" type="number"' : ''} />`;
                     }
                     else if (variable.cv_type === 'select') {
                         const options = JSON.parse(variable.cv_options);
@@ -255,7 +355,7 @@ $('#ai-category span').click(function() {
                         
                         fieldHtml += `
                             </div>
-                            <input id="${varId}" name="${varId}" type="hidden" required />`;
+                            <input id="${varId}" name="${varId}" type="hidden" ${variable.cv_required === 'Y' ? 'required' : ''} />`;
                     }
                     else if (variable.cv_type === 'date') {
                         fieldHtml += `
@@ -267,7 +367,7 @@ $('#ai-category span').click(function() {
                                     class="date-picker"
                                     placeholder="날짜를 선택해주세요"
                                     readonly="readonly"
-                                    required />
+                                    ${variable.cv_required === 'Y' ? 'required' : ''} />
                                 <div class="dropdown-icon"></div>
                             </div>`;
                     }
@@ -279,7 +379,7 @@ $('#ai-category span').click(function() {
                                     id="var_${variable.cv_idx}"
                                     name="var_${variable.cv_idx}"
                                     accept=".pdf,.doc,.docx"
-                                    required />
+                                    ${variable.cv_required === 'Y' ? 'required' : ''} />
                                 <span class="file-placeholder">파일을 첨부해주세요</span>
                             </div>`;
                     }
@@ -288,8 +388,8 @@ $('#ai-category span').click(function() {
                     return fieldHtml;
                 }).join('');
                 
-                // 변수 필드들을 submit 버튼 앞에 삽입
-                $(variablesHtml).insertBefore('#variable-form button[type="submit"]');
+                // 변수들을 variables-container에 추가
+                $('#variables-container').html(variablesHtml);
                 
                 // date picker 다시 초기화
                 flatpickr(".date-picker", {
@@ -411,7 +511,7 @@ $('#variable-form').on('submit', function(e) {
             $('#splinner_modal').modal('hide');
             if (response.success) {
                 jalert(response.message, function() {
-                    location.href = `work_automation_ai_result.php?ct_idx=${response.ct_idx}`;
+                    location.href = `work_automation_ai_result.php?session_id=${response.session_id}`;
                 });
             } else {
                 jalert(response.message || '오류가 발생했습니다.');
@@ -424,6 +524,16 @@ $('#variable-form').on('submit', function(e) {
         }
     });
 });
+
+// 이전 대화 모달 표시
+function showHistory() {
+    $('#historyModal').modal('show');
+}
+
+// 세션 상세 보기
+function viewSession(sessionId) {
+    location.href = `work_automation_ai_result.php?session_id=${sessionId}`;
+}
 </script>
 
 <style>
@@ -587,7 +697,6 @@ input[type="file"] {
 .btn-create {
     width: 20%;
     display: block;
-    margin: 3.5rem auto 0;
     padding: 1.1rem;
     border-radius: 100px;
     border: 0;
@@ -634,7 +743,151 @@ input {
 .file-placeholder:not(.has-file) {
     color: #DBDBDB;
 }
+
+/* 버튼 그룹 스타일 */
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 3.5rem auto 0;
+}
+
+.btn-create, .btn-history {
+    width: 20%;
+    padding: 1.1rem;
+    border-radius: 100px;
+    border: 0;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.btn-create {
+    background-color: #1ba7b4;
+    color: #fff;
+}
+
+.btn-history {
+    background-color: #fff;
+    color: #1ba7b4;
+    border: 2px solid #1ba7b4;
+}
+
+/* 채팅 세션 아이템 스타일 */
+.chat-session-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.session-date {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.session-status {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+}
+
+.session-status.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.session-status.completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.session-status.error {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.session-variables {
+    margin: 10px 0;
+}
+
+.variable-row {
+    display: flex;
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+.variable-name {
+    font-weight: 500;
+    margin-right: 10px;
+    min-width: 120px;
+}
+
+.session-actions {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.btn-view {
+    padding: 5px 15px;
+    border: 1px solid #1ba7b4;
+    border-radius: 4px;
+    background: none;
+    color: #1ba7b4;
+    font-size: 0.9em;
+}
+
+.btn-view:hover {
+    background-color: #1ba7b4;
+    color: #fff;
+}
 </style>
+
+<!-- 이전 대화 모달 -->
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">이전 대화 목록</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <?php foreach ($formattedSessions as $sessionId => $session): ?>
+                    <div class="chat-session-item">
+                        <div class="session-header">
+                            <span class="session-date"><?= date('Y-m-d H:i', strtotime($session['created_at'])) ?></span>
+                            <span class="session-status <?= $session['status'] ?>"><?= $session['status'] === 'active' ? '진행중' : ($session['status'] === 'completed' ? '완료' : '오류') ?></span>
+                        </div>
+                        <div class="session-variables">
+                            <?php foreach ($session['variables'] as $variable): ?>
+                                <div class="variable-row">
+                                    <span class="variable-name"><?= htmlspecialchars($variable['name']) ?>:</span>
+                                    <span class="variable-value">
+                                        <?php if ($variable['type'] === 'file'): ?>
+                                            <i class="fas fa-file"></i> <?= htmlspecialchars($variable['value']) ?>
+                                        <?php else: ?>
+                                            <?= htmlspecialchars($variable['value']) ?>
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="session-actions">
+                            <button type="button" class="btn-view" onclick="viewSession('<?= $sessionId ?>')">대화 보기</button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php
 

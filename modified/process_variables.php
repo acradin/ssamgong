@@ -1,0 +1,253 @@
+<?php
+include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
+
+// 세션 체크
+if (!$_SESSION['_mt_idx']) {
+    echo json_encode([
+        'success' => false,
+        'message' => '로그인이 필요합니다.'
+    ]);
+    exit;
+}
+
+try {
+    // 1. 필수 파라미터 체크
+    if (!isset($_POST['ct_idx'])) {
+        throw new Exception('잘못된 접근입니다.');
+    }
+
+    $categoryId = (int)$_POST['ct_idx'];
+
+    // 2. 필수 변수 체크
+    $required_vars = $DB->rawQuery("
+        SELECT cv_idx, cv_name, cv_type, cv_required 
+        FROM chatbot_variable_t 
+        WHERE ct_idx = ? AND cv_status = 'Y'",
+        [$categoryId]
+    );
+
+    // 필수 변수 검증
+    foreach ($required_vars as $var) {
+        $var_key = 'var_' . $var['cv_idx'];
+        
+        if ($var['cv_required'] === 'Y') {
+            if ($var['cv_type'] === 'file') {
+                if (!isset($_FILES[$var_key]) || $_FILES[$var_key]['error'] === UPLOAD_ERR_NO_FILE) {
+                    throw new Exception("{$var['cv_name']} 파일을 첨부해주세요.");
+                }
+            } else {
+                if (!isset($_POST[$var_key]) || trim($_POST[$var_key]) === '') {
+                    throw new Exception("{$var['cv_name']}을(를) 입력해주세요.");
+                }
+                
+                // 문제 수 검증 추가
+                if (strpos($var['cv_name'], '문제 수') !== false) {
+                    $problem_count = (int)$_POST[$var_key];
+                    if ($problem_count > 20) {
+                        throw new Exception("문제 수는 20개를 초과할 수 없습니다.");
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. 포인트 체크 및 차감
+    $point_check = $DB->rawQueryOne("
+        SELECT mt_point 
+        FROM member_t 
+        WHERE mt_idx = ? 
+        AND mt_point >= 1000",
+        [$_SESSION['_mt_idx']]
+    );
+
+    if (!$point_check) {
+        throw new Exception('포인트가 부족합니다.');
+    }
+
+    // 4. API 호출을 위한 데이터 준비
+    $category = $DB->rawQueryOne("
+        SELECT ct.ct_name, parent.ct_name as parent_name, parent.ct_idx as parent_idx
+        FROM category_t ct
+        JOIN category_t parent ON ct.parent_idx = parent.ct_idx
+        WHERE ct.ct_idx = ?",
+        [$categoryId]
+    );
+
+    // API 엔드포인트 결정
+    $is_problem_creation = ($category['parent_name'] === '문제 제작');
+
+    if ($is_problem_creation) {
+        // 기존 문제 생성 로직 유지
+        $api_data = [];
+        foreach ($_FILES as $key => $file) {
+            if ($file['error'] === UPLOAD_ERR_OK) {
+                $api_data[$key] = new CURLFile(
+                    $file['tmp_name'],
+                    $file['type'],
+                    $file['name']
+                );
+            }
+        }
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'var_') === 0) {
+                $api_data[$key] = $value;
+            }
+        }
+
+        // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
+        /*
+        $ch = curl_init('http://localhost:8000/generate_problems/');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $api_data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($http_code !== 200) {
+            throw new Exception('API 호출 실패');
+        }
+
+        $result = json_decode($response, true);
+        */
+    } else {
+        // Claude API 호출
+        // 시스템 프롬프트 조회
+        $prompt = $DB->rawQueryOne("
+            SELECT cp_content
+            FROM chatbot_prompt_t
+            WHERE parent_ct_idx = ? AND ct_idx = ? AND cp_status = 'Y'
+            ORDER BY cp_idx DESC
+            LIMIT 1",
+            [$category['parent_idx'], $categoryId]
+        );
+
+        $system_prompt = $prompt ? $prompt['cp_content'] : "당신은 {$category['parent_name']} 전문가입니다.";
+        
+        $user_prompt = "";
+        foreach ($required_vars as $var) {
+            $var_key = 'var_' . $var['cv_idx'];
+            if (isset($_POST[$var_key])) {
+                $user_prompt .= "{$var['cv_name']}: {$_POST[$var_key]}\n";
+            }
+        }
+        
+        $api_data = [
+            'system_prompt' => $system_prompt,
+            'user_prompt' => $user_prompt
+        ];
+
+        // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
+        /*
+        $ch = curl_init('http://localhost:8000/run_claude/');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($http_code !== 200) {
+            throw new Exception('API 호출 실패');
+        }
+
+        $result = json_decode($response, true);
+        */
+    }
+
+    // 5. 테스트용 응답 생성
+    $result = [
+        'success' => true,
+        'session_id' => uniqid('test_', true)
+    ];
+
+    // 6. DB 트랜잭션 시작
+    $DB->startTransaction();
+
+    try {
+        // 세션 생성
+        $DB->rawQuery("
+            INSERT INTO chat_sessions 
+            (session_id, mt_idx, ct_idx, created_at, status) 
+            VALUES (?, ?, ?, NOW(), 'active')",
+            [$result['session_id'], $_SESSION['_mt_idx'], $categoryId]
+        );
+        $cs_idx = $DB->getInsertId();
+
+        // 변수 값 저장
+        foreach ($required_vars as $var) {
+            $var_key = 'var_' . $var['cv_idx'];
+            $value = '';
+
+            if ($var['cv_type'] === 'file' && isset($_FILES[$var_key])) {
+                $value = $_FILES[$var_key]['name'];
+            } else if (isset($_POST[$var_key])) {
+                $value = $_POST[$var_key];
+            }
+
+            if ($value !== '') {
+                $DB->rawQuery("
+                    INSERT INTO chat_variable_values 
+                    (cs_idx, cv_idx, value) 
+                    VALUES (?, ?, ?)",
+                    [$cs_idx, $var['cv_idx'], $value]
+                );
+            }
+        }
+
+        // 첫 사용 기록 체크 및 저장
+        $usage_check = $DB->rawQueryOne("
+            SELECT id 
+            FROM chatbot_usage 
+            WHERE mt_idx = ?",
+            [$_SESSION['_mt_idx']]
+        );
+
+        if (!$usage_check) {
+            $DB->rawQuery("
+                INSERT INTO chatbot_usage 
+                (mt_idx, first_use_date) 
+                VALUES (?, NOW())",
+                [$_SESSION['_mt_idx']]
+            );
+        }
+
+        // 포인트 차감
+        $DB->rawQuery("
+            UPDATE member_t 
+            SET mt_point = mt_point - 1000 
+            WHERE mt_idx = ?",
+            [$_SESSION['_mt_idx']]
+        );
+
+        // 포인트 사용 내역 기록
+        $DB->rawQuery("
+            INSERT INTO point_history_t 
+            (mt_idx, point_amount, point_type, point_description, created_at) 
+            VALUES (?, ?, ?, ?, NOW())",
+            [$_SESSION['_mt_idx'], -1000, 'use', 'AI 문제 생성']
+        );
+
+        $DB->commit();
+
+        echo json_encode([
+            'success' => true,
+            'message' => '문제가 성공적으로 생성되었습니다.',
+            'ct_idx' => $categoryId,
+            'session_id' => $result['session_id']
+        ]);
+
+    } catch (Exception $e) {
+        $DB->rollback();
+        throw $e;
+    }
+
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
+}

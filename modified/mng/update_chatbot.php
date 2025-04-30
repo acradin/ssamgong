@@ -27,6 +27,7 @@ try {
     $variableNames = $_POST['variable_name'] ?? [];
     $variableTypes = $_POST['variable_type'] ?? [];
     $variableDescs = $_POST['variable_desc'] ?? [];
+    $variableRequired = $_POST['variable_required'] ?? [];
     $deletedVariables = !empty($_POST['deleted_variables']) ? explode(',', $_POST['deleted_variables']) : [];
 
     // 파라미터 추가
@@ -117,6 +118,9 @@ try {
             $desc = $variableDescs[$index] ?? '';
             $order = $index + 1;
             
+            // 필수 여부 설정
+            $required = in_array($idx, $variableRequired) ? 'Y' : 'N';
+            
             // 선택 타입일 경우 옵션 처리
             $options = null;
             if ($type === 'select') {
@@ -140,9 +144,10 @@ try {
                             cv_description = ?, 
                             cv_order = ?,
                             cv_status = 'Y',
-                            cv_options = ?
+                            cv_options = ?,
+                            cv_required = ?
                         WHERE cv_idx = ? AND ct_idx = ?",
-                        [$name, $type, $desc, $order, $options, $idx, $categoryId]
+                        [$name, $type, $desc, $order, $options, $required, $idx, $categoryId]
                     );
                 } else {
                     $DB->rawQuery("
@@ -152,9 +157,10 @@ try {
                             cv_description = ?, 
                             cv_order = ?,
                             cv_status = 'Y',
-                            cv_options = NULL
+                            cv_options = NULL,
+                            cv_required = ?
                         WHERE cv_idx = ? AND ct_idx = ?",
-                        [$name, $type, $desc, $order, $idx, $categoryId]
+                        [$name, $type, $desc, $order, $required, $idx, $categoryId]
                     );
                 }
             } else {
@@ -162,16 +168,16 @@ try {
                 if ($type === 'select') {
                     $DB->rawQuery("
                         INSERT INTO chatbot_variable_t 
-                        (ct_idx, cv_name, cv_type, cv_description, cv_options, cv_order, cv_status, cv_wdate) 
-                        VALUES (?, ?, ?, ?, ?, ?, 'Y', NOW())",
-                        [$categoryId, $name, $type, $desc, $options, $order]
+                        (ct_idx, cv_name, cv_type, cv_description, cv_options, cv_order, cv_status, cv_required, cv_wdate) 
+                        VALUES (?, ?, ?, ?, ?, ?, 'Y', ?, NOW())",
+                        [$categoryId, $name, $type, $desc, $options, $order, $required]
                     );
                 } else {
                     $DB->rawQuery("
                         INSERT INTO chatbot_variable_t 
-                        (ct_idx, cv_name, cv_type, cv_description, cv_order, cv_status, cv_wdate) 
-                        VALUES (?, ?, ?, ?, ?, 'Y', NOW())",
-                        [$categoryId, $name, $type, $desc, $order]
+                        (ct_idx, cv_name, cv_type, cv_description, cv_order, cv_status, cv_required, cv_wdate) 
+                        VALUES (?, ?, ?, ?, ?, 'Y', ?, NOW())",
+                        [$categoryId, $name, $type, $desc, $order, $required]
                     );
                 }
             }

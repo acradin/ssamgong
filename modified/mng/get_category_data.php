@@ -43,7 +43,7 @@ try {
 
     // 변수 정보 조회
     $variables = $DB->rawQuery("
-        SELECT cv_idx, cv_name, cv_type, cv_description, cv_options
+        SELECT cv_idx, cv_name, cv_type, cv_description, cv_options, cv_required
         FROM chatbot_variable_t
         WHERE ct_idx = ? AND cv_status = 'Y'
         ORDER BY cv_order",

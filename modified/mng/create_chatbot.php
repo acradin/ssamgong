@@ -27,6 +27,7 @@ try {
     $variableNames = $_POST['variable_name'] ?? [];
     $variableTypes = $_POST['variable_type'] ?? [];
     $variableDescs = $_POST['variable_desc'] ?? [];
+    $variableRequired = $_POST['variable_required'] ?? [];
 
     // 파라미터에 설명 추가
     $botDescription = $_POST['bot_description'] ?? '';
@@ -123,6 +124,7 @@ try {
             $type = $variableTypes[$index] ?? 'text';
             $desc = $variableDescs[$index] ?? '';
             $order = $index + 1;
+            $required = isset($variableRequired[$index]) ? 'Y' : 'N';
             
             // 선택 타입일 경우 옵션을 JSON 배열로 변환
             if ($type === 'select') {
@@ -133,14 +135,14 @@ try {
                 $optionsJson = json_encode($optionsArray, JSON_UNESCAPED_UNICODE);
                 
                 $DB->rawQuery("INSERT INTO chatbot_variable_t 
-                    (ct_idx, cv_name, cv_type, cv_description, cv_options, cv_order) 
-                    VALUES (?, ?, ?, ?, ?, ?)",
-                    [$categoryId, $name, $type, $desc, $optionsJson, $order]);
+                    (ct_idx, cv_name, cv_type, cv_description, cv_options, cv_order, cv_required) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    [$categoryId, $name, $type, $desc, $optionsJson, $order, $required]);
             } else {
                 $DB->rawQuery("INSERT INTO chatbot_variable_t 
-                    (ct_idx, cv_name, cv_type, cv_description, cv_order) 
-                    VALUES (?, ?, ?, ?, ?)",
-                    [$categoryId, $name, $type, $desc, $order]);
+                    (ct_idx, cv_name, cv_type, cv_description, cv_order, cv_required) 
+                    VALUES (?, ?, ?, ?, ?, ?)",
+                    [$categoryId, $name, $type, $desc, $order, $required]);
             }
         }
 

@@ -81,6 +81,10 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                                             <option value="date">날짜</option>
                                             <option value="file">파일</option>
                                         </select>
+                                        <div class="custom-control custom-checkbox mr-2">
+                                            <input type="checkbox" class="custom-control-input" name="variable_required[]" id="required_${Date.now()}" checked>
+                                            <label class="custom-control-label" for="required_${Date.now()}">필수</label>
+                                        </div>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
                                     </div>
                                     <div class="select-options-container" style="display: none;">
@@ -221,6 +225,10 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                                             <option value="date">날짜</option>
                                             <option value="file">파일</option>
                                         </select>
+                                        <div class="custom-control custom-checkbox mr-2">
+                                            <input type="checkbox" class="custom-control-input" name="variable_required[]" id="required_${Date.now()}" checked>
+                                            <label class="custom-control-label" for="required_${Date.now()}">필수</label>
+                                        </div>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
                                     </div>
                                     <div class="select-options-container" style="display: none;">

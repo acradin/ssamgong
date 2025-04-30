@@ -35,6 +35,35 @@ $variableTypeMap = [
                         color: #6c757d !important;
                         background-color: #e9ecef !important;
                     }
+
+                    /* 배지 스타일 */
+                    .badge {
+                        padding: 8px 12px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        border-radius: 4px;
+                    }
+
+                    .badge-primary {
+                        background-color: #1ba7b4;
+                        color: white;
+                    }
+
+                    .badge-secondary {
+                        background-color: #6c757d;
+                        color: white;
+                    }
+
+                    /* 변수 아이템 스타일 보완 */
+                    .variable-item {
+                        border: 1px solid #dee2e6;
+                        padding: 15px;
+                        border-radius: 4px;
+                    }
+
+                    .variable-item:hover {
+                        background-color: #f8f9fa;
+                    }
                     </style>
 
                     <!-- 필터 영역 -->
@@ -212,9 +241,12 @@ function loadCategoryData(chatbotId, categoryId) {
                                     <div class="variable-item mb-3">
                                         <div class="d-flex align-items-center mb-2">
                                             <input type="text" class="form-control flex-grow-1 mr-2" value="${variable.cv_name}" readonly />
-                                            <select class="form-control" style="width: auto; min-width: 100px;" disabled>
+                                            <select class="form-control mr-2" style="width: auto; min-width: 100px;" disabled>
                                                 <option>${variableTypeMap[variable.cv_type] || variable.cv_type}</option>
                                             </select>
+                                            <div class="badge ${variable.cv_required === 'Y' ? 'badge-primary' : 'badge-secondary'} mr-2">
+                                                ${variable.cv_required === 'Y' ? '필수' : '선택'}
+                                            </div>
                                         </div>
                                         ${variable.cv_type === 'select' ? `
                                             <div class="select-options mb-2">

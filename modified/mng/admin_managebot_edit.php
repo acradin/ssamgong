@@ -46,7 +46,7 @@ $prompt = $DB->rawQueryOne("
 
 // 변수 정보 조회 (cv_status 조건 제거)
 $variables = $DB->rawQuery("
-    SELECT cv_idx, cv_name, cv_type, cv_description, cv_options
+    SELECT cv_idx, cv_name, cv_type, cv_description, cv_options, cv_required
     FROM chatbot_variable_t
     WHERE ct_idx = ?
     ORDER BY cv_order",
@@ -123,6 +123,13 @@ $variables = $DB->rawQuery("
                                             <option value="<?= $value ?>" <?= $variable['cv_type'] === $value ? 'selected' : '' ?>><?= $label ?></option>
                                             <?php endforeach; ?>
                                         </select>
+                                        <div class="custom-control custom-checkbox mr-2">
+                                            <input type="checkbox" class="custom-control-input" name="variable_required[]" 
+                                                   id="required_<?= $variable['cv_idx'] ?>" 
+                                                   value="<?= $variable['cv_idx'] ?>"
+                                                   <?= $variable['cv_required'] === 'Y' ? 'checked' : '' ?>>
+                                            <label class="custom-control-label" for="required_<?= $variable['cv_idx'] ?>">필수</label>
+                                        </div>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
                                     </div>
                                     <div class="select-options-container" style="display: <?= $variable['cv_type'] === 'select' ? 'block' : 'none' ?>;">
@@ -182,6 +189,7 @@ $variables = $DB->rawQuery("
                     $(document).ready(function() {
                         // 변수 추가 버튼 클릭
                         $('.btn-add').click(function() {
+                            const timestamp = Date.now(); // 고유 ID 생성용
                             const template = `
                                 <div class="variable-item mb-3">
                                     <div class="d-flex align-items-center mb-2">
@@ -192,6 +200,12 @@ $variables = $DB->rawQuery("
                                             <option value="<?= $value ?>"><?= $label ?></option>
                                             <?php endforeach; ?>
                                         </select>
+                                        <div class="custom-control custom-checkbox mr-2">
+                                            <input type="checkbox" class="custom-control-input" name="variable_required[]" 
+                                                   id="required_new_${timestamp}" 
+                                                   value="new_${timestamp}" checked>
+                                            <label class="custom-control-label" for="required_new_${timestamp}">필수</label>
+                                        </div>
                                         <input type="button" class="btn btn-outline-danger btn-sm" value="삭제" onclick="f_variable_del(this);">
                                     </div>
                                     <div class="select-options-container" style="display: none;">
