@@ -1,6 +1,8 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
+$api_url = 'https://a28e-182-228-190-72.ngrok-free.app';
+
 // 세션 체크
 if (!$_SESSION['_mt_idx']) {
     echo json_encode([
@@ -67,13 +69,11 @@ try {
         ];
 
         // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
-        /*
-        $ch = curl_init('http://localhost:8000/edit_problems/');
+        $ch = curl_init($api_url . '/edit_problems/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        */
     } else {
         // Claude API 호출
         // 시스템 프롬프트 조회
@@ -94,20 +94,20 @@ try {
         ];
 
         // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
-        /*
-        $ch = curl_init('http://localhost:8000/run_claude/');
+        $ch = curl_init($api_url . '/run_claude/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        */
     }
 
     // 테스트용 응답 생성
+    /*
     $result = [
         'success' => true,
         'message' => '추가 요청이 처리되었습니다. (parent_name: ' . $session['parent_name'] . ', is_problem_creation: ' . ($is_problem_creation ? 'true' : 'false') . ')'
     ];
+    */
 
     // DB 트랜잭션 시작
     $DB->startTransaction();

@@ -1,6 +1,8 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
+$api_url = 'https://a28e-182-228-190-72.ngrok-free.app';
+
 // 세션 체크
 if (!$_SESSION['_mt_idx']) {
     echo json_encode([
@@ -77,30 +79,50 @@ try {
     $is_problem_creation = ($category['parent_name'] === '문제 제작');
 
     if ($is_problem_creation) {
-        // 기존 문제 생성 로직 유지
+        // 변수명 매핑
+        $param_map = [
+            '학교급' => 'school_level',
+            '학년' => 'grade',
+            '출제과목' => 'subject',
+            '출제 종류' => 'exam_type',
+            '문제 수' => 'num_problems',
+            '난이도' => 'difficulty',
+            '문제종류' => 'problem_type',
+            '참고 자료' => 'file',
+            '기타 요구사항' => 'additional_prompt'
+        ];
+
         $api_data = [];
-        foreach ($_FILES as $key => $file) {
-            if ($file['error'] === UPLOAD_ERR_OK) {
-                $api_data[$key] = new CURLFile(
-                    $file['tmp_name'],
-                    $file['type'],
-                    $file['name']
-                );
-            }
-        }
-        foreach ($_POST as $key => $value) {
-            if (strpos($key, 'var_') === 0) {
-                $api_data[$key] = $value;
+        $file_attached = false;
+
+        // 변수명과 값 매핑
+        foreach ($required_vars as $var) {
+            $var_key = 'var_' . $var['cv_idx'];
+            $api_key = $param_map[$var['cv_name']] ?? null;
+            if (!$api_key) continue;
+
+            if ($var['cv_type'] === 'file') {
+                if (isset($_FILES[$var_key]) && $_FILES[$var_key]['error'] === UPLOAD_ERR_OK) {
+                    $api_data[$api_key] = new CURLFile(
+                        $_FILES[$var_key]['tmp_name'],
+                        $_FILES[$var_key]['type'],
+                        $_FILES[$var_key]['name']
+                    );
+                    $file_attached = true;
+                }
+            } else {
+                if (isset($_POST[$var_key])) {
+                    $api_data[$api_key] = $_POST[$var_key];
+                }
             }
         }
 
-        // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
-        /*
-        $ch = curl_init('http://localhost:8000/generate_problems/');
+        // FastAPI 서버로 요청 전송
+        $ch = curl_init($api_url . '/generate_problems/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $api_data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
+
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -110,7 +132,6 @@ try {
         }
 
         $result = json_decode($response, true);
-        */
     } else {
         // Claude API 호출
         // 시스템 프롬프트 조회
@@ -139,8 +160,7 @@ try {
         ];
 
         // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
-        /*
-        $ch = curl_init('http://localhost:8000/run_claude/');
+        $ch = curl_init($api_url . '/run_claude/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
@@ -155,14 +175,14 @@ try {
         }
 
         $result = json_decode($response, true);
-        */
     }
-
+    /*
     // 5. 테스트용 응답 생성
     $result = [
         'success' => true,
         'session_id' => uniqid('test_', true)
     ];
+    */
 
     // 6. DB 트랜잭션 시작
     $DB->startTransaction();
