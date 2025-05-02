@@ -19,19 +19,19 @@ from problem_generator.stage2_chunking.document_chunker import RecursiveChunker
 from problem_generator.stage3_vector_store.vector_store import (
     FaissVectorStoreAdapter,
 )
-from problem_generator.stage4_classification.subject_classifier import (
-    OpenAISubjectClassifier,
-)
 from problem_generator.stage5_problem_generation.problem_generator import (
     MathProblemGenerator,
     KoreanProblemGenerator,
     EnglishProblemGenerator,
     ScienceProblemGenerator,
+    EtcProblemGenerator,
 )
 from problem_generator.stage7_export.pdf_exporter import ReportlabPdfExporter
 import shutil
 from langchain_openai import ChatOpenAI
 from chatbot.claude import run_claude
+from openai import OpenAI
+import base64
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -65,9 +65,13 @@ sessions = {}
 async def generate_problems(
     file: UploadFile = File(...),
     subject: str = Form(...),
+    school_level: str = Form(...),
     grade: str = Form(...),
+    exam_type: str = Form(...),
     num_problems: int = Form(...),
-    prompt: str = Form(None),
+    difficulty: str = Form(...),
+    problem_type: str = Form(...),
+    additional_prompt: str = Form(None),
 ):
     # 1. 파일 임시 저장
     file_id = str(uuid.uuid4())
@@ -75,40 +79,66 @@ async def generate_problems(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 2. PDF 로드
-    pages = load_pdf(file_path)
-
-    # 3. 문서 청킹
-    chunker = RecursiveChunker()
-    chunks = chunker.chunk(pages)
-
-    # 4. 벡터스토어 구축
-    vector_store = FaissVectorStoreAdapter()
-    store = vector_store.from_documents(chunks)
-
-    # 5. 과목 분류 및 생성기 선택
-    classifier = OpenAISubjectClassifier()
-    classified_subject = classifier.classify(file_path, pages)
     try:
-        generator = classifier.get_problem_generator(classified_subject)
-    except ValueError:
-        return JSONResponse(
-            status_code=400, content={"error": "지원하지 않는 과목입니다."}
-        )
+        # 2. PDF 로드
+        pages = load_pdf(file_path)
 
-    # 6. 문제 생성
-    retriever = vector_store.as_retriever(store)
-    problems = generator.generate(retriever, prompt or "")
+        # 3. 문서 청킹
+        chunker = RecursiveChunker()
+        chunks = chunker.chunk(pages)
 
-    session_id = str(uuid.uuid4())
-    sessions[session_id] = {
-        "history": [
-            {"role": "user", "content": prompt or ""},
-            {"role": "system", "content": str(problems)},
-        ],
-        "problems": problems,
-    }
-    return {"session_id": session_id, "problems": problems}
+        # 4. 벡터스토어 구축
+        vector_store = FaissVectorStoreAdapter()
+        store = vector_store.from_documents(chunks)
+
+        # 5. 과목에 따른 생성기 선택
+        generators = {
+            "수학": MathProblemGenerator(),
+            "국어": KoreanProblemGenerator(),
+            "영어": EnglishProblemGenerator(),
+            "과학": ScienceProblemGenerator(),
+            "기타": EtcProblemGenerator(),
+        }
+
+        generator = generators.get(subject, generators["기타"])
+        if not generator:
+            return JSONResponse(
+                status_code=400,
+                content={"error": f"예상치 못한 에러가 발생했습니다"},
+            )
+
+        # 6. 문제 생성
+        retriever = vector_store.as_retriever(store)
+        variables = {
+            "context": "",  # retriever에서 관련 문서를 찾아 채워질 것임
+            "school_level": school_level,
+            "grade": grade,
+            "subject": subject,
+            "exam_type": exam_type,
+            "num_problems": num_problems,
+            "difficulty": difficulty,
+            "problem_type": problem_type,
+            "additional_prompt": additional_prompt or "없음",
+        }
+        problems = generator.generate(retriever, variables)
+
+        print(f"problems : {problems}")
+
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = {
+            "history": [
+                {"role": "user", "content": str(variables)},
+                {"role": "system", "content": str(problems)},
+            ],
+            "problems": problems,
+        }
+
+        return {"session_id": session_id, "problems": problems}
+
+    finally:
+        # 임시 파일 삭제
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 
 @app.post("/edit_problems/")
@@ -168,6 +198,83 @@ async def run_claude_api(
     """
     result = run_claude(system_prompt, user_prompt)
     return {"result": result}
+
+
+@app.post("/run_prompt/")
+async def run_prompt(
+    file: UploadFile = File(...),
+    subject: str = Form(...),
+    school_level: str = Form(...),
+    grade: str = Form(...),
+    exam_type: str = Form(...),
+    num_problems: int = Form(...),
+    difficulty: str = Form(...),
+    problem_type: str = Form(...),
+    additional_prompt: str = Form(None),
+):
+    # OpenAI 클라이언트 초기화
+    client = OpenAI()
+
+    # 비동기 방식 (FastAPI에서 권장)
+    file_content = await file.read()
+    openai_file = client.files.create(
+        file=(file.filename, file_content, file.content_type), purpose="assistants"
+    )
+    file_id = openai_file.id
+
+    # 프롬프트 파일명 결정 및 읽기
+    if subject == "수학":
+        prompt_file = "math_problem.txt"
+    elif subject == "국어":
+        prompt_file = "korean_problem.txt"
+    elif subject == "영어":
+        prompt_file = "english_problem.txt"
+    elif subject == "과학":
+        prompt_file = "science_problem.txt"
+    else:
+        prompt_file = "etc_problem.txt"
+
+    with open(os.path.join(PROMPTS_DIR, prompt_file), encoding="utf-8") as f:
+        prompt_template = f.read()
+
+    # 프롬프트 완성
+    variables = {
+        "context": "없음",
+        "school_level": school_level,
+        "grade": grade,
+        "subject": subject,
+        "exam_type": exam_type,
+        "num_problems": num_problems,
+        "difficulty": difficulty,
+        "problem_type": problem_type,
+        "additional_prompt": additional_prompt or "없음",
+    }
+
+    system_prompt = prompt_template.format(**variables)
+
+    # user 메시지 텍스트 결정
+    user_text = (
+        additional_prompt
+        if additional_prompt
+        else f"주어진 PDF 파일을 분석하여 {subject} 문제를 생성해주세요."
+    )
+
+    # GPT-4o 호출
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=[
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": user_text},
+                    {"type": "input_file", "file_id": file_id},
+                ],
+            },
+        ],
+    )
+
+    return {"result": response.output_text}
 
 
 # FastAPI 앱 실행 (uvicorn 사용)
