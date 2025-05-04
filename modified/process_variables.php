@@ -226,15 +226,16 @@ try {
                 $user_message .= "{$var['cv_name']}: {$_POST[$var_key]}\n";
             }
         }
-        $DB->rawQuery("
-            INSERT INTO chat_messages 
-            (cs_idx, content, is_bot, created_at) 
-            VALUES (?, ?, 0, NOW())",
-            [$cs_idx, trim($user_message)]
-        );
+        if (trim($user_message) !== '') {
+            $DB->rawQuery("
+                INSERT INTO chat_messages 
+                (cs_idx, content, is_bot, created_at) 
+                VALUES (?, ?, 0, NOW())",
+                [$cs_idx, trim($user_message)]
+            );
+        }
 
         // 2. AI 응답(문제 생성 결과) 저장
-        // FastAPI 응답 구조에 따라 result/result_text 등 실제 응답 필드명 확인 필요
         $ai_content = '';
         if (isset($result['result'])) {
             $ai_content = $result['result'];
@@ -243,12 +244,12 @@ try {
         } else if (isset($result['message'])) {
             $ai_content = $result['message'];
         }
-        if ($ai_content !== '') {
+        if (trim($ai_content) !== '') {
             $DB->rawQuery("
                 INSERT INTO chat_messages 
                 (cs_idx, content, is_bot, created_at) 
                 VALUES (?, ?, 1, NOW())",
-                [$cs_idx, $ai_content]
+                [$cs_idx, trim($ai_content)]
             );
         }
 
