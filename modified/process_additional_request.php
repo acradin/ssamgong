@@ -63,9 +63,26 @@ try {
 
     if ($is_problem_creation) {
         // 기존 문제 수정 로직 유지
+        $messages_raw = $DB->rawQuery("
+            SELECT is_bot, content 
+            FROM chat_messages 
+            WHERE cs_idx = ? 
+            ORDER BY created_at DESC 
+            LIMIT 6", 
+            [$session['cs_idx']]
+        );
+        $messages_raw = array_reverse($messages_raw);
+        $messages = [];
+        foreach ($messages_raw as $msg) {
+            $role = $msg['is_bot'] ? 'assistant' : 'user';
+            $messages[] = [
+                'role' => $role,
+                'content' => $msg['content']
+            ];
+        }
         $api_data = [
-            'session_id' => $session_id,
-            'user_edit' => $request
+            'messages' => $messages,
+            'user_edit' => $request // 추가 요청 내용
         ];
 
         // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
@@ -74,6 +91,16 @@ try {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($http_code !== 200) {
+            throw new Exception('API 호출 실패');
+        }
+        
+        $result = json_decode($response, true);
     } else {
         // Claude API 호출
         // 시스템 프롬프트 조회
@@ -99,6 +126,16 @@ try {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($http_code !== 200) {
+            throw new Exception('API 호출 실패');
+        }
+        
+        $result = json_decode($response, true);
     }
 
     // 테스트용 응답 생성
@@ -126,7 +163,7 @@ try {
             INSERT INTO chat_messages 
             (cs_idx, content, is_bot, created_at) 
             VALUES (?, ?, 1, NOW())",
-            [$session['cs_idx'], $result['message']]
+            [$session['cs_idx'], $result['result']]
         );
 
         // 포인트 차감
