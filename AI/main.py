@@ -33,6 +33,7 @@ from chatbot.claude import run_claude
 from openai import OpenAI
 from typing import List, Dict
 from fastapi.responses import StreamingResponse
+import re
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -155,35 +156,28 @@ async def edit_problems(
         except Exception:
             file_exists = False
 
-    def stream_response():
-        user_content = [{"type": "input_text", "text": prompt}]
-        if file_exists:
-            user_content.append({"type": "input_file", "file_id": file_id})
-        # GPT-4.1 호출
-        response_stream = client.responses.create(
-            model="gpt-4.1",
-            input=[
-                {
-                    "role": "system",
-                    "content": "너는 일반적인 글을 편집하는 전문 편집자야. 사용자의 대화 내용과 기존 글을 참고해서, 사용자의 요청에 따라 글 전체를 자연스럽게 수정해야 해.",
-                },
-                {
-                    "role": "user",
-                    "content": user_content,
-                },
-            ],
-            stream=True,
-        )
-
-        for chunk in response_stream:
-            if getattr(chunk, "type", None) == "response.output_text.delta":
-                yield chunk.delta
-
-    return StreamingResponse(
-        stream_response(),
-        media_type="text/event-stream",
-        headers={"X-File-Id": file_id, "Cache-Control": "no-cache"},
+    user_content = [{"type": "input_text", "text": prompt}]
+    if file_exists:
+        user_content.append({"type": "input_file", "file_id": file_id})
+    # GPT-4.1 호출
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=[
+            {
+                "role": "system",
+                "content": "너는 일반적인 글을 편집하는 전문 편집자야. 사용자의 대화 내용과 기존 글을 참고해서, 사용자의 요청에 따라 글 전체를 자연스럽게 수정해야 해.",
+            },
+            {
+                "role": "user",
+                "content": user_content,
+            },
+        ],
+        stream=False,
     )
+
+    result_text = getattr(response, "output_text", str(response))
+
+    return parse_llm_response(result_text)
 
 
 @app.post("/edit_chats/")
@@ -201,15 +195,11 @@ async def edit_problems(
 
     print(f"prompt : {prompt}")
 
-    def llm_stream():
-        for chunk in llm.stream(prompt):
-            yield chunk.content if hasattr(chunk, "content") else chunk
+    result = llm.invoke(prompt)
 
-    return StreamingResponse(
-        llm_stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache"},
-    )
+    print(f"result : {result}")
+
+    return parse_llm_response(result)
 
 
 @app.post("/export_pdf/")
@@ -233,9 +223,20 @@ async def run_claude_api(
     """
     Claude LLM을 실행하는 API 엔드포인트
     """
-    result = run_claude(system_prompt, user_prompt)
+    with open(os.path.join(PROMPTS_DIR, "claude_system.txt"), encoding="utf-8") as f:
+        format_system_prompt = f.read()
+
+    # 프롬프트로 출력 형식 지정
+    total_system_prompt = format_system_prompt + "\n\n" + system_prompt
+
+    # 클로드 실행
+    result = run_claude(total_system_prompt, user_prompt)
+
+    # 결과
+    result = parse_llm_response(result)
     session_id = str(uuid.uuid4())
-    return {"result": result, "session_id": session_id}
+    result["session_id"] = session_id
+    return result
 
 
 @app.post("/run_prompt/")
@@ -299,36 +300,67 @@ async def run_prompt(
 
     session_id = str(uuid.uuid4())
 
-    def stream_response():
-        # GPT-4.1 호출
-        response_stream = client.responses.create(
-            model="gpt-4.1",
-            input=[
-                {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "input_text", "text": user_text},
-                        {"type": "input_file", "file_id": file_id},
-                    ],
-                },
-            ],
-            stream=True,
-        )
-
-        for chunk in response_stream:
-            if getattr(chunk, "type", None) == "response.output_text.delta":
-                yield chunk.delta
-
-    return StreamingResponse(
-        stream_response(),
-        media_type="text/event-stream",
-        headers={
-            "X-Session-Id": session_id,
-            "X-File-Id": file_id,
-            "Cache-Control": "no-cache",
-        },
+    # GPT-4.1 호출
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=[
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": user_text},
+                    {"type": "input_file", "file_id": file_id},
+                ],
+            },
+        ],
+        stream=False,
     )
+
+    print(f"response_stream : {response.output_text}")
+
+    result = parse_llm_response(response.output_text)
+    result["session_id"] = session_id
+
+    return result
+
+
+def parse_llm_response(llm_text: str):
+    lines = llm_text.splitlines()
+    conversation_lines = []
+    content_lines = []
+    in_conversation = False
+    in_content = False
+
+    for line in lines:
+        # [대답] 섹션 시작
+        if re.match(r"^\[대답\]", line.strip()):
+            in_conversation = True
+            in_content = False
+            continue
+        # [대답] 이후 첫 [섹션]이 나오면 content로 전환
+        elif in_conversation and re.match(r"^\[.+\]", line.strip()):
+            in_conversation = False
+            in_content = True
+            content_lines.append(line)
+            continue
+
+        if in_conversation:
+            conversation_lines.append(line)
+        elif in_content:
+            content_lines.append(line)
+
+    conversation = "\n".join(conversation_lines).strip()
+    content = "\n".join(content_lines).strip()
+
+    if not conversation:
+        conversation = "파싱 오류 또는 LLM 응답 형식 오류"
+    if not content:
+        content = "파싱 오류 또는 LLM 응답 형식 오류"
+
+    return {
+        "conversation": conversation,
+        "content": content,
+    }
 
 
 # FastAPI 앱 실행 (uvicorn 사용)
