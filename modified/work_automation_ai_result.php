@@ -91,7 +91,7 @@ if (isset($_GET['session_id'])) {
             </div>
         </div>
     </div>
-
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
 /* 메인 컨테이너 스타일 */
 #ai-create-container {
@@ -310,6 +310,10 @@ function updateChatUI(data) {
     // 결과(최신 AI 결과) 표시
     if (data.last_ai_result) {
         resultContainer.innerHTML = data.last_ai_result;
+        // MathJax 렌더링 트리거
+        if (window.MathJax) {
+            MathJax.typesetPromise([resultContainer]);
+        }
     } else {
         resultContainer.innerHTML = '';
     }
