@@ -193,13 +193,11 @@ async def edit_problems(
 
     prompt = prompt_template.format(messages=messages, user_edit=user_edit)
 
-    print(f"prompt : {prompt}")
-
     result = llm.invoke(prompt)
 
-    print(f"result : {result}")
+    print(f"result : {result.content}")
 
-    return parse_llm_response(result)
+    return parse_llm_response(result.content)
 
 
 @app.post("/export_pdf/")
