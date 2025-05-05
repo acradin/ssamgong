@@ -82,7 +82,7 @@ if (isset($_GET['session_id'])) {
                     <div class="add-request-box">
                         <span class="fs_16 fw_700 title-text">추가 요청</span>
                         <div class="box-border">
-                            <textarea id="additional-request" placeholder="추가 요청사항을 입력해주세요"></textarea>
+                            <input id="additional-request" placeholder="추가 요청사항을 입력해주세요" />
                         </div>
                     </div>
 
@@ -247,6 +247,17 @@ if (isset($_GET['session_id'])) {
 // 페이지 로드 시 채팅 내역 및 결과 로드
 document.addEventListener('DOMContentLoaded', function() {
     loadChatHistory();
+
+    // 엔터키로 추가 요청 전송
+    const input = document.getElementById('additional-request');
+    if (input) {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendAdditionalRequest();
+            }
+        });
+    }
 });
 
 function loadChatHistory() {
@@ -294,14 +305,15 @@ function updateChatUI(data) {
                 <div class="message-time">${msg.created_at}</div>
             </div>
         `).join('');
-        
-        // 마지막 AI 메시지를 결과로 표시 (버블 스타일 없이)
-        const lastAiMessage = data.history.filter(msg => msg.is_bot).pop();
-        if (lastAiMessage) {
-            resultContainer.innerHTML = lastAiMessage.content;
-        }
     }
-    
+
+    // 결과(최신 AI 결과) 표시
+    if (data.last_ai_result) {
+        resultContainer.innerHTML = data.last_ai_result;
+    } else {
+        resultContainer.innerHTML = '';
+    }
+
     // 스크롤을 최하단으로
     historyContainer.scrollTop = historyContainer.scrollHeight;
     resultContainer.scrollTop = resultContainer.scrollHeight;

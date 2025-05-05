@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
     ct_idx int NOT NULL,
     created_at datetime NOT NULL,
     status enum('active','completed','error') DEFAULT 'active',
+    last_ai_result TEXT,                -- 최신 AI 결과
+    last_ai_result_type VARCHAR(50),    -- 결과 유형(예: 'problem', 'edit' 등, 필요시)
     FOREIGN KEY (mt_idx) REFERENCES member_t(mt_idx),
     FOREIGN KEY (ct_idx) REFERENCES category_t(ct_idx)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

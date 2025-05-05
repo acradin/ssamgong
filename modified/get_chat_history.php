@@ -76,6 +76,8 @@ try {
     }, $messages);
 
     // 변수 값 조회 및 첫 메시지로 추가
+    // 아래 블록 전체를 삭제 또는 주석 처리하면 됩니다.
+    /*
     $variables = $DB->rawQuery("
         SELECT cv.cv_name, cv.cv_type, cvv.value
         FROM chat_variable_values cvv
@@ -96,11 +98,14 @@ try {
             'created_at' => date('Y-m-d H:i:s', strtotime($session['created_at']))
         ]);
     }
+    */
 
     echo json_encode([
         'success' => true,
         'data' => [
-            'history' => $formatted_messages
+            'history' => $formatted_messages,
+            'last_ai_result' => $session['last_ai_result'],
+            'last_ai_result_type' => $session['last_ai_result_type']
         ]
     ]);
 

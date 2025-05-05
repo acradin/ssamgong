@@ -1,7 +1,7 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
-$api_url = 'https://a28e-182-228-190-72.ngrok-free.app';
+$api_url = 'https://731b-182-228-190-72.ngrok-free.app';
 
 // 세션 체크
 if (!$_SESSION['_mt_idx']) {
@@ -93,9 +93,6 @@ try {
         ];
 
         $api_data = [];
-        $file_attached = false;
-
-        // 변수명과 값 매핑
         foreach ($required_vars as $var) {
             $var_key = 'var_' . $var['cv_idx'];
             $api_key = $param_map[$var['cv_name']] ?? null;
@@ -108,7 +105,6 @@ try {
                         $_FILES[$var_key]['type'],
                         $_FILES[$var_key]['name']
                     );
-                    $file_attached = true;
                 }
             } else {
                 if (isset($_POST[$var_key])) {
@@ -117,8 +113,8 @@ try {
             }
         }
 
-        // FastAPI 서버로 요청 전송
-        $ch = curl_init($api_url . '/generate_problems/');
+        // FastAPI 서버로 요청 전송 (run_prompt)
+        $ch = curl_init($api_url . '/run_prompt/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $api_data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -132,9 +128,13 @@ try {
         }
 
         $result = json_decode($response, true);
+
+        // 리턴값: { "session_id": ..., "content": ..., "conversation": ... }
+        $ai_conversation = $result['conversation'] ?? '';
+        $ai_content = $result['content'] ?? '';
+        $session_id = $result['session_id'] ?? uniqid('problem_', true);
     } else {
-        // Claude API 호출
-        // 시스템 프롬프트 조회
+        // Claude API 호출 (run_claude)
         $prompt = $DB->rawQueryOne("
             SELECT cp_content
             FROM chatbot_prompt_t
@@ -159,13 +159,12 @@ try {
             'user_prompt' => $user_prompt
         ];
 
-        // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
         $ch = curl_init($api_url . '/run_claude/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
+
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -175,6 +174,11 @@ try {
         }
 
         $result = json_decode($response, true);
+
+        // 리턴값: { "session_id": ..., "content": ..., "conversation": ... }
+        $ai_conversation = $result['conversation'] ?? '';
+        $ai_content = $result['content'] ?? '';
+        $session_id = $result['session_id'] ?? uniqid('chat_', true);
     }
     /*
     // 5. 테스트용 응답 생성
@@ -191,9 +195,9 @@ try {
         // 세션 생성
         $DB->rawQuery("
             INSERT INTO chat_sessions 
-            (session_id, mt_idx, ct_idx, created_at, status) 
-            VALUES (?, ?, ?, NOW(), 'active')",
-            [$result['session_id'], $_SESSION['_mt_idx'], $categoryId]
+            (session_id, mt_idx, ct_idx, created_at, status, last_ai_result, last_ai_result_type) 
+            VALUES (?, ?, ?, NOW(), 'active', ?, ?)",
+            [$session_id, $_SESSION['_mt_idx'], $categoryId, $ai_conversation, $is_problem_creation ? 'problem' : 'chat']
         );
         $cs_idx = $DB->getInsertId();
 
@@ -236,14 +240,6 @@ try {
         }
 
         // 2. AI 응답(문제 생성 결과) 저장
-        $ai_content = '';
-        if (isset($result['result'])) {
-            $ai_content = $result['result'];
-        } else if (isset($result['result_text'])) {
-            $ai_content = $result['result_text'];
-        } else if (isset($result['message'])) {
-            $ai_content = $result['message'];
-        }
         if (trim($ai_content) !== '') {
             $DB->rawQuery("
                 INSERT INTO chat_messages 
@@ -286,13 +282,21 @@ try {
             [$_SESSION['_mt_idx'], -1000, 'use', 'AI 문제 생성']
         );
 
+        // 최신 결과 갱신
+        $DB->rawQuery("
+            UPDATE chat_sessions
+            SET last_ai_result = ?, last_ai_result_type = ?
+            WHERE cs_idx = ?",
+            [$ai_conversation, $is_problem_creation ? 'problem' : 'chat', $cs_idx]
+        );
+
         $DB->commit();
 
         echo json_encode([
             'success' => true,
             'message' => '문제가 성공적으로 생성되었습니다.',
             'ct_idx' => $categoryId,
-            'session_id' => $result['session_id']
+            'session_id' => $session_id
         ]);
 
     } catch (Exception $e) {

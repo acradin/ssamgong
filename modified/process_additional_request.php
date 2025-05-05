@@ -1,7 +1,7 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
-$api_url = 'https://a28e-182-228-190-72.ngrok-free.app';
+$api_url = 'https://731b-182-228-190-72.ngrok-free.app';
 
 // 세션 체크
 if (!$_SESSION['_mt_idx']) {
@@ -62,7 +62,7 @@ try {
     $is_problem_creation = ($session['parent_name'] === '문제 제작');
 
     if ($is_problem_creation) {
-        // 기존 문제 수정 로직 유지
+        // 기존 메시지 불러오기
         $messages_raw = $DB->rawQuery("
             SELECT is_bot, content 
             FROM chat_messages 
@@ -85,7 +85,7 @@ try {
             'user_edit' => $request // 추가 요청 내용
         ];
 
-        // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
+        // FastAPI 서버로 요청 전송 (edit_problems)
         $ch = curl_init($api_url . '/edit_problems/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
@@ -95,33 +95,43 @@ try {
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
+
         if ($http_code !== 200) {
             throw new Exception('API 호출 실패');
         }
-        
-        $result = json_decode($response, true);
-    } else {
-        // Claude API 호출
-        // 시스템 프롬프트 조회
-        $prompt = $DB->rawQueryOne("
-            SELECT cp_content
-            FROM chatbot_prompt_t
-            WHERE parent_ct_idx = ? AND ct_idx = ? AND cp_status = 'Y'
-            ORDER BY cp_idx DESC
-            LIMIT 1",
-            [$session['parent_ct_idx'], $session['ct_idx']]
-        );
 
-        $system_prompt = $prompt ? $prompt['cp_content'] : "당신은 {$session['parent_name']} 전문가입니다.";
-        
+        $result = json_decode($response, true);
+
+        // 리턴값: { "content": ..., "conversation": ... }
+        $ai_conversation = $result['conversation'] ?? '';
+        $ai_content = $result['content'] ?? '';
+
+    } else {
+        // Claude API 호출 (edit_chats)
+        $messages_raw = $DB->rawQuery("
+            SELECT is_bot, content 
+            FROM chat_messages 
+            WHERE cs_idx = ? 
+            ORDER BY created_at DESC 
+            LIMIT 6", 
+            [$session['cs_idx']]
+        );
+        $messages_raw = array_reverse($messages_raw);
+        $messages = [];
+        foreach ($messages_raw as $msg) {
+            $role = $msg['is_bot'] ? 'assistant' : 'user';
+            $messages[] = [
+                'role' => $role,
+                'content' => $msg['content']
+            ];
+        }
         $api_data = [
-            'system_prompt' => $system_prompt,
-            'user_prompt' => $request
+            'messages' => $messages,
+            'user_edit' => $request
         ];
 
-        // FastAPI 서버로 요청 전송 (테스트를 위해 주석 처리)
-        $ch = curl_init($api_url . '/run_claude/');
+        // FastAPI 서버로 요청 전송 (edit_chats)
+        $ch = curl_init($api_url . '/edit_chats/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
@@ -130,21 +140,17 @@ try {
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
+
         if ($http_code !== 200) {
             throw new Exception('API 호출 실패');
         }
-        
-        $result = json_decode($response, true);
-    }
 
-    // 테스트용 응답 생성
-    /*
-    $result = [
-        'success' => true,
-        'message' => '추가 요청이 처리되었습니다. (parent_name: ' . $session['parent_name'] . ', is_problem_creation: ' . ($is_problem_creation ? 'true' : 'false') . ')'
-    ];
-    */
+        $result = json_decode($response, true);
+
+        // 리턴값: { "content": ..., "conversation": ... }
+        $ai_conversation = $result['conversation'] ?? '';
+        $ai_content = $result['content'] ?? '';
+    }
 
     // DB 트랜잭션 시작
     $DB->startTransaction();
@@ -163,7 +169,15 @@ try {
             INSERT INTO chat_messages 
             (cs_idx, content, is_bot, created_at) 
             VALUES (?, ?, 1, NOW())",
-            [$session['cs_idx'], $result['result']]
+            [$session['cs_idx'], $ai_content]
+        );
+
+        // 최신 결과 갱신 (세션 요약)
+        $DB->rawQuery("
+            UPDATE chat_sessions
+            SET last_ai_result = ?, last_ai_result_type = ?
+            WHERE cs_idx = ?",
+            [$ai_conversation, $is_problem_creation ? 'problem' : 'chat', $session['cs_idx']]
         );
 
         // 포인트 차감
