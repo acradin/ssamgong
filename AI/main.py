@@ -31,7 +31,8 @@ import shutil
 from langchain_openai import ChatOpenAI
 from chatbot.claude import run_claude
 from openai import OpenAI
-import base64
+from typing import List, Dict
+
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -56,9 +57,6 @@ PROMPTS_DIR = os.path.join(BASE_DIR, "AI", "problem_generator", "prompts")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(EXPORT_DIR, exist_ok=True)
-
-# 세션 데이터 저장 (메모리)
-sessions = {}
 
 
 @app.post("/generate_problems/")
@@ -120,20 +118,13 @@ async def generate_problems(
             "problem_type": problem_type,
             "additional_prompt": additional_prompt or "없음",
         }
-        problems = generator.generate(retriever, variables)
+        result = generator.generate(retriever, variables)
 
-        print(f"problems : {problems}")
+        print(f"problems : {result}")
 
         session_id = str(uuid.uuid4())
-        sessions[session_id] = {
-            "history": [
-                {"role": "user", "content": str(variables)},
-                {"role": "system", "content": str(problems)},
-            ],
-            "problems": problems,
-        }
 
-        return {"session_id": session_id, "problems": problems}
+        return {"session_id": session_id, "problems": result}
 
     finally:
         # 임시 파일 삭제
@@ -143,36 +134,21 @@ async def generate_problems(
 
 @app.post("/edit_problems/")
 async def edit_problems(
-    session_id: str = Body(...),
+    messages: List[Dict[str, str]] = Body(...),
     user_edit: str = Body(...),
 ):
-    session = sessions.get(session_id)
-
-    if not session:
-        return JSONResponse(
-            status_code=404, content={"error": "세션을 찾을 수 없습니다."}
-        )
-
-    history = session["history"]
-    problems = session["problems"]
-
-    history.append({"role": "user", "content": user_edit})
-
     # LLM 기반 문제 수정 로직
     llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
 
     with open(os.path.join(PROMPTS_DIR, "edit_problem.txt"), encoding="utf-8") as f:
         prompt_template = f.read()
 
-    prompt = prompt_template.format(problems=problems, user_edit=user_edit)
+    prompt = prompt_template.format(messages=messages, user_edit=user_edit)
     response = llm.invoke(prompt)
 
     new_problems = response.content if hasattr(response, "content") else response
 
-    history.append({"role": "system", "content": str(new_problems)})
-    session["problems"] = new_problems
-
-    return {"session_id": session_id, "problems": new_problems, "history": history}
+    return {"problems": new_problems}
 
 
 @app.post("/export_pdf/")
@@ -197,7 +173,8 @@ async def run_claude_api(
     Claude LLM을 실행하는 API 엔드포인트
     """
     result = run_claude(system_prompt, user_prompt)
-    return {"result": result}
+    session_id = str(uuid.uuid4())
+    return {"result": result, "session_id": session_id}
 
 
 @app.post("/run_prompt/")
@@ -259,7 +236,7 @@ async def run_prompt(
         else f"주어진 PDF 파일을 분석하여 {subject} 문제를 생성해주세요."
     )
 
-    # GPT-4o 호출
+    # GPT-4.1 호출
     response = client.responses.create(
         model="gpt-4.1",
         input=[
