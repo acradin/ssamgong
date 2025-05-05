@@ -181,8 +181,8 @@ async def edit_problems(
 
     return StreamingResponse(
         stream_response(),
-        media_type="text/plain",
-        headers={"X-File-Id": file_id},
+        media_type="text/event-stream",
+        headers={"X-File-Id": file_id, "Cache-Control": "no-cache"},
     )
 
 
@@ -205,7 +205,11 @@ async def edit_problems(
         for chunk in llm.stream(prompt):
             yield chunk.content if hasattr(chunk, "content") else chunk
 
-    return StreamingResponse(llm_stream(), media_type="text/plain")
+    return StreamingResponse(
+        llm_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache"},
+    )
 
 
 @app.post("/export_pdf/")
@@ -318,8 +322,12 @@ async def run_prompt(
 
     return StreamingResponse(
         stream_response(),
-        media_type="text/plain",
-        headers={"X-Session-Id": session_id, "X-File-Id": file_id},
+        media_type="text/event-stream",
+        headers={
+            "X-Session-Id": session_id,
+            "X-File-Id": file_id,
+            "Cache-Control": "no-cache",
+        },
     )
 
 
