@@ -32,7 +32,7 @@ from langchain_openai import ChatOpenAI
 from chatbot.claude import run_claude
 from openai import OpenAI
 from typing import List, Dict
-
+from fastapi.responses import StreamingResponse
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -136,19 +136,76 @@ async def generate_problems(
 async def edit_problems(
     messages: List[Dict[str, str]] = Body(...),
     user_edit: str = Body(...),
+    file_id: str = Body(""),
 ):
     # LLM 기반 문제 수정 로직
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+    client = OpenAI()
 
     with open(os.path.join(PROMPTS_DIR, "edit_problem.txt"), encoding="utf-8") as f:
         prompt_template = f.read()
 
     prompt = prompt_template.format(messages=messages, user_edit=user_edit)
-    response = llm.invoke(prompt)
 
-    new_problems = response.content if hasattr(response, "content") else response
+    # file_id가 실제로 OpenAI에 존재하는지 확인
+    file_exists = False
+    if file_id:
+        try:
+            client.files.retrieve(file_id)
+            file_exists = True
+        except Exception:
+            file_exists = False
 
-    return {"problems": new_problems}
+    def stream_response():
+        user_content = [{"type": "input_text", "text": prompt}]
+        if file_exists:
+            user_content.append({"type": "input_file", "file_id": file_id})
+        # GPT-4.1 호출
+        response_stream = client.responses.create(
+            model="gpt-4.1",
+            input=[
+                {
+                    "role": "system",
+                    "content": "너는 일반적인 글을 편집하는 전문 편집자야. 사용자의 대화 내용과 기존 글을 참고해서, 사용자의 요청에 따라 글 전체를 자연스럽게 수정해야 해.",
+                },
+                {
+                    "role": "user",
+                    "content": user_content,
+                },
+            ],
+            stream=True,
+        )
+
+        for chunk in response_stream:
+            if getattr(chunk, "type", None) == "response.output_text.delta":
+                yield chunk.delta
+
+    return StreamingResponse(
+        stream_response(),
+        media_type="text/plain",
+        headers={"X-File-Id": file_id},
+    )
+
+
+@app.post("/edit_chats/")
+async def edit_problems(
+    messages: List[Dict[str, str]] = Body(...),
+    user_edit: str = Body(...),
+):
+    # LLM 기반 문제 수정 로직
+    llm = ChatOpenAI(model="gpt-4.1", temperature=0.7)
+
+    with open(os.path.join(PROMPTS_DIR, "edit_chat.txt"), encoding="utf-8") as f:
+        prompt_template = f.read()
+
+    prompt = prompt_template.format(messages=messages, user_edit=user_edit)
+
+    print(f"prompt : {prompt}")
+
+    def llm_stream():
+        for chunk in llm.stream(prompt):
+            yield chunk.content if hasattr(chunk, "content") else chunk
+
+    return StreamingResponse(llm_stream(), media_type="text/plain")
 
 
 @app.post("/export_pdf/")
@@ -236,22 +293,34 @@ async def run_prompt(
         else f"주어진 PDF 파일을 분석하여 {subject} 문제를 생성해주세요."
     )
 
-    # GPT-4.1 호출
-    response = client.responses.create(
-        model="gpt-4.1",
-        input=[
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": [
-                    {"type": "input_text", "text": user_text},
-                    {"type": "input_file", "file_id": file_id},
-                ],
-            },
-        ],
-    )
+    session_id = str(uuid.uuid4())
 
-    return {"result": response.output_text}
+    def stream_response():
+        # GPT-4.1 호출
+        response_stream = client.responses.create(
+            model="gpt-4.1",
+            input=[
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": user_text},
+                        {"type": "input_file", "file_id": file_id},
+                    ],
+                },
+            ],
+            stream=True,
+        )
+
+        for chunk in response_stream:
+            if getattr(chunk, "type", None) == "response.output_text.delta":
+                yield chunk.delta
+
+    return StreamingResponse(
+        stream_response(),
+        media_type="text/plain",
+        headers={"X-Session-Id": session_id, "X-File-Id": file_id},
+    )
 
 
 # FastAPI 앱 실행 (uvicorn 사용)
