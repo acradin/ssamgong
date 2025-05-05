@@ -113,8 +113,8 @@ try {
             }
         }
 
-        // FastAPI 서버로 요청 전송 (run_prompt)
-        $ch = curl_init($api_url . '/run_prompt/');
+        // FastAPI 서버로 요청 전송 (generate_problems)
+        $ch = curl_init($api_url . '/generate_problems/');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $api_data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
