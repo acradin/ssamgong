@@ -1,7 +1,7 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
-$api_url = 'https://edaf-182-228-190-72.ngrok-free.app';
+$api_url = 'https://f26c-182-228-190-72.ngrok-free.app';
 
 // 세션 체크
 if (!$_SESSION['_mt_idx']) {

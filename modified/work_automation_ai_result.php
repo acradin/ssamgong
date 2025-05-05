@@ -258,6 +258,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const maxSize = 5 * 1024 * 1024; // 10MB
+            if (e.target.files[0] && e.target.files[0].size > maxSize) {
+                alert('파일 크기는 5MB를 초과할 수 없습니다.');
+                e.target.value = ''; // 파일 선택 해제
+            }
+        });
+    }
 });
 
 function loadChatHistory() {
