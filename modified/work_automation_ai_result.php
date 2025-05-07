@@ -40,6 +40,21 @@ if (isset($_GET['session_id'])) {
     );
 }
 
+// 이번 달 사용 횟수 확인
+$current_month_start = date('Y-m-01 00:00:00');
+$current_month_end = date('Y-m-t 23:59:59');
+
+$monthly_usage = $DB->rawQueryOne("
+    SELECT COUNT(*) as usage_count
+    FROM chat_sessions
+    WHERE mt_idx = ?
+    AND created_at BETWEEN ? AND ?",
+    [$_SESSION['_mt_idx'], $current_month_start, $current_month_end]
+);
+
+$usage_count = (int)$monthly_usage['usage_count'];
+$remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
+
 ?>
     <div class="wrap">
         <div class="sub_pg">
@@ -63,6 +78,22 @@ if (isset($_GET['session_id'])) {
 
                 <div id="ai-create-container" class="result-box">
                     <h3 class="fs_40 fw_700 mt_20"><?= htmlspecialchars($chatbot['parent_name']) ?> - <?= htmlspecialchars($chatbot['ct_name']) ?></h3>
+                    
+                    <!-- 남은 무료 사용 횟수 표시 -->
+                    <div class="usage-info">
+                        <div class="usage-count">
+                            <span class="count"><?= $remaining_free ?></span>
+                            <span class="label">회</span>
+                        </div>
+                        <div class="usage-text">
+                            <p>이번 달 무료 사용 가능 횟수</p>
+                            <?php if ($remaining_free > 0): ?>
+                                <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
+                            <?php else: ?>
+                                <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                     
                     <div class="history-result-box">
                         <div class="history-box">
@@ -241,6 +272,58 @@ if (isset($_GET['session_id'])) {
     background-color: #f1f1f1;
     border-radius: 3px;
 }
+
+/* 사용 횟수 표시 스타일 */
+.usage-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px auto 40px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    max-width: 400px;
+}
+
+.usage-count {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.usage-count .count {
+    font-size: 3.6rem;
+    font-weight: 700;
+    color: #44C1CC;
+}
+
+.usage-count .label {
+    font-size: 1.8rem;
+    color: #44C1CC;
+}
+
+.usage-text {
+    text-align: left;
+}
+
+.usage-text p {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #666;
+}
+
+.usage-text .remaining {
+    color: #44C1CC;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.usage-text .no-remaining {
+    color: #dc3545;
+    font-weight: 500;
+    margin-top: 5px;
+}
 </style>
 
 <script>
@@ -340,6 +423,13 @@ function sendAdditionalRequest() {
     
     const sessionId = new URLSearchParams(window.location.search).get('session_id');
     const ctIdx = new URLSearchParams(window.location.search).get('ct_idx');
+    const remainingFree = <?= $remaining_free ?>;
+    
+    if (remainingFree <= 0) {
+        if (!confirm('무료 사용 횟수를 모두 사용했습니다. 포인트가 차감됩니다. 계속하시겠습니까?')) {
+            return;
+        }
+    }
     
     $.ajax({
         url: 'process_additional_request.php',
@@ -358,6 +448,8 @@ function sendAdditionalRequest() {
             if (response.success) {
                 document.getElementById('additional-request').value = '';
                 loadChatHistory();
+                // 페이지 새로고침하여 남은 횟수 업데이트
+                location.reload();
             } else {
                 jalert(response.message || '오류가 발생했습니다.');
             }

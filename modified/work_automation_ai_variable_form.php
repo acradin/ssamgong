@@ -18,6 +18,21 @@ if(!$_SESSION['_mt_idx']){
 
 }
 
+// 이번 달 사용 횟수 확인
+$current_month_start = date('Y-m-01 00:00:00');
+$current_month_end = date('Y-m-t 23:59:59');
+
+$monthly_usage = $DB->rawQueryOne("
+    SELECT COUNT(*) as usage_count
+    FROM chat_sessions
+    WHERE mt_idx = ?
+    AND created_at BETWEEN ? AND ?",
+    [$_SESSION['_mt_idx'], $current_month_start, $current_month_end]
+);
+
+$usage_count = (int)$monthly_usage['usage_count'];
+$remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
+
 ?>
 
     <div class="wrap">
@@ -132,6 +147,22 @@ foreach ($chatSessions as $session) {
 
 <div id="ai-create-container">
     <h3 class="fs_40 fw_700 mt_20"><?= htmlspecialchars($category['ct_name']) ?></h3>
+    
+    <!-- 남은 무료 사용 횟수 표시 -->
+    <div class="usage-info">
+        <div class="usage-count">
+            <span class="count"><?= $remaining_free ?></span>
+            <span class="label">회</span>
+        </div>
+        <div class="usage-text">
+            <p>이번 달 무료 사용 가능 횟수</p>
+            <?php if ($remaining_free > 0): ?>
+                <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
+            <?php else: ?>
+                <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
+            <?php endif; ?>
+        </div>
+    </div>
     
     <!-- 하위 카테고리 탭 -->
     <?php if (count($subCategories) > 1): ?>
@@ -496,6 +527,13 @@ $('#variable-form').on('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
+    const remainingFree = <?= $remaining_free ?>;
+    
+    if (remainingFree <= 0) {
+        if (!confirm('무료 사용 횟수를 모두 사용했습니다. 포인트가 차감됩니다. 계속하시겠습니까?')) {
+            return;
+        }
+    }
     
     $.ajax({
         url: 'process_variables.php',

@@ -1,7 +1,11 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
-$api_url = 'https://f26c-182-228-190-72.ngrok-free.app';
+$api_url = 'http://43.200.255.42:8000';
+
+// 포인트 관련 상수 정의
+define('POINT_PER_USAGE', 10);        // 사용당 차감 포인트
+define('FREE_USAGE_LIMIT', 10);         // 무료 사용 가능 횟수
 
 // 세션 체크
 if (!$_SESSION['_mt_idx']) {
@@ -54,16 +58,31 @@ try {
     }
 
     // 3. 포인트 체크 및 차감
-    $point_check = $DB->rawQueryOne("
-        SELECT mt_point 
-        FROM member_t 
-        WHERE mt_idx = ? 
-        AND mt_point >= 1000",
-        [$_SESSION['_mt_idx']]
+    // 이번 달 사용 횟수 확인
+    $current_month_start = date('Y-m-01 00:00:00');
+    $current_month_end = date('Y-m-t 23:59:59');
+    
+    $monthly_usage = $DB->rawQueryOne("
+        SELECT COUNT(*) as usage_count
+        FROM chat_sessions
+        WHERE mt_idx = ?
+        AND created_at BETWEEN ? AND ?",
+        [$_SESSION['_mt_idx'], $current_month_start, $current_month_end]
     );
 
-    if (!$point_check) {
-        throw new Exception('포인트가 부족합니다.');
+    // FREE_USAGE_LIMIT 이상 사용한 경우에만 포인트 체크
+    if ($monthly_usage['usage_count'] >= FREE_USAGE_LIMIT) {
+        $point_check = $DB->rawQueryOne("
+            SELECT mt_point 
+            FROM member_t 
+            WHERE mt_idx = ? 
+            AND mt_point >= ?",
+            [$_SESSION['_mt_idx'], POINT_PER_USAGE]
+        );
+
+        if (!$point_check) {
+            throw new Exception('포인트가 부족합니다.');
+        }
     }
 
     // 4. API 호출을 위한 데이터 준비
@@ -266,21 +285,23 @@ try {
             );
         }
 
-        // 포인트 차감
-        $DB->rawQuery("
-            UPDATE member_t 
-            SET mt_point = mt_point - 1000 
-            WHERE mt_idx = ?",
-            [$_SESSION['_mt_idx']]
-        );
+        // 포인트 차감 (FREE_USAGE_LIMIT 이상 사용한 경우에만)
+        if ($monthly_usage['usage_count'] >= FREE_USAGE_LIMIT) {
+            $DB->rawQuery("
+                UPDATE member_t 
+                SET mt_point = mt_point - ? 
+                WHERE mt_idx = ?",
+                [POINT_PER_USAGE, $_SESSION['_mt_idx']]
+            );
 
-        // 포인트 사용 내역 기록
-        $DB->rawQuery("
-            INSERT INTO point_history_t 
-            (mt_idx, point_amount, point_type, point_description, created_at) 
-            VALUES (?, ?, ?, ?, NOW())",
-            [$_SESSION['_mt_idx'], -1000, 'use', 'AI 문제 생성']
-        );
+            // 포인트 사용 내역 기록
+            $DB->rawQuery("
+                INSERT INTO point_history_t 
+                (mt_idx, point_amount, point_type, point_description, created_at) 
+                VALUES (?, ?, ?, ?, NOW())",
+                [$_SESSION['_mt_idx'], -POINT_PER_USAGE, 'use', 'AI 문제 생성']
+            );
+        }
 
         // 최신 결과 갱신
         $DB->rawQuery("
