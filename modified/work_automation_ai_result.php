@@ -40,6 +40,9 @@ if (isset($_GET['session_id'])) {
     );
 }
 
+// 포인트 관련 상수 정의
+define('FREE_USAGE_LIMIT', 10);         // 무료 사용 가능 횟수
+
 // 이번 달 사용 횟수 확인
 $current_month_start = date('Y-m-01 00:00:00');
 $current_month_end = date('Y-m-t 23:59:59');
@@ -79,22 +82,6 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
                 <div id="ai-create-container" class="result-box">
                     <h3 class="fs_40 fw_700 mt_20"><?= htmlspecialchars($chatbot['parent_name']) ?> - <?= htmlspecialchars($chatbot['ct_name']) ?></h3>
                     
-                    <!-- 남은 무료 사용 횟수 표시 -->
-                    <div class="usage-info">
-                        <div class="usage-count">
-                            <span class="count"><?= $remaining_free ?></span>
-                            <span class="label">회</span>
-                        </div>
-                        <div class="usage-text">
-                            <p>이번 달 무료 사용 가능 횟수</p>
-                            <?php if ($remaining_free > 0): ?>
-                                <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
-                            <?php else: ?>
-                                <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    
                     <div class="history-result-box">
                         <div class="history-box">
                             <span class="fs_16 fw_700 title-text">대화 내역</span>
@@ -116,8 +103,26 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
                             <input id="additional-request" placeholder="추가 요청사항을 입력해주세요" />
                         </div>
                     </div>
+                    
+                    <!-- 남은 무료 사용 횟수 표시 -->
+                    <div class="action-row">
+                        <div class="usage-info">
+                            <div class="usage-count">
+                                <span class="count"><?= $remaining_free ?></span>
+                                <span class="label">회</span>
+                            </div>
+                            <div class="usage-text">
+                                <p>이번 달 무료 사용 가능 횟수</p>
+                                <?php if ($remaining_free > 0): ?>
+                                    <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
+                                <?php else: ?>
+                                    <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
 
-                    <button type="button" class="btn-create result-page fw_500" onclick="sendAdditionalRequest()">생성하기</button>
+                        <button type="button" class="btn-create result-page fw_500" onclick="sendAdditionalRequest()">생성하기</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -183,17 +188,77 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     margin-bottom: 0.8rem;
 }
 
+/* 액션 행 스타일 */
+.action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 2rem;
+}
+
+/* 사용 횟수 표시 스타일 */
+.usage-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 25px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    flex: 1;
+    max-width: 300px;
+}
+
+.usage-count {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.usage-count .count {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #44C1CC;
+}
+
+.usage-count .label {
+    font-size: 1.6rem;
+    color: #44C1CC;
+}
+
+.usage-text {
+    text-align: left;
+}
+
+.usage-text p {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #666;
+}
+
+.usage-text .remaining {
+    color: #44C1CC;
+    font-weight: 500;
+    margin-top: 3px;
+}
+
+.usage-text .no-remaining {
+    color: #dc3545;
+    font-weight: 500;
+    margin-top: 3px;
+}
+
 /* 생성하기 버튼 스타일 */
 .btn-create.result-page {
-    width: 12%;
-    margin: 1.5rem 0 0 auto;
-    padding: 0.9rem;
+    width: 120px;
+    padding: 1rem;
     font-size: 1.6rem;
     background-color: #44C1CC;
     color: #fff;
     border: 0;
     border-radius: 100px;
     text-align: center;
+    flex-shrink: 0; /* 버튼 크기 고정 */
 }
 
 /* textarea 스타일 */
@@ -263,66 +328,20 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 
 .chat-history::-webkit-scrollbar-thumb,
 .chat-result::-webkit-scrollbar-thumb {
-    background-color: #44C1CC;
+    background-color: #CCCCCC;
     border-radius: 3px;
 }
 
 .chat-history::-webkit-scrollbar-track,
 .chat-result::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-radius: 3px;
+    background-color: transparent;
 }
 
-/* 사용 횟수 표시 스타일 */
-.usage-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    margin: 20px auto 40px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 15px;
-    max-width: 400px;
-}
-
-.usage-count {
-    display: flex;
-    align-items: baseline;
-    gap: 5px;
-}
-
-.usage-count .count {
-    font-size: 3.6rem;
-    font-weight: 700;
-    color: #44C1CC;
-}
-
-.usage-count .label {
-    font-size: 1.8rem;
-    color: #44C1CC;
-}
-
-.usage-text {
-    text-align: left;
-}
-
-.usage-text p {
-    margin: 0;
-    font-size: 1.6rem;
-    color: #666;
-}
-
-.usage-text .remaining {
-    color: #44C1CC;
-    font-weight: 500;
-    margin-top: 5px;
-}
-
-.usage-text .no-remaining {
-    color: #dc3545;
-    font-weight: 500;
-    margin-top: 5px;
+/* Firefox용 스크롤바 스타일 */
+.chat-history,
+.chat-result {
+    scrollbar-width: thin;
+    scrollbar-color: #CCCCCC transparent;
 }
 </style>
 

@@ -18,6 +18,9 @@ if(!$_SESSION['_mt_idx']){
 
 }
 
+// 포인트 관련 상수 정의
+define('FREE_USAGE_LIMIT', 10);         // 무료 사용 가능 횟수
+
 // 이번 달 사용 횟수 확인
 $current_month_start = date('Y-m-01 00:00:00');
 $current_month_end = date('Y-m-t 23:59:59');
@@ -148,22 +151,6 @@ foreach ($chatSessions as $session) {
 <div id="ai-create-container">
     <h3 class="fs_40 fw_700 mt_20"><?= htmlspecialchars($category['ct_name']) ?></h3>
     
-    <!-- 남은 무료 사용 횟수 표시 -->
-    <div class="usage-info">
-        <div class="usage-count">
-            <span class="count"><?= $remaining_free ?></span>
-            <span class="label">회</span>
-        </div>
-        <div class="usage-text">
-            <p>이번 달 무료 사용 가능 횟수</p>
-            <?php if ($remaining_free > 0): ?>
-                <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
-            <?php else: ?>
-                <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
-            <?php endif; ?>
-        </div>
-    </div>
-    
     <!-- 하위 카테고리 탭 -->
     <?php if (count($subCategories) > 1): ?>
         <div id="ai-category">
@@ -180,6 +167,22 @@ foreach ($chatSessions as $session) {
         <input type="hidden" name="ct_idx" value="<?= $defaultSubCategory['ct_idx'] ?>">
         
         <div id="variables-container"></div>
+    
+        <!-- 남은 무료 사용 횟수 표시 --> 
+        <div class="usage-info">
+            <div class="usage-count">
+                <span class="count"><?= $remaining_free ?></span>
+                <span class="label">회</span>
+            </div>
+            <div class="usage-text">
+                <p>이번 달 무료 사용 가능 횟수</p>
+                <?php if ($remaining_free > 0): ?>
+                    <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
+                <?php else: ?>
+                    <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
+                <?php endif; ?>
+            </div>
+        </div>
         
         <div class="button-group text-center">
             <button type="submit" class="btn-create fw_500">생성하기</button>
@@ -527,13 +530,6 @@ $('#variable-form').on('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-    const remainingFree = <?= $remaining_free ?>;
-    
-    if (remainingFree <= 0) {
-        if (!confirm('무료 사용 횟수를 모두 사용했습니다. 포인트가 차감됩니다. 계속하시겠습니까?')) {
-            return;
-        }
-    }
     
     $.ajax({
         url: 'process_variables.php',
@@ -883,6 +879,58 @@ input {
 .btn-view:hover {
     background-color: #1ba7b4;
     color: #fff;
+}
+
+/* 사용 횟수 표시 스타일 */
+.usage-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px auto 40px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    max-width: 400px;
+}
+
+.usage-count {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.usage-count .count {
+    font-size: 3.6rem;
+    font-weight: 700;
+    color: #44C1CC;
+}
+
+.usage-count .label {
+    font-size: 1.8rem;
+    color: #44C1CC;
+}
+
+.usage-text {
+    text-align: left;
+}
+
+.usage-text p {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #666;
+}
+
+.usage-text .remaining {
+    color: #44C1CC;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.usage-text .no-remaining {
+    color: #dc3545;
+    font-weight: 500;
+    margin-top: 5px;
 }
 </style>
 

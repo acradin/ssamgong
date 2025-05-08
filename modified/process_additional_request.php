@@ -208,7 +208,7 @@ try {
                 [POINT_PER_USAGE, $_SESSION['_mt_idx']]
             );
 
-            // 포인트 사용 내역 기록
+            // 포인트 사용 내역 기록 (포인트 차감)
             $DB->rawQuery("
                 INSERT INTO point_history_t 
                 (mt_idx, point_amount, point_type, point_description, created_at, main_ct_idx, ct_idx) 
@@ -217,7 +217,22 @@ try {
                     $_SESSION['_mt_idx'],
                     -POINT_PER_USAGE,
                     'use',
-                    'AI 문제 수정 - ' . $session['parent_name'] . ' ' . $session['ct_name'],
+                    'AI ' . $session['parent_name'] . ' - ' . $session['ct_name'] . ' (수정)',
+                    $session['parent_ct_idx'],
+                    $session['ct_idx']
+                ]
+            );
+        } else {
+            // 무료 사용 내역 기록 (포인트 0)
+            $DB->rawQuery("
+                INSERT INTO point_history_t 
+                (mt_idx, point_amount, point_type, point_description, created_at, main_ct_idx, ct_idx) 
+                VALUES (?, ?, ?, ?, NOW(), ?, ?)",
+                [
+                    $_SESSION['_mt_idx'],
+                    0,
+                    'use',
+                    'AI ' . $session['parent_name'] . ' - ' . $session['ct_name'] . ' (수정) (무료)',
                     $session['parent_ct_idx'],
                     $session['ct_idx']
                 ]

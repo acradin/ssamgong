@@ -285,8 +285,9 @@ try {
             );
         }
 
-        // 포인트 차감 (FREE_USAGE_LIMIT 이상 사용한 경우에만)
+        // 포인트 차감 및 사용 내역 기록 (무료 사용 포함)
         if ($monthly_usage['usage_count'] >= FREE_USAGE_LIMIT) {
+            // 포인트 차감
             $DB->rawQuery("
                 UPDATE member_t 
                 SET mt_point = mt_point - ? 
@@ -294,12 +295,30 @@ try {
                 [POINT_PER_USAGE, $_SESSION['_mt_idx']]
             );
 
-            // 포인트 사용 내역 기록
+            // 포인트 사용 내역 기록 (포인트 차감)
             $DB->rawQuery("
                 INSERT INTO point_history_t 
                 (mt_idx, point_amount, point_type, point_description, created_at) 
                 VALUES (?, ?, ?, ?, NOW())",
-                [$_SESSION['_mt_idx'], -POINT_PER_USAGE, 'use', 'AI 문제 생성']
+                [
+                    $_SESSION['_mt_idx'], 
+                    -POINT_PER_USAGE, 
+                    'use', 
+                    'AI ' . $category['parent_name'] . ' - ' . $category['ct_name']
+                ]
+            );
+        } else {
+            // 무료 사용 내역 기록 (포인트 0)
+            $DB->rawQuery("
+                INSERT INTO point_history_t 
+                (mt_idx, point_amount, point_type, point_description, created_at) 
+                VALUES (?, ?, ?, ?, NOW())",
+                [
+                    $_SESSION['_mt_idx'], 
+                    0, 
+                    'use', 
+                    'AI ' . $category['parent_name'] . ' - ' . $category['ct_name'] . ' (무료)'
+                ]
             );
         }
 
