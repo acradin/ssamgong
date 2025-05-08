@@ -21,15 +21,17 @@ if(!$_SESSION['_mt_idx']){
 // 포인트 관련 상수 정의
 define('FREE_USAGE_LIMIT', 10);         // 무료 사용 가능 횟수
 
-// 이번 달 사용 횟수 확인
+// 이번 달 사용 횟수 확인 (chat_messages 테이블 기준)
 $current_month_start = date('Y-m-01 00:00:00');
 $current_month_end = date('Y-m-t 23:59:59');
 
 $monthly_usage = $DB->rawQueryOne("
     SELECT COUNT(*) as usage_count
-    FROM chat_sessions
-    WHERE mt_idx = ?
-    AND created_at BETWEEN ? AND ?",
+    FROM chat_messages cm
+    JOIN chat_sessions cs ON cm.cs_idx = cs.cs_idx
+    WHERE cs.mt_idx = ?
+    AND cm.is_bot = 0
+    AND cm.created_at BETWEEN ? AND ?",
     [$_SESSION['_mt_idx'], $current_month_start, $current_month_end]
 );
 
