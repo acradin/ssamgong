@@ -44,12 +44,8 @@ try {
         cs.created_at,
         m.mt_id,
         m.mt_nickname,
-        '쌤공 AI' as bot_name,
-        CASE 
-            WHEN pct.ct_name IS NOT NULL THEN CONCAT(pct.ct_name, ' > ', ct.ct_name)
-            WHEN ct.ct_name IS NOT NULL THEN ct.ct_name
-            ELSE '카테고리 없음'
-        END as category_name
+        pct.ct_name as bot_name,
+        ct.ct_name as category_name
     FROM chat_sessions cs
     LEFT JOIN member_t m ON cs.mt_idx = m.mt_idx
     LEFT JOIN category_t ct ON cs.ct_idx = ct.ct_idx
