@@ -218,7 +218,7 @@ try {
             INSERT INTO chat_sessions 
             (session_id, mt_idx, ct_idx, created_at, status, last_ai_result, last_ai_result_type) 
             VALUES (?, ?, ?, NOW(), 'active', ?, ?)",
-            [$session_id, $_SESSION['_mt_idx'], $categoryId, $ai_conversation, $is_problem_creation ? 'problem' : 'chat']
+            [$session_id, $_SESSION['_mt_idx'], $categoryId, $ai_content, $is_problem_creation ? 'problem' : 'chat']
         );
         $cs_idx = $DB->getInsertId();
 
@@ -261,12 +261,12 @@ try {
         }
 
         // 2. AI 응답(문제 생성 결과) 저장
-        if (trim($ai_content) !== '') {
+        if (trim($ai_conversation) !== '') {
             $DB->rawQuery("
                 INSERT INTO chat_messages 
                 (cs_idx, content, is_bot, created_at) 
                 VALUES (?, ?, 1, NOW())",
-                [$cs_idx, trim($ai_content)]
+                [$cs_idx, trim($ai_conversation)]
             );
         }
 
@@ -329,7 +329,7 @@ try {
             UPDATE chat_sessions
             SET last_ai_result = ?, last_ai_result_type = ?
             WHERE cs_idx = ?",
-            [$ai_conversation, $is_problem_creation ? 'problem' : 'chat', $cs_idx]
+            [$ai_content, $is_problem_creation ? 'problem' : 'chat', $cs_idx]
         );
 
         $DB->commit();

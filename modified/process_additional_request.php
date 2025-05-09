@@ -189,7 +189,7 @@ try {
             INSERT INTO chat_messages 
             (cs_idx, content, is_bot, created_at) 
             VALUES (?, ?, 1, NOW())",
-            [$session['cs_idx'], $ai_content]
+            [$session['cs_idx'], $ai_conversation]
         );
 
         // 최신 결과 갱신 (세션 요약)
@@ -197,7 +197,7 @@ try {
             UPDATE chat_sessions
             SET last_ai_result = ?, last_ai_result_type = ?
             WHERE cs_idx = ?",
-            [$ai_conversation, $is_problem_creation ? 'problem' : 'chat', $session['cs_idx']]
+            [$ai_content, $is_problem_creation ? 'problem' : 'chat', $session['cs_idx']]
         );
 
         // FREE_USAGE_LIMIT 이상 사용한 경우에만 포인트 차감
