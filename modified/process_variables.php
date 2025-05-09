@@ -97,7 +97,7 @@ try {
 
     // 4. API 호출을 위한 데이터 준비
     $category = $DB->rawQueryOne("
-        SELECT ct.ct_name, parent.ct_name as parent_name, parent.ct_idx as parent_idx
+        SELECT ct.ct_name, ct.ct_required_point, parent.ct_name as parent_name, parent.ct_idx as parent_idx
         FROM category_t ct
         JOIN category_t parent ON ct.parent_idx = parent.ct_idx
         WHERE ct.ct_idx = ?",
@@ -158,10 +158,19 @@ try {
 
         $result = json_decode($response, true);
 
-        // 리턴값: { "session_id": ..., "content": ..., "conversation": ... }
+        // API 응답 처리
         $ai_title = $result['title'] ?? '';
-        $ai_content = $result['content'] ?? '';
+        $ai_content = $result['result'] ?? '';
         $session_id = $result['session_id'] ?? uniqid('problem_', true);
+
+        // API 응답 데이터 로깅 추가
+        error_log("API Response: " . print_r($result, true));
+
+        // AI 응답 저장 전 데이터 확인
+        if (empty($ai_content)) {
+            error_log("AI Content is empty. API Response: " . print_r($result, true));
+        }
+
     } else {
         // Claude API 호출 (run_claude)
         $prompt = $DB->rawQueryOne("
@@ -204,10 +213,18 @@ try {
 
         $result = json_decode($response, true);
 
-        // 리턴값: { "session_id": ..., "content": ..., "conversation": ... }
+        // API 응답 처리
         $ai_title = $result['title'] ?? '';
-        $ai_content = $result['content'] ?? '';
+        $ai_content = $result['result'] ?? '';
         $session_id = $result['session_id'] ?? uniqid('chat_', true);
+
+        // API 응답 데이터 로깅 추가
+        error_log("API Response: " . print_r($result, true));
+
+        // AI 응답 저장 전 데이터 확인
+        if (empty($ai_content)) {
+            error_log("AI Content is empty. API Response: " . print_r($result, true));
+        }
     }
     /*
     // 5. 테스트용 응답 생성
@@ -270,40 +287,24 @@ try {
 
         // 2. AI 응답(문제 생성 결과) 저장
         if (trim($ai_content) !== '') {
-            $DB->rawQuery("
-                INSERT INTO chat_messages 
-                (cs_idx, content, is_bot, created_at) 
-                VALUES (?, ?, 1, NOW())",
-                [$cs_idx, trim($ai_content)]
-            );
-        }
-
-        // 첫 사용 기록 체크 및 저장
-        $usage_check = $DB->rawQueryOne("
-            SELECT id 
-            FROM chatbot_usage 
-            WHERE mt_idx = ?",
-            [$_SESSION['_mt_idx']]
-        );
-
-        if (!$usage_check) {
-            $DB->rawQuery("
-                INSERT INTO chatbot_usage 
-                (mt_idx, first_use_date) 
-                VALUES (?, NOW())",
+            // 포인트 차감 전에 현재 포인트 확인
+            $current_point = $DB->rawQueryOne("
+                SELECT mt_point 
+                FROM member_t 
+                WHERE mt_idx = ?", 
                 [$_SESSION['_mt_idx']]
             );
-        }
 
-        // 포인트 차감 및 사용 내역 기록 (무료 사용 포함)
-        if ($monthly_usage['usage_count'] >= FREE_USAGE_LIMIT) {
-            // 포인트 차감
-            $DB->rawQuery("
-                UPDATE member_t 
-                SET mt_point = mt_point - ? 
-                WHERE mt_idx = ?",
-                [$category['ct_required_point'], $_SESSION['_mt_idx']]
-            );
+            if ($current_point && isset($category['ct_required_point']) && $category['ct_required_point'] > 0) {
+                $new_point = $current_point['mt_point'] - $category['ct_required_point'];
+                
+                $DB->rawQuery("
+                    UPDATE member_t 
+                    SET mt_point = ? 
+                    WHERE mt_idx = ?",
+                    [$new_point, $_SESSION['_mt_idx']]
+                );
+            }
 
             // 포인트 사용 내역 기록 (포인트 차감)
             $DB->rawQuery("
@@ -316,6 +317,14 @@ try {
                     'use', 
                     'AI ' . $category['parent_name'] . ' - ' . $category['ct_name']
                 ]
+            );
+
+            // AI 응답 저장
+            $DB->rawQuery("
+                INSERT INTO chat_messages 
+                (cs_idx, content, is_bot, created_at) 
+                VALUES (?, ?, 1, NOW())",
+                [$cs_idx, trim($ai_content)]
             );
         } else {
             // 무료 사용 내역 기록 (포인트 0)
@@ -331,6 +340,14 @@ try {
                 ]
             );
         }
+
+        // 최신 결과 갱신
+        $DB->rawQuery("
+            UPDATE chat_sessions
+            SET title = ?
+            WHERE cs_idx = ?",
+            [$ai_title, $cs_idx]
+        );
 
         $DB->commit();
 

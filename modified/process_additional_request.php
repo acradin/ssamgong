@@ -123,7 +123,7 @@ try {
         $result = json_decode($response, true);
 
         // 리턴값: { "content": ..., "conversation": ... }
-        $ai_content = $result['content'] ?? '';
+        $ai_content = $result['result'] ?? '';
 
     } else {
         // Claude API 호출 (edit_chats)
@@ -167,7 +167,7 @@ try {
         $result = json_decode($response, true);
 
         // 리턴값: { "content": ..., "conversation": ... }
-        $ai_content = $result['content'] ?? '';
+        $ai_content = $result['result'] ?? '';
     }
 
     // DB 트랜잭션 시작
