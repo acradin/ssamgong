@@ -20,6 +20,7 @@ try {
     $botSelect = $_POST['bot_select'] ?? '';
     $botName = $_POST['bot_name'] ?? '';
     $categoryName = $_POST['category_name'] ?? '';
+    $requiredPoint = $_POST['required_point'] ?? '10';
     $promptTitle = $_POST['prompt_title'] ?? '';
     $promptContent = $_POST['prompt_content'] ?? '';
     
@@ -73,7 +74,7 @@ try {
             $nextOrder = ($maxOrder['max_order'] ?? 0) + 1;
 
             // 새 챗봇 추가
-            $DB->rawQuery("INSERT INTO category_t (ct_name, ct_order, ct_status) VALUES (?, ?, 'Y')", 
+            $DB->rawQuery("INSERT INTO category_t (ct_name, ct_order, ct_status) VALUES (?, ?, ?, 'Y')", 
                 [$botName, $nextOrder]);
             $parentId = $DB->getInsertId();
         }
@@ -103,9 +104,9 @@ try {
         // 중복이 없는 경우에만 카테고리 생성 (ct_order 포함)
         $DB->rawQuery("
             INSERT INTO category_t 
-            (ct_name, parent_idx, ct_status, ct_order) 
-            VALUES (?, ?, 'Y', ?)",
-            [$categoryName, $parentId, $nextOrder]
+            (ct_name, parent_idx, ct_status, ct_order, ct_required_point) 
+            VALUES (?, ?, 'Y', ?, ?)",
+            [$categoryName, $parentId, $nextOrder, $requiredPoint]
         );
         $categoryId = $DB->getInsertId();
 

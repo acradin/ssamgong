@@ -21,7 +21,7 @@ try {
     
     // 카테고리와 부모 카테고리 정보 함께 조회
     $category = $DB->rawQueryOne("
-        SELECT c.ct_idx, c.ct_name, c.ct_status,
+        SELECT c.ct_idx, c.ct_name, c.ct_status, c.ct_required_point,
                p.ct_idx as parent_idx, p.ct_name as parent_name, p.ct_status as parent_status
         FROM category_t c
         LEFT JOIN category_t p ON c.parent_idx = p.ct_idx
@@ -70,7 +70,8 @@ try {
         'category' => [
             'ct_idx' => $category['ct_idx'],
             'ct_name' => $category['ct_name'],
-            'ct_status' => $category['ct_status']
+            'ct_status' => $category['ct_status'],
+            'ct_required_point' => $category['ct_required_point']
         ],
         'parent_category' => [
             'ct_idx' => $category['parent_idx'],

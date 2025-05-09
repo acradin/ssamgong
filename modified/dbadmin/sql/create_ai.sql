@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS category_t (
     parent_idx int,
     ct_name varchar(100),
     ct_order int,
+    ct_required_point int,
     ct_status enum('Y','N') DEFAULT 'Y'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -40,8 +41,7 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
     ct_idx int NOT NULL,
     created_at datetime NOT NULL,
     status enum('active','completed','error') DEFAULT 'active',
-    last_ai_result TEXT,                -- 최신 AI 결과
-    last_ai_result_type VARCHAR(50),    -- 결과 유형(예: 'problem', 'edit' 등, 필요시)
+    title TEXT,
     FOREIGN KEY (mt_idx) REFERENCES member_t(mt_idx),
     FOREIGN KEY (ct_idx) REFERENCES category_t(ct_idx)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -123,16 +123,16 @@ CREATE TABLE chatbot_description_t (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='챗봇 설명'; 
 
 -- 테스트용 카테고리 데이터 추가
-INSERT INTO category_t (ct_idx, parent_idx, ct_name, ct_order) VALUES
-(1, NULL, '생활기록부', 1),
-(2, NULL, '가정통신문', 2),
-(3, NULL, '문제 제작', 3),
-(4, 1, '행발', 1),
-(5, 1, '교과세특', 2),
-(6, 1, '창체', 3),
-(7, 2, '가정통신문', 1),
-(8, 3, '지필평가', 1),
-(9, 3, '형성평가', 2);
+INSERT INTO category_t (ct_idx, parent_idx, ct_name, ct_order, ct_required_point) VALUES
+(1, NULL, '생활기록부', 1, NULL),
+(2, NULL, '가정통신문', 2, NULL),
+(3, NULL, '문제 제작', 3, NULL),
+(4, 1, '행발', 1, 10),
+(5, 1, '교과세특', 2, 10),
+(6, 1, '창체', 3, 10),
+(7, 2, '가정통신문', 1, 10),
+(8, 3, '지필평가', 1, 10),
+(9, 3, '형성평가', 2, 10);
 
 -- 테스트용 변수 데이터 추가
 INSERT INTO chatbot_variable_t (

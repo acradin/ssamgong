@@ -4,7 +4,6 @@ include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $api_url = 'http://43.200.255.42:8000';
 
 // 포인트 관련 상수 정의
-define('POINT_PER_USAGE', 10);        // 사용당 차감 포인트
 define('FREE_USAGE_LIMIT', 10);         // 무료 사용 가능 횟수
 
 // 세션 체크
@@ -74,12 +73,21 @@ try {
 
     // FREE_USAGE_LIMIT 이상 사용한 경우에만 포인트 체크
     if ($monthly_usage['usage_count'] >= FREE_USAGE_LIMIT) {
+        // 카테고리 정보 조회 (요구 포인트 포함)
+        $category = $DB->rawQueryOne("
+            SELECT ct.ct_name, ct.ct_required_point, parent.ct_name as parent_name, parent.ct_idx as parent_idx
+            FROM category_t ct
+            JOIN category_t parent ON ct.parent_idx = parent.ct_idx
+            WHERE ct.ct_idx = ?",
+            [$categoryId]
+        );
+
         $point_check = $DB->rawQueryOne("
             SELECT mt_point 
             FROM member_t 
             WHERE mt_idx = ? 
             AND mt_point >= ?",
-            [$_SESSION['_mt_idx'], POINT_PER_USAGE]
+            [$_SESSION['_mt_idx'], $category['ct_required_point']]
         );
 
         if (!$point_check) {
@@ -151,7 +159,7 @@ try {
         $result = json_decode($response, true);
 
         // 리턴값: { "session_id": ..., "content": ..., "conversation": ... }
-        $ai_conversation = $result['conversation'] ?? '';
+        $ai_title = $result['title'] ?? '';
         $ai_content = $result['content'] ?? '';
         $session_id = $result['session_id'] ?? uniqid('problem_', true);
     } else {
@@ -197,7 +205,7 @@ try {
         $result = json_decode($response, true);
 
         // 리턴값: { "session_id": ..., "content": ..., "conversation": ... }
-        $ai_conversation = $result['conversation'] ?? '';
+        $ai_title = $result['title'] ?? '';
         $ai_content = $result['content'] ?? '';
         $session_id = $result['session_id'] ?? uniqid('chat_', true);
     }
@@ -216,9 +224,9 @@ try {
         // 세션 생성
         $DB->rawQuery("
             INSERT INTO chat_sessions 
-            (session_id, mt_idx, ct_idx, created_at, status, last_ai_result, last_ai_result_type) 
-            VALUES (?, ?, ?, NOW(), 'active', ?, ?)",
-            [$session_id, $_SESSION['_mt_idx'], $categoryId, $ai_content, $is_problem_creation ? 'problem' : 'chat']
+            (session_id, mt_idx, ct_idx, created_at, status, last_ai_result) 
+            VALUES (?, ?, ?, NOW(), 'active', ?)",
+            [$session_id, $_SESSION['_mt_idx'], $categoryId, $ai_title]
         );
         $cs_idx = $DB->getInsertId();
 
@@ -261,12 +269,12 @@ try {
         }
 
         // 2. AI 응답(문제 생성 결과) 저장
-        if (trim($ai_conversation) !== '') {
+        if (trim($ai_content) !== '') {
             $DB->rawQuery("
                 INSERT INTO chat_messages 
                 (cs_idx, content, is_bot, created_at) 
                 VALUES (?, ?, 1, NOW())",
-                [$cs_idx, trim($ai_conversation)]
+                [$cs_idx, trim($ai_content)]
             );
         }
 
@@ -294,7 +302,7 @@ try {
                 UPDATE member_t 
                 SET mt_point = mt_point - ? 
                 WHERE mt_idx = ?",
-                [POINT_PER_USAGE, $_SESSION['_mt_idx']]
+                [$category['ct_required_point'], $_SESSION['_mt_idx']]
             );
 
             // 포인트 사용 내역 기록 (포인트 차감)
@@ -304,7 +312,7 @@ try {
                 VALUES (?, ?, ?, ?, NOW())",
                 [
                     $_SESSION['_mt_idx'], 
-                    -POINT_PER_USAGE, 
+                    -$category['ct_required_point'], 
                     'use', 
                     'AI ' . $category['parent_name'] . ' - ' . $category['ct_name']
                 ]
@@ -327,9 +335,9 @@ try {
         // 최신 결과 갱신
         $DB->rawQuery("
             UPDATE chat_sessions
-            SET last_ai_result = ?, last_ai_result_type = ?
+            SET last_ai_result = ?
             WHERE cs_idx = ?",
-            [$ai_content, $is_problem_creation ? 'problem' : 'chat', $cs_idx]
+            [$ai_title, $cs_idx]
         );
 
         $DB->commit();

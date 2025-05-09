@@ -103,6 +103,13 @@ $variables = $DB->rawQuery("
                         </div>
 
                         <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">요구 포인트</label>
+                            <div class="col-sm-10">
+                                <input type="number" class="form-control" name="required_point" value="<?= htmlspecialchars($category['ct_required_point']) ?>" />
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
                             <label class="col-sm-2 col-form-label">프롬프트 <b class="text-danger">*</b></label>
                             <div class="col-sm-10">
                                 <input type="text" class="form-control mb-2" name="prompt_title" value="<?= htmlspecialchars($prompt['cp_title']) ?>" placeholder="프롬프트 제목" />
@@ -226,6 +233,12 @@ $variables = $DB->rawQuery("
                                 if (!f.category_name.value) {
                                     jalert("카테고리 이름을 입력해주세요.");
                                     f.category_name.focus();
+                                    return false;
+                                }
+
+                                if (!f.required_point.value) {
+                                    jalert("요구 포인트를 입력해주세요.");
+                                    f.required_point.focus();
                                     return false;
                                 }
 

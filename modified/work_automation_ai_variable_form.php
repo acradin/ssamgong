@@ -118,10 +118,9 @@ if (!empty($subCategories)) {
 
 // 사용자의 해당 챗봇 세션 조회
 $chatSessions = $DB->rawQuery("
-    SELECT cs.*, cvv.value, cv.cv_name, cv.cv_type
+    SELECT cs.*, ct.ct_name
     FROM chat_sessions cs
-    LEFT JOIN chat_variable_values cvv ON cs.cs_idx = cvv.cs_idx
-    LEFT JOIN chatbot_variable_t cv ON cvv.cv_idx = cv.cv_idx
+    JOIN category_t ct ON cs.ct_idx = ct.ct_idx
     WHERE cs.mt_idx = ? AND cs.ct_idx IN (
         SELECT ct_idx FROM category_t WHERE parent_idx = ?
     )
@@ -132,21 +131,12 @@ $chatSessions = $DB->rawQuery("
 // 세션별로 데이터 재구성
 $formattedSessions = [];
 foreach ($chatSessions as $session) {
-    if (!isset($formattedSessions[$session['session_id']])) {
-        $formattedSessions[$session['session_id']] = [
-            'cs_idx' => $session['cs_idx'],
-            'created_at' => $session['created_at'],
-            'status' => $session['status'],
-            'variables' => []
-        ];
-    }
-    if ($session['cv_name']) {
-        $formattedSessions[$session['session_id']]['variables'][] = [
-            'name' => $session['cv_name'],
-            'value' => $session['value'],
-            'type' => $session['cv_type']
-        ];
-    }
+    $formattedSessions[$session['session_id']] = [
+        'cs_idx' => $session['cs_idx'],
+        'created_at' => $session['created_at'],
+        'status' => $session['status'],
+        'title' => $session['title'] ?: $session['ct_name'] // title이 null이면 카테고리 이름 사용
+    ];
 }
 ?>
 
@@ -953,19 +943,8 @@ input {
                             <span class="session-date"><?= date('Y-m-d H:i', strtotime($session['created_at'])) ?></span>
                             <span class="session-status <?= $session['status'] ?>"><?= $session['status'] === 'active' ? '진행중' : ($session['status'] === 'completed' ? '완료' : '오류') ?></span>
                         </div>
-                        <div class="session-variables">
-                            <?php foreach ($session['variables'] as $variable): ?>
-                                <div class="variable-row">
-                                    <span class="variable-name"><?= htmlspecialchars($variable['name']) ?>:</span>
-                                    <span class="variable-value">
-                                        <?php if ($variable['type'] === 'file'): ?>
-                                            <i class="fas fa-file"></i> <?= htmlspecialchars($variable['value']) ?>
-                                        <?php else: ?>
-                                            <?= htmlspecialchars($variable['value']) ?>
-                                        <?php endif; ?>
-                                    </span>
-                                </div>
-                            <?php endforeach; ?>
+                        <div class="session-title">
+                            <h4><?= htmlspecialchars($session['title']) ?></h4>
                         </div>
                         <div class="session-actions">
                             <button type="button" class="btn-view" onclick="viewSession('<?= $sessionId ?>')">대화 보기</button>

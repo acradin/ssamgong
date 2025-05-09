@@ -21,6 +21,7 @@ try {
     $categoryName = $_POST['category_name'] ?? '';
     $promptTitle = $_POST['prompt_title'] ?? '';
     $promptContent = $_POST['prompt_content'] ?? '';
+    $requiredPoint = $_POST['required_point'] ?? '10';
     
     // 변수 배열
     $variableIdxs = $_POST['variable_idx'] ?? [];
@@ -46,9 +47,10 @@ try {
         // 1. 카테고리 정보 업데이트
         $DB->rawQuery("
             UPDATE category_t 
-            SET ct_name = ? 
+            SET ct_name = ?,
+                ct_required_point = ?
             WHERE ct_idx = ?",
-            [$categoryName, $categoryId]
+            [$categoryName, $requiredPoint, $categoryId]
         );
 
         // 2. 프롬프트 정보 업데이트
@@ -75,12 +77,13 @@ try {
             );
         }
 
-        // 3. 삭제된 변수 처리 (실제 삭제)
+        // 3. 삭제된 변수 처리 (상태만 변경)
         if (!empty($deletedVariables)) {
             $placeholders = str_repeat('?,', count($deletedVariables) - 1) . '?';
             $params = array_merge($deletedVariables, [$categoryId]);
             $DB->rawQuery("
-                DELETE FROM chatbot_variable_t 
+                UPDATE chatbot_variable_t 
+                SET cv_status = 'N'
                 WHERE cv_idx IN ($placeholders) AND ct_idx = ?",
                 $params
             );
@@ -99,18 +102,6 @@ try {
         // 기존 변수 ID 배열 생성
         $existingVariableIds = array_column($existingVariables, 'cv_idx');
         
-        // 삭제된 변수 처리 - 실제로 삭제하지 않고 상태만 변경
-        if (!empty($deletedVariables)) {
-            $placeholders = str_repeat('?,', count($deletedVariables) - 1) . '?';
-            $params = array_merge($deletedVariables, [$categoryId]);
-            $DB->rawQuery("
-                UPDATE chatbot_variable_t 
-                SET cv_status = 'N'
-                WHERE cv_idx IN ($placeholders) AND ct_idx = ?",
-                $params
-            );
-        }
-
         // 변수 정보 업데이트 및 추가
         foreach ($variableNames as $index => $name) {
             $idx = $variableIdxs[$index] ?? null;

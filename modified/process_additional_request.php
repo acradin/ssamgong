@@ -4,7 +4,7 @@ include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 $api_url = 'http://43.200.255.42:8000';
 
 // 포인트 관련 상수 정의
-define('POINT_PER_USAGE', 10);         // 추가 요청당 차감 포인트
+
 define('FREE_USAGE_LIMIT', 10);         // 무료 사용 가능 횟수
 
 // 세션 체크
@@ -31,7 +31,7 @@ try {
 
     // 세션 정보 조회 전에 쿼리 로깅
     $query = "
-        SELECT cs.*, ct.ct_name, parent.ct_name as parent_name, parent.ct_idx as parent_ct_idx
+        SELECT cs.*, ct.ct_name, ct.ct_required_point, parent.ct_name as parent_name, parent.ct_idx as parent_ct_idx
         FROM chat_sessions cs
         JOIN category_t ct ON cs.ct_idx = ct.ct_idx
         JOIN category_t parent ON ct.parent_idx = parent.ct_idx
@@ -70,7 +70,7 @@ try {
             FROM member_t 
             WHERE mt_idx = ? 
             AND mt_point >= ?",
-            [$_SESSION['_mt_idx'], POINT_PER_USAGE]
+            [$_SESSION['_mt_idx'], $session['ct_required_point']]
         );
 
         if (!$point_check) {
@@ -123,7 +123,6 @@ try {
         $result = json_decode($response, true);
 
         // 리턴값: { "content": ..., "conversation": ... }
-        $ai_conversation = $result['conversation'] ?? '';
         $ai_content = $result['content'] ?? '';
 
     } else {
@@ -168,7 +167,6 @@ try {
         $result = json_decode($response, true);
 
         // 리턴값: { "content": ..., "conversation": ... }
-        $ai_conversation = $result['conversation'] ?? '';
         $ai_content = $result['content'] ?? '';
     }
 
@@ -189,15 +187,7 @@ try {
             INSERT INTO chat_messages 
             (cs_idx, content, is_bot, created_at) 
             VALUES (?, ?, 1, NOW())",
-            [$session['cs_idx'], $ai_conversation]
-        );
-
-        // 최신 결과 갱신 (세션 요약)
-        $DB->rawQuery("
-            UPDATE chat_sessions
-            SET last_ai_result = ?, last_ai_result_type = ?
-            WHERE cs_idx = ?",
-            [$ai_content, $is_problem_creation ? 'problem' : 'chat', $session['cs_idx']]
+            [$session['cs_idx'], $ai_content]
         );
 
         // FREE_USAGE_LIMIT 이상 사용한 경우에만 포인트 차감
@@ -207,7 +197,7 @@ try {
                 UPDATE member_t 
                 SET mt_point = mt_point - ? 
                 WHERE mt_idx = ?",
-                [POINT_PER_USAGE, $_SESSION['_mt_idx']]
+                [$session['ct_required_point'], $_SESSION['_mt_idx']]
             );
 
             // 포인트 사용 내역 기록 (포인트 차감)
@@ -217,7 +207,7 @@ try {
                 VALUES (?, ?, ?, ?, NOW(), ?, ?)",
                 [
                     $_SESSION['_mt_idx'],
-                    -POINT_PER_USAGE,
+                    -$session['ct_required_point'],
                     'use',
                     'AI ' . $session['parent_name'] . ' - ' . $session['ct_name'] . ' (수정)',
                     $session['parent_ct_idx'],

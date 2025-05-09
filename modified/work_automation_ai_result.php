@@ -91,12 +91,6 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
                                 <!-- 대화 내역이 여기에 동적으로 추가됨 -->
                             </div>
                         </div>
-                        <div class="result-box">
-                            <span class="fs_16 fw_700 title-text">결과</span>
-                            <div class="box-border chat-result">
-                                <!-- AI 응답 결과가 여기에 동적으로 추가됨 -->
-                            </div>
-                        </div>
                     </div>
 
                     <div class="add-request-box">
@@ -145,21 +139,13 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 /* 히스토리-결과 박스 스타일 */
 .history-result-box {
     display: flex;
-    height: 40vh;
+    height: 60vh; /* 높이 증가 */
     align-items: stretch;
-    gap: 3rem;
     margin-bottom: 3rem;
 }
 
 .history-box {
-    width: calc(30% - 1.5rem);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.result-box {
-    width: calc(70% - 1.5rem);
+    width: 100%; /* 전체 너비 사용 */
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -410,7 +396,6 @@ function loadChatHistory() {
 
 function updateChatUI(data) {
     const historyContainer = document.querySelector('.chat-history');
-    const resultContainer = document.querySelector('.chat-result');
     
     // 채팅 내역 업데이트
     if (data.history) {
@@ -422,20 +407,8 @@ function updateChatUI(data) {
         `).join('');
     }
 
-    // 결과(최신 AI 결과) 표시
-    if (data.last_ai_result) {
-        resultContainer.innerHTML = data.last_ai_result;
-        // MathJax 렌더링 트리거
-        if (window.MathJax) {
-            MathJax.typesetPromise([resultContainer]);
-        }
-    } else {
-        resultContainer.innerHTML = '';
-    }
-
     // 스크롤을 최하단으로
     historyContainer.scrollTop = historyContainer.scrollHeight;
-    resultContainer.scrollTop = resultContainer.scrollHeight;
 }
 
 function sendAdditionalRequest() {

@@ -225,6 +225,15 @@ function loadCategoryData(chatbotId, categoryId) {
                         </div>
                     </div>
 
+                    <div class="form-group row align-items-center">
+                        <label class="col-sm-2 col-form-label">요구 포인트</label>
+                        <div class="col-sm-10">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0">${data.category.ct_required_point} 포인트</h5>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">프롬프트</label>
                         <div class="col-sm-10">

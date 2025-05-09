@@ -103,9 +103,7 @@ try {
     echo json_encode([
         'success' => true,
         'data' => [
-            'history' => $formatted_messages,
-            'last_ai_result' => $session['last_ai_result'],
-            'last_ai_result_type' => $session['last_ai_result_type']
+            'history' => $formatted_messages
         ]
     ]);
 
