@@ -224,7 +224,7 @@ try {
         // 세션 생성
         $DB->rawQuery("
             INSERT INTO chat_sessions 
-            (session_id, mt_idx, ct_idx, created_at, status, last_ai_result) 
+            (session_id, mt_idx, ct_idx, created_at, status, title) 
             VALUES (?, ?, ?, NOW(), 'active', ?)",
             [$session_id, $_SESSION['_mt_idx'], $categoryId, $ai_title]
         );
@@ -331,14 +331,6 @@ try {
                 ]
             );
         }
-
-        // 최신 결과 갱신
-        $DB->rawQuery("
-            UPDATE chat_sessions
-            SET last_ai_result = ?
-            WHERE cs_idx = ?",
-            [$ai_title, $cs_idx]
-        );
 
         $DB->commit();
 
