@@ -276,7 +276,7 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     margin-bottom: 1rem;
     padding: 1rem;
     border-radius: 8px;
-    max-width: 80%;
+    max-width: 55%;
     font-size: 1.6rem;
 }
 
