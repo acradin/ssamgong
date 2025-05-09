@@ -95,7 +95,7 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 
                     <div class="add-request-box">
                         <span class="fs_16 fw_700 title-text">추가 요청</span>
-                        <div class="box-border">
+                        <div class="box-border input-box">
                             <input id="additional-request" placeholder="추가 요청사항을 입력해주세요" />
                         </div>
                     </div>
@@ -117,7 +117,10 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
                             </div>
                         </div>
 
-                        <button type="button" class="btn-create result-page fw_500" onclick="sendAdditionalRequest()">생성하기</button>
+                        <div class="action-row-btn">
+                            <button type="button" class="btn-create result-page fw_500" onclick="sendAdditionalRequest()">생성하기</button>
+                            <button type="button" class="btn-prev result-page fw_500" onclick="location.href='./work_automation_ai'">목록</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -154,7 +157,6 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 /* 추가 요청 박스 스타일 */
 .add-request-box {
     width: 100%;
-    height: 8vh;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -167,6 +169,10 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     border: 3px solid #44C1CC;
     border-radius: 10px;
     padding: 1rem;
+}
+
+.input-box {
+    min-height: 45px;
 }
 
 /* 제목 텍스트 스타일 */
@@ -243,6 +249,19 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     font-size: 1.6rem;
     background-color: #44C1CC;
     color: #fff;
+    border: 0;
+    border-radius: 100px;
+    text-align: center;
+    flex-shrink: 0; /* 버튼 크기 고정 */
+}
+
+/* 목록 버튼 스타일 */
+.btn-prev.result-page {
+    width: 120px;
+    padding: 1rem;
+    font-size: 1.6rem;
+    background-color: #f0f0f0;
+    color: #4c4c4c;
     border: 0;
     border-radius: 100px;
     text-align: center;
@@ -445,7 +464,13 @@ function sendAdditionalRequest() {
                 // 페이지 새로고침하여 남은 횟수 업데이트
                 location.reload();
             } else {
-                jalert(response.message || '오류가 발생했습니다.');
+                if (response.redirect) {
+                    jalert(response.message, function() {
+                        location.href = response.redirect;
+                    });
+                } else {
+                    jalert(response.message || '오류가 발생했습니다.');
+                }
             }
         },
         error: function(xhr, status, error) {

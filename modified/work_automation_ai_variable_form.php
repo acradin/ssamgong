@@ -540,7 +540,13 @@ $('#variable-form').on('submit', function(e) {
                     location.href = `work_automation_ai_result.php?session_id=${response.session_id}`;
                 });
             } else {
-                jalert(response.message || '오류가 발생했습니다.');
+                if (response.redirect) {
+                    jalert(response.message, function() {
+                        location.href = response.redirect;
+                    });
+                } else {
+                    jalert(response.message || '오류가 발생했습니다.');
+                }
             }
         },
         error: function(xhr, status, error) {

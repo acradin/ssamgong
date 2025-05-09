@@ -74,7 +74,12 @@ try {
         );
 
         if (!$point_check) {
-            throw new Exception('포인트가 부족합니다.');
+            echo json_encode([
+                'success' => false,
+                'message' => '포인트가 부족합니다.',
+                'redirect' => '/license'
+            ]);
+            exit;
         }
     }
 
