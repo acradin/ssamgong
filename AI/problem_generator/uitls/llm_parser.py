@@ -3,38 +3,44 @@ import re
 
 def parse_llm_response(llm_text: str):
     lines = llm_text.splitlines()
-    conversation_lines = []
+    title_lines = []
     content_lines = []
-    in_conversation = False
+    in_title = False
     in_content = False
 
     for line in lines:
-        # [대답] 섹션 시작
-        if re.match(r"^\[대답\]", line.strip()):
-            in_conversation = True
+        # [제목] 섹션 시작
+        if re.match(r"^\[제목\]", line.strip()):
+            in_title = True
             in_content = False
             continue
-        # [대답] 이후 첫 [섹션]이 나오면 content로 전환
-        elif in_conversation and re.match(r"^\[.+\]", line.strip()):
-            in_conversation = False
+        # [결과] 섹션 시작 시 content로 전환 (해당 라인은 건너뜀)
+        elif in_title and re.match(r"^\[결과\]", line.strip()):
+            in_title = False
             in_content = True
-            content_lines.append(line)
-            continue
+            continue  # [결과] 라벨은 content에 포함하지 않음
 
-        if in_conversation:
-            conversation_lines.append(line)
+        if in_title:
+            title_lines.append(line)
         elif in_content:
             content_lines.append(line)
 
-    conversation = "\n".join(conversation_lines).strip()
+    title = "\n".join(title_lines).strip()
     content = "\n".join(content_lines).strip()
 
-    if not conversation:
-        conversation = "파싱 오류 또는 LLM 응답 형식 오류"
+    if not title:
+        title = "파싱 오류 또는 LLM 응답 형식 오류"
     if not content:
         content = "파싱 오류 또는 LLM 응답 형식 오류"
 
     return {
-        "conversation": conversation,
+        "title": title,
         "content": content,
     }
+
+
+def parse_llm_response_to_json(llm_text: str) -> dict:
+    """
+    LLM 응답 전체를 result 키에 담아 JSON(dict) 형태로 반환합니다.
+    """
+    return {"result": llm_text}

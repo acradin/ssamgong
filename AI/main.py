@@ -32,7 +32,10 @@ from langchain_openai import ChatOpenAI
 from chatbot.claude import run_claude
 from openai import OpenAI
 from typing import List, Dict
-from problem_generator.uitls.llm_parser import parse_llm_response
+from problem_generator.uitls.llm_parser import (
+    parse_llm_response,
+    parse_llm_response_to_json,
+)
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -237,7 +240,7 @@ async def edit_problems(
 
     result_text = getattr(response, "output_text", str(response))
 
-    return parse_llm_response(result_text)
+    return parse_llm_response_to_json(result_text)
 
 
 @app.post("/run_claude/")
@@ -315,7 +318,7 @@ async def edit_problems(
 
     result = llm.invoke(prompt)
 
-    return parse_llm_response(result.content)
+    return parse_llm_response_to_json(result.content)
 
 
 @app.post("/generate_problems_with_rag/")
