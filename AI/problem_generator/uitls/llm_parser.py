@@ -35,7 +35,7 @@ def parse_llm_response(llm_text: str):
 
     return {
         "title": title,
-        "content": content,
+        "result": content,
     }
 
 
