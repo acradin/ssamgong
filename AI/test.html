@@ -1,0 +1,135 @@
+<style>
+    /* ───────── 카드 ───────── */
+    .qc-card{
+        width:310px;
+        border-radius:8px;
+        padding:24px 18px 28px;
+        font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;
+        font-size:14px;
+        line-height:1.55;
+    }
+    
+    /* ───────── 제목 ───────── */
+    .qc-card h1{
+        margin:0 0 22px;
+        font-size:19px;
+        font-weight:700;
+        color:#1BA7B4;
+        text-align:center;
+    }
+    .qc-card h2{
+        margin:22px 0 12px;
+        font-size:15px;
+        font-weight:700;
+        color:#1BA7B4;
+    }
+    
+    /* ───────── 본문 리스트 ───────── */
+    .qc-card .qc-ul{padding-left:18px;margin:0 0 12px;}
+    .qc-card .qc-li{list-style-type:'◇ ';margin-bottom:8px;}
+    .qc-card p{margin:0 0 8px;}
+    
+    /* ───────── 선택지 ①~⑤ ───────── */
+    .qc-card .qc-options,
+    .qc-card .qc-options2{padding-left:0;margin:0 0 12px;}
+    .qc-card .qc-options li,
+    .qc-card .qc-options2 li{
+        list-style:none;
+        margin-left:0;
+    }
+    .qc-card .qc-options li:nth-child(1)::before{content:'① ';}
+    .qc-card .qc-options li:nth-child(2)::before{content:'② ';}
+    .qc-card .qc-options li:nth-child(3)::before{content:'③ ';}
+    .qc-card .qc-options li:nth-child(4)::before{content:'④ ';}
+    .qc-card .qc-options li:nth-child(5)::before{content:'⑤ ';}
+    
+    .qc-card .qc-options2 li:nth-child(1)::before{content:'㉠ ';}
+    .qc-card .qc-options2 li:nth-child(2)::before{content:'㉡ ';}
+    .qc-card .qc-options2 li:nth-child(3)::before{content:'㉢ ';}
+    .qc-card .qc-options2 li:nth-child(4)::before{content:'㉣ ';}
+    .qc-card .qc-options2 li:nth-child(5)::before{content:'㉤ ';}
+    
+    /* ───────── “<보기>” 직사각형 ───────── */
+    .qc-option-box{
+        position:relative;
+        border:2px solid #1BA7B4;
+        border-radius:6px;
+        padding:24px 18px 16px;
+        margin:18px 0;
+    }
+    .qc-option-box::before{
+        content:'<보기>';
+        position:absolute;
+        top:-10px;                 /* 라벨을 약간 더 위로 */
+        left:50%;
+        transform:translateX(-50%);
+        padding:0 12px;
+        font-size:13px;
+        font-weight:600;
+        color:#1BA7B4;
+        background:#fff;           /* 페이지 배경색과 동일하게 */
+        z-index:2;                 /* 가리는 사각형보다 위 */
+        line-height:1;
+    }
+
+    .qc-option-list{margin:0;padding-left:18px;}
+    .qc-option-list li{
+        list-style-type:'◇ ';
+        margin-bottom:8px;
+    }
+    
+    /* ───────── 정답표 ───────── */
+    .qc-card table{
+        width:100%;
+        border:1px solid #555;
+        border-collapse:collapse;
+        margin:6px 0 20px;
+    }
+    .qc-card th, .qc-card td{
+        border:1px solid #333;
+        padding:6px 0;
+        text-align:center;
+    }
+    .qc-card th{background:#aaa;font-weight:500;}
+    
+    /* ───────── 해설 ───────── */
+    .qc-expl-title{margin:0 0 10px;font-size:15px;font-weight:700;color:#1BA7B4;}
+    .qc-card .qc-expl p{margin-bottom:10px;font-size:13px;color:#555;}
+    </style>
+<div class="qc-card">
+  <h1>비문학: 기술 설명 지문 분석</h1>
+  <h2>문제 1</h2>
+  <p><strong>[난이도 중 / 출처: Parallel Softmax 과제 보고서]</strong><br>
+     다음은 GPU를 활용한 LoRA 연산의 최적화 과정에 대한 설명 일부이다. 이를 읽고 물음에 답하시오.</p>
+  <div class="qc-option-box">
+    <p>
+      GPU를 활용하여 LoRA의 행렬 연산을 최적화하기 위해 다양한 기법이 적용되었다. 먼저 data parallelism을
+      blockId와 threadId를 이용해 구현하여 여러 데이터에 동시에 접근, 계산할 수 있게 하였고, CPU와 GPU의 메모리 접근 방식 차이에 따라
+      행렬의 전치(transpose)를 적용하였다. 작은 캐시 크기로 인한 효율 저하를 방지하기 위해 타일링(tiling) 기법도 적용하였다. 타일 크기를
+      실험적으로 8, 16, 32로 비교한 결과 16이 가장 효율적이었으며, 루프 언롤링, syncthread로 안전성 확보, restrict 키워드로 빠른
+      memory 계층 사용 등 여러 방식으로 최적화하였다.
+    </p>
+  </div>
+  <ul class="qc-options">
+    <li>① 타일링 기법은 캐시의 크기에 맞추어 데이터를 불러와, 캐시 미스를 최소화하려는 것이다.</li>
+    <li>② LoRA 연산의 대부분은 matrix add 연산에서 수행된다.</li>
+    <li>③ blockId와 threadId를 활용한 병렬화는 여러 연산을 순차적으로 처리하는 방식에 해당한다.</li>
+    <li>④ restrict 키워드는 연산의 병렬성이 높아지면 꼭 사용하지 않아도 된다.</li>
+  </ul>
+
+  <h2>정답표</h2>
+  <table>
+    <tr><th>문항</th><th>정답</th></tr>
+    <tr><td>1</td><td>①</td></tr>
+  </table>
+
+  <p class="qc-expl-title">해설지</p>
+  <div class="qc-expl">
+    <p><strong>문제 1 해설</strong><br>
+       ①은 타일링(tiling) 기법의 설명으로, 캐시 미스를 줄이고자 캐시 용량에 맞게 데이터를 활용하는 것이 옳다.<br>        
+       ②는 LoRA 연산의 대부분이 matrix multiplication에 해당하므로 틀렸다.<br>
+       ③은 여러 연산을 병렬적으로 처리하는 것이므로 '순차적'이란 설명이 맞지 않다.<br>
+       ④는 restrict 키워드를 통해 빠른 메모리 계층(SRAM 등)을 사용하므로, 연산의 병렬성과 관계없이 사용하는 것이 좋다.   
+    </p>
+  </div>
+</div>
