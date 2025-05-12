@@ -27,6 +27,8 @@ def parse_llm_response(llm_text: str):
 
     title = "\n".join(title_lines).strip()
     content = "\n".join(content_lines).strip()
+    content = re.sub(r"^\\+", "", content)
+    content = re.sub(r'\\"', '"', content)
 
     if not title:
         title = "파싱 오류 또는 LLM 응답 형식 오류"
@@ -44,3 +46,33 @@ def parse_llm_response_to_json(llm_text: str) -> dict:
     LLM 응답 전체를 result 키에 담아 JSON(dict) 형태로 반환합니다.
     """
     return {"result": llm_text}
+
+
+import re
+from typing import Dict
+
+
+def parse_problem_html(text: str) -> Dict[str, str]:
+    """
+    입력 문자열에서 ###TITLE: 줄을 찾아 title과 content로 분리합니다.
+    :param text: 전체 문제 HTML 문자열
+    :return: {'title': title, 'content': content}
+    """
+    print(text)
+    lines = text.splitlines()
+    title = None
+    content_lines = []
+    title_found = False
+    for line in lines:
+        if not title_found and re.match(r"^### ?TITLE:", line.strip()):
+            # 제목 추출
+            title = re.sub(r"^### ?TITLE:", "", line.strip()).strip()
+            title_found = True
+            continue  # 제목 줄은 content에 포함하지 않음
+        if title_found:
+            content_lines.append(line)
+    if title is None:
+        raise ValueError("###TITLE: 줄을 찾을 수 없습니다.")
+    content = "".join(content_lines).strip()
+
+    return {"title": title, "content": content}

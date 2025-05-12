@@ -35,6 +35,7 @@ from typing import List, Dict
 from problem_generator.uitls.llm_parser import (
     parse_llm_response,
     parse_llm_response_to_json,
+    parse_problem_html,
 )
 
 # FastAPI 앱 생성
@@ -64,11 +65,9 @@ os.makedirs(EXPORT_DIR, exist_ok=True)
 
 @app.post("/generate_problems/")
 async def generate_problems(
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     subject: str = Form(...),
     school_level: str = Form(...),
-    grade: str = Form(...),
-    exam_type: str = Form(...),
     num_problems: int = Form(...),
     difficulty: str = Form(...),
     problem_type: str = Form(...),
@@ -86,11 +85,9 @@ async def generate_problems(
         6. 결과에 session_id를 추가하여 반환합니다.
 
     Args:
-        file (UploadFile): 문제 생성을 위한 PDF 파일
+        files (List[UploadFile]): 문제 생성을 위한 PDF 파일 리스트
         subject (str): 과목명
         school_level (str): 학교 단계
-        grade (str): 학년
-        exam_type (str): 시험 유형
         num_problems (int): 생성할 문제 개수
         difficulty (str): 난이도
         problem_type (str): 문제 유형
@@ -107,23 +104,25 @@ async def generate_problems(
     client = OpenAI()
 
     # 비동기 방식 (FastAPI에서 권장)
-    file_content = await file.read()
-    openai_file = client.files.create(
-        file=(file.filename, file_content, file.content_type), purpose="assistants"
-    )
-    file_id = openai_file.id
+    file_ids = []
+    for file in files:
+        file_content = await file.read()
+        openai_file = client.files.create(
+            file=(file.filename, file_content, file.content_type), purpose="assistants"
+        )
+        file_ids.append(openai_file.id)
 
     # 프롬프트 파일명 결정 및 읽기
     if subject == "수학":
-        prompt_file = "math_problem.txt"
+        prompt_file = "math_problem_html.txt"
     elif subject == "국어":
-        prompt_file = "korean_problem.txt"
+        prompt_file = "korean_problem_html.txt"
     elif subject == "영어":
-        prompt_file = "english_problem.txt"
+        prompt_file = "english_problem_html.txt"
     elif subject == "과학":
-        prompt_file = "science_problem.txt"
+        prompt_file = "science_problem_html.txt"
     else:
-        prompt_file = "etc_problem.txt"
+        prompt_file = "etc_problem_html.txt"
 
     with open(os.path.join(PROMPTS_DIR, prompt_file), encoding="utf-8") as f:
         prompt_template = f.read()
@@ -132,9 +131,7 @@ async def generate_problems(
     variables = {
         "context": "없음",
         "school_level": school_level,
-        "grade": grade,
         "subject": subject,
-        "exam_type": exam_type,
         "num_problems": num_problems,
         "difficulty": difficulty,
         "problem_type": problem_type,
@@ -152,6 +149,11 @@ async def generate_problems(
 
     session_id = str(uuid.uuid4())
 
+    # 여러 파일의 file_id를 모두 user content에 추가
+    user_content = [{"type": "input_text", "text": user_text}]
+    for file_id in file_ids:
+        user_content.append({"type": "input_file", "file_id": file_id})
+
     # GPT-4.1 호출
     response = client.responses.create(
         model="gpt-4.1",
@@ -159,16 +161,14 @@ async def generate_problems(
             {"role": "system", "content": system_prompt},
             {
                 "role": "user",
-                "content": [
-                    {"type": "input_text", "text": user_text},
-                    {"type": "input_file", "file_id": file_id},
-                ],
+                "content": user_content,
             },
         ],
         stream=False,
     )
 
-    result = parse_llm_response(response.output_text)
+    # result = parse_llm_response(response.output_text)
+    result = parse_problem_html(response.output_text)
     result["session_id"] = session_id
 
     return result
@@ -178,7 +178,7 @@ async def generate_problems(
 async def edit_problems(
     messages: List[Dict[str, str]] = Body(...),
     user_edit: str = Body(...),
-    file_id: str = Body(""),
+    file_ids: List[str] = Body([]),
 ):
     """
     기존 문제(또는 대화 이력)와 사용자의 편집 요청, 그리고 (선택적으로) 파일을 받아
@@ -194,7 +194,7 @@ async def edit_problems(
     Args:
         messages (List[Dict[str, str]]): 기존 대화/문제 이력
         user_edit (str): 사용자의 편집 요청
-        file_id (str, optional): OpenAI에 업로드된 파일 ID (없으면 빈 문자열)
+        file_ids (List[str]): OpenAI에 업로드된 파일 ID 리스트
 
     Returns:
         dict: {
@@ -212,16 +212,18 @@ async def edit_problems(
 
     # file_id가 실제로 OpenAI에 존재하는지 확인
     file_exists = False
-    if file_id:
+    if file_ids:
         try:
-            client.files.retrieve(file_id)
+            for file_id in file_ids:
+                client.files.retrieve(file_id)
             file_exists = True
         except Exception:
             file_exists = False
 
     user_content = [{"type": "input_text", "text": prompt}]
     if file_exists:
-        user_content.append({"type": "input_file", "file_id": file_id})
+        for file_id in file_ids:
+            user_content.append({"type": "input_file", "file_id": file_id})
     # GPT-4.1 호출
     response = client.responses.create(
         model="gpt-4.1",

@@ -1,0 +1,51 @@
+다음 조건에 맞는 수학 문제를 생성해주세요:
+
+학교급: {school_level}
+문제 수: {num_problems}개
+난이도: {difficulty}
+문제 유형: {problem_type}
+
+참고할 내용:
+{context}
+
+추가 요구사항:
+{additional_prompt}
+
+다음 형식으로 작성해주세요. 표는 반드시 table 태그를 이용하여 출력해주세요.:
+
+###TITLE:<<title>>
+
+<div class="qc-card">
+  <h1><<set_title>></h1>
+  <h2>문제 1</h2>
+  <p><strong>[난이도 <<q1_level>> / 출처: <<q1_source>>]</strong><br>
+     <<q1_stem>></p>
+  <div class="qc-option-box">
+    <ul class="qc-option-list">
+      <li><<q1_hint_1>></li>
+      <li><<q1_hint_2>></li><!-- 추가 힌트가 있으면 li 요소를 계속 추가 -->
+    </ul>
+  </div>
+  <ul class="qc-options">
+    <li><<q1_choice_1>></li>
+    <li><<q1_choice_2>></li>
+    <li><<q1_choice_3>></li>
+    <li><<q1_choice_4>></li>
+    <li><<q1_choice_5>></li>
+  </ul>
+  <!-- 문제 수 만큼 반복하여 출력 -->
+
+  <h2>정답표</h2>
+  <table>
+    <tr><th>문항</th><th>정답</th></tr>
+    <tr><td>1</td><td><<answer_1>></td></tr>
+    <tr><td>2</td><td><<answer_2>></td></tr>
+  </table>
+
+  <p class="qc-expl-title">해설지</p>
+  <div class="qc-expl">
+    <p><strong>문제 1 해설</strong><br>
+       <<explanation_1>></p>
+    <!-- 문제 수 만큼 반복하여 출력 -->
+  </div>
+</div>

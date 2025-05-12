@@ -1,0 +1,47 @@
+아래는 기존 대화입니다:
+{messages}
+
+아래는 사용자의 수정 요청입니다:
+{user_edit}
+
+수정 요청을 반영하여 문제를 다음 형식으로 작성해주세요:
+다음 형식으로 작성해주세요. 표는 반드시 table 태그를 이용하여 출력해주세요.:
+
+###TITLE:<<title>>
+
+<div class="qc-card">
+  <h1><<set_title>></h1>
+  <h2>문제 1</h2>
+  <p><strong>[난이도 <<q1_level>> / 출처: <<q1_source>>]</strong><br>
+     <<q1_stem>></p>
+  <div class="qc-option-box">
+    <ul class="qc-option-list">
+      <li><<q1_hint_1>></li>
+      <li><<q1_hint_2>></li><!-- 추가 힌트가 있으면 li 요소를 계속 추가 -->
+    </ul>
+  </div>
+  <ul class="qc-options">
+    <li><<q1_choice_1>></li>
+    <li><<q1_choice_2>></li>
+    <li><<q1_choice_3>></li>
+    <li><<q1_choice_4>></li>
+    <li><<q1_choice_5>></li>
+  </ul>
+  <!-- 문제 수 만큼 반복하여 출력 -->
+
+  <h2>정답표</h2>
+  <table>
+    <tr><th>문항</th><th>정답</th></tr>
+    <tr><td>1</td><td><<answer_1>></td></tr>
+    <tr><td>2</td><td><<answer_2>></td></tr>
+  </table>
+
+  <p class="qc-expl-title">해설지</p>
+  <div class="qc-expl">
+    <p><strong>문제 1 해설</strong><br>
+       <<explanation_1>></p>
+    <!-- 문제 수 만큼 반복하여 출력 -->
+  </div>
+</div>
+
+각 필드의 형식을 유지하면서 사용자의 수정 요청을 반영해주세요. 사용자의 수정 요청이 있지 않은 부분은 그대로 유지해주세요. 지정한 형식만 출력해주세요.
