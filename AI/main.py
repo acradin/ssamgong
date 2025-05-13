@@ -37,6 +37,14 @@ from problem_generator.uitls.llm_parser import (
     parse_llm_response_to_json,
     parse_problem_html,
 )
+import logging
+from fastapi import Request
+
+# 루트 로거 설정
+logging.basicConfig(
+    level=logging.DEBUG,  # or logging.INFO
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -53,6 +61,17 @@ app.add_middleware(
 # 환경 변수 로드
 load_dotenv()
 
+
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    try:
+        response = await call_next(request)
+        return response
+    except Exception as e:
+        logging.exception("Unhandled exception occurred during request.")
+        raise e
+
+
 # 기본 디렉토리 설정
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
@@ -65,7 +84,7 @@ os.makedirs(EXPORT_DIR, exist_ok=True)
 
 @app.post("/generate_problems/")
 async def generate_problems(
-    files: List[UploadFile] = File(...),
+    files: List[UploadFile] = File(default=None),
     subject: str = Form(...),
     school_level: str = Form(...),
     num_problems: int = Form(...),
@@ -433,4 +452,4 @@ async def generate_problems_with_rag(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="debug", reload=False)
