@@ -39,6 +39,7 @@ from problem_generator.uitls.llm_parser import (
 )
 import logging
 from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 
 # 루트 로거 설정
 logging.basicConfig(
@@ -70,6 +71,15 @@ async def log_request(request: Request, call_next):
     except Exception as e:
         logging.exception("Unhandled exception occurred during request.")
         raise e
+    
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logging.error(f"Validation error at {request.url}:\n{exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
 
 
 # 기본 디렉토리 설정
