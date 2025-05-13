@@ -156,6 +156,11 @@ async def generate_problems(
             f"KEY: {key} | TYPE: {type(value)} | VALUE: {value.filename if hasattr(value, 'filename') else value}"
         )
 
+    # 파일 처리
+    files = form.getlist("files")
+    for file in files:
+        logging.info(f"FILE: {file.filename}")
+
     return {"message": "success"}
     # logging.info(f"넘어온 파일 수: {len(files)}")
 
