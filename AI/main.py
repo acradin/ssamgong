@@ -155,6 +155,8 @@ async def generate_problems(
         logging.info(
             f"KEY: {key} | TYPE: {type(value)} | VALUE: {value.filename if hasattr(value, 'filename') else value}"
         )
+
+    return {"message": "success"}
     # logging.info(f"넘어온 파일 수: {len(files)}")
 
     # # OpenAI 클라이언트 초기화
