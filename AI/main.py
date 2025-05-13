@@ -66,12 +66,28 @@ load_dotenv()
 @app.middleware("http")
 async def log_request(request: Request, call_next):
     try:
+        # 1. 메타 정보만 기록
+        content_type = request.headers.get("content-type", "")
+        logging.info(f"{request.method} {request.url} | Content-Type: {content_type}")
+
+        # 2. multipart/form-data인 경우 → 파일 정보 추정 (헤더 기반)
+        if content_type.startswith("multipart/form-data"):
+            # Content-Length 로그 (파일 크기 추정 가능)
+            content_length = request.headers.get("content-length")
+            logging.info(f"Content-Length: {content_length or 'unknown'}")
+
+            # Boundary 로그 (multipart 내부 구조 식별자)
+            if "boundary=" in content_type:
+                boundary = content_type.split("boundary=")[-1]
+                logging.debug(f"Multipart Boundary: {boundary}")
+
+        # 3. 다음 요청 처리
         response = await call_next(request)
         return response
+
     except Exception as e:
         logging.exception("Unhandled exception occurred during request.")
         raise e
-    
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -94,13 +110,13 @@ os.makedirs(EXPORT_DIR, exist_ok=True)
 
 @app.post("/generate_problems/")
 async def generate_problems(
-    files: List[UploadFile] = File(default=None),
+    files: List[UploadFile] = File([]),
     subject: str = Form(...),
     school_level: str = Form(...),
     num_problems: int = Form(...),
     difficulty: str = Form(...),
     problem_type: str = Form(...),
-    additional_prompt: str = Form(None),
+    additional_prompt: str = Form(""),
 ):
     """
     PDF 파일과 다양한 조건(과목, 학년, 난이도 등)을 받아 OpenAI GPT-4.1을 통해 문제를 생성하는 API입니다.
