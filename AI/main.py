@@ -146,6 +146,8 @@ async def generate_problems(
             "session_id": 세션 식별자
         }
     """
+    logging.info(f"넘어온 파일 수: {len(files)}")
+    
     # OpenAI 클라이언트 초기화
     client = OpenAI()
 
