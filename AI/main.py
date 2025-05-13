@@ -205,7 +205,9 @@ async def edit_problems(
     # LLM 기반 문제 수정 로직
     client = OpenAI()
 
-    with open(os.path.join(PROMPTS_DIR, "edit_problem.txt"), encoding="utf-8") as f:
+    with open(
+        os.path.join(PROMPTS_DIR, "edit_problem_html.txt"), encoding="utf-8"
+    ) as f:
         prompt_template = f.read()
 
     prompt = prompt_template.format(messages=messages, user_edit=user_edit)

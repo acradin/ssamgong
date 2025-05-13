@@ -11,7 +11,16 @@
 추가 요구사항:
 {additional_prompt}
 
-다음 형식으로 작성해주세요. 표는 반드시 table 태그를 이용하여 출력해주세요.:
+1. 추가 힌트가 있는 경우에만 아래의 힌트 박스(HTML)를 생성하세요.  
+추가 힌트가 없다면, qc-option-box 코드는 생성하지 마세요.
+2. 표는 반드시 table 태그를 이용하여 출력해주세요.
+3. 수식은 반드시 \(...\) 형태를 이용하여 인라인 수식으로 출력해주세요.
+4. 표가 힌트일 경우에도 qc-option-box 코드는 생성하지 마세요.
+5. 힌트 박스에는 텍스트만 들어가야 합니다.
+6. 선택지를 생성할 때는 ①,②,③,④,⑤를 각각 앞에 붙이고 수식을 사용하지 마세요.
+7. 서술형을 생성할 때는 선택지(qc-options)를 생성하지 마세요.
+
+다음 형식으로 작성해주세요.:
 
 ###TITLE:<<title>>
 
@@ -20,12 +29,15 @@
   <h2>문제 1</h2>
   <p><strong>[난이도 <<q1_level>> / 출처: <<q1_source>>]</strong><br>
      <<q1_stem>></p>
+
+  <!-- qc-option-box는 보기가 필요할 때만 생성 -->
   <div class="qc-option-box">
     <ul class="qc-option-list">
-      <li><<q1_hint_1>></li>
-      <li><<q1_hint_2>></li><!-- 추가 힌트가 있으면 li 요소를 계속 추가 -->
+      <li><<q1_passage>></li>
     </ul>
   </div>
+  
+  <!-- 객관식일 때만 생성 -->
   <ul class="qc-options">
     <li><<q1_choice_1>></li>
     <li><<q1_choice_2>></li>
@@ -39,7 +51,7 @@
   <table>
     <tr><th>문항</th><th>정답</th></tr>
     <tr><td>1</td><td><<answer_1>></td></tr>
-    <tr><td>2</td><td><<answer_2>></td></tr>
+    <!-- 문제 수 만큼 반복하여 출력 -->
   </table>
 
   <p class="qc-expl-title">해설지</p>
