@@ -89,6 +89,7 @@ async def log_request(request: Request, call_next):
         logging.exception("Unhandled exception occurred during request.")
         raise e
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logging.error(f"Validation error at {request.url}:\n{exc.errors()}")
@@ -198,6 +199,8 @@ async def generate_problems(
     user_content = [{"type": "input_text", "text": user_text}]
     for file_id in file_ids:
         user_content.append({"type": "input_file", "file_id": file_id})
+
+    logging.info(f"user_content: {user_content}")
 
     # GPT-4.1 호출
     response = client.responses.create(
