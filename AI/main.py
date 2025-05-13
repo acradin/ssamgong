@@ -158,6 +158,8 @@ async def generate_problems(
         )
         file_ids.append(openai_file.id)
 
+    logging.info(f"file_ids: {file_ids}")
+
     # 프롬프트 파일명 결정 및 읽기
     if subject == "수학":
         prompt_file = "math_problem_html.txt"
