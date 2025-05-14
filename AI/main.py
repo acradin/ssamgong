@@ -155,17 +155,14 @@ async def generate_problems(
         if k.startswith("files[") and isinstance(v, UploadFile)
     ]
 
-    logging.info("==== 수신된 전체 files ====")
+    logging.info("==== 수신된 전체 multipart ====")
     for key, value in form.multi_items():
         logging.info(
             f"KEY: {key} | TYPE: {type(value)} | VALUE: {value.filename if hasattr(value, 'filename') else value}"
         )
 
-    # 파일명 리스트 추출
-    file_names = [file.filename for file in files]
-
     # 모든 변수 로그 출력
-    logging.info(f"files: {file_names}")
+    logging.info(f"files: {files}")
     logging.info(f"subject: {subject}")
     logging.info(f"school_level: {school_level}")
     logging.info(f"num_problems: {num_problems}")
