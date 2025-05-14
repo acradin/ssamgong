@@ -321,7 +321,7 @@ async def edit_problems(
     )
 
     result_text = getattr(response, "output_text", str(response))
-
+    logging.info(f"result_text: {result_text}")
     return parse_llm_response_to_json(result_text)
 
 
