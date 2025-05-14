@@ -1,7 +1,9 @@
 import re
+import logging
 
 
 def parse_llm_response(llm_text: str):
+    logging.info(f"llm_text: {llm_text}")
     lines = llm_text.splitlines()
     title_lines = []
     content_lines = []
@@ -35,6 +37,9 @@ def parse_llm_response(llm_text: str):
     if not content:
         content = "파싱 오류 또는 LLM 응답 형식 오류"
 
+    logging.info(f"title: {title}")
+    logging.info(f"content: {content}")
+
     return {
         "title": title,
         "result": content,
@@ -58,7 +63,7 @@ def parse_problem_html(text: str) -> Dict[str, str]:
     :param text: 전체 문제 HTML 문자열
     :return: {'title': title, 'content': content}
     """
-    print(text)
+    logging.info(f"text: {text}")
     lines = text.splitlines()
     title = None
     content_lines = []
@@ -75,4 +80,7 @@ def parse_problem_html(text: str) -> Dict[str, str]:
         raise ValueError("###TITLE: 줄을 찾을 수 없습니다.")
     content = "".join(content_lines).strip()
 
-    return {"title": title, "content": content}
+    logging.info(f"title: {title}")
+    logging.info(f"content: {content}")
+
+    return {"title": title, "result": content}
