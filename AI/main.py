@@ -155,6 +155,12 @@ async def generate_problems(
         if k.startswith("files[") and isinstance(v, UploadFile)
     ]
 
+    logging.info("==== 수신된 전체 files ====")
+    for key, value in form.multi_items():
+        logging.info(
+            f"KEY: {key} | TYPE: {type(value)} | VALUE: {value.filename if hasattr(value, 'filename') else value}"
+        )
+
     # 파일명 리스트 추출
     file_names = [file.filename for file in files]
 
@@ -168,6 +174,7 @@ async def generate_problems(
     logging.info(f"additional_prompt: {additional_prompt}")
 
     return {"title": "test", "result": "test", "session_id": "test"}
+    # logging.info(f"넘어온 파일 수: {len(files)}")
 
     # # OpenAI 클라이언트 초기화
     # client = OpenAI()
