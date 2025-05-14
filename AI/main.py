@@ -152,7 +152,7 @@ async def generate_problems(
     files: List[UploadFile] = [
         v
         for k, v in form.multi_items()
-        if k.startswith("files[") and isinstance(v, UploadFile)
+        if k.startswith("files") and hasattr(v, "filename")
     ]
 
     logging.info("==== 수신된 전체 multipart ====")
