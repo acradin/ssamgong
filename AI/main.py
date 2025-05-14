@@ -111,15 +111,13 @@ os.makedirs(EXPORT_DIR, exist_ok=True)
 
 @app.post("/generate_problems/")
 async def generate_problems(
-    #     files: List[UploadFile] = File([]),
-    #     subject: str = Form(...),
-    #     school_level: str = Form(...),
-    #     num_problems: int = Form(...),
-    #     difficulty: str = Form(...),
-    #     problem_type: str = Form(...),
-    #     additional_prompt: str = Form(""),
-    # ):
     request: Request,
+    subject: str = Form(...),
+    school_level: str = Form(...),
+    num_problems: int = Form(...),
+    difficulty: str = Form(...),
+    problem_type: str = Form(...),
+    additional_prompt: str = Form(""),
 ):
     """
     PDF 파일과 다양한 조건(과목, 학년, 난이도 등)을 받아 OpenAI GPT-4.1을 통해 문제를 생성하는 API입니다.
@@ -148,16 +146,28 @@ async def generate_problems(
             "session_id": 세션 식별자
         }
     """
+    # 1) 모든 멀티파트 항목 읽기
     form = await request.form()
+    # 2) 'files[숫자]' 로 온 UploadFile 객체만 골라서 리스트로
+    files: List[UploadFile] = [
+        v
+        for k, v in form.multi_items()
+        if k.startswith("files[") and isinstance(v, UploadFile)
+    ]
 
-    logging.info("==== 수신된 전체 multipart ====")
-    for key, value in form.multi_items():
-        logging.info(
-            f"KEY: {key} | TYPE: {type(value)} | VALUE: {value.filename if hasattr(value, 'filename') else value}"
-        )
+    # 파일명 리스트 추출
+    file_names = [file.filename for file in files]
+
+    # 모든 변수 로그 출력
+    logging.info(f"files: {file_names}")
+    logging.info(f"subject: {subject}")
+    logging.info(f"school_level: {school_level}")
+    logging.info(f"num_problems: {num_problems}")
+    logging.info(f"difficulty: {difficulty}")
+    logging.info(f"problem_type: {problem_type}")
+    logging.info(f"additional_prompt: {additional_prompt}")
 
     return {"title": "test", "result": "test", "session_id": "test"}
-    # logging.info(f"넘어온 파일 수: {len(files)}")
 
     # # OpenAI 클라이언트 초기화
     # client = OpenAI()
