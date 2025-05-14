@@ -170,85 +170,86 @@ async def generate_problems(
     logging.info(f"problem_type: {problem_type}")
     logging.info(f"additional_prompt: {additional_prompt}")
 
-    return {"title": "test", "result": "test", "session_id": "test"}
-    # logging.info(f"넘어온 파일 수: {len(files)}")
+    # OpenAI 클라이언트 초기화
+    client = OpenAI()
 
-    # # OpenAI 클라이언트 초기화
-    # client = OpenAI()
+    # 비동기 방식 (FastAPI에서 권장)
+    file_ids = []
+    for file in files:
+        file_content = await file.read()
+        openai_file = client.files.create(
+            file=(file.filename, file_content, file.content_type), purpose="assistants"
+        )
+        file_ids.append(openai_file.id)
 
-    # # 비동기 방식 (FastAPI에서 권장)
-    # file_ids = []
-    # for file in files:
-    #     file_content = await file.read()
-    #     openai_file = client.files.create(
-    #         file=(file.filename, file_content, file.content_type), purpose="assistants"
-    #     )
-    #     file_ids.append(openai_file.id)
+    logging.info(f"file_ids: {file_ids}")
 
-    # logging.info(f"file_ids: {file_ids}")
+    # 프롬프트 파일명 결정 및 읽기
+    if subject == "수학":
+        prompt_file = "math_problem_html.txt"
+    elif subject == "국어":
+        prompt_file = "korean_problem_html.txt"
+    elif subject == "영어":
+        prompt_file = "english_problem_html.txt"
+    elif subject == "과학":
+        prompt_file = "science_problem_html.txt"
+    elif subject == "사회":
+        prompt_file = "social_problem_html.txt"
+    elif subject == "역사":
+        prompt_file = "history_problem_html.txt"
+    else:
+        prompt_file = "etc_problem_html.txt"
 
-    # # 프롬프트 파일명 결정 및 읽기
-    # if subject == "수학":
-    #     prompt_file = "math_problem_html.txt"
-    # elif subject == "국어":
-    #     prompt_file = "korean_problem_html.txt"
-    # elif subject == "영어":
-    #     prompt_file = "english_problem_html.txt"
-    # elif subject == "과학":
-    #     prompt_file = "science_problem_html.txt"
-    # else:
-    #     prompt_file = "etc_problem_html.txt"
+    with open(os.path.join(PROMPTS_DIR, prompt_file), encoding="utf-8") as f:
+        prompt_template = f.read()
 
-    # with open(os.path.join(PROMPTS_DIR, prompt_file), encoding="utf-8") as f:
-    #     prompt_template = f.read()
+    # 프롬프트 완성
+    variables = {
+        "context": "없음",
+        "school_level": school_level,
+        "subject": subject,
+        "num_problems": num_problems,
+        "difficulty": difficulty,
+        "problem_type": problem_type,
+        "additional_prompt": additional_prompt or "없음",
+    }
 
-    # # 프롬프트 완성
-    # variables = {
-    #     "context": "없음",
-    #     "school_level": school_level,
-    #     "subject": subject,
-    #     "num_problems": num_problems,
-    #     "difficulty": difficulty,
-    #     "problem_type": problem_type,
-    #     "additional_prompt": additional_prompt or "없음",
-    # }
+    system_prompt = prompt_template.format(**variables)
 
-    # system_prompt = prompt_template.format(**variables)
+    # user 메시지 텍스트 결정
+    user_text = (
+        additional_prompt
+        if additional_prompt
+        else f"주어진 PDF 파일을 분석하여 {subject} 문제를 생성해주세요."
+    )
 
-    # # user 메시지 텍스트 결정
-    # user_text = (
-    #     additional_prompt
-    #     if additional_prompt
-    #     else f"주어진 PDF 파일을 분석하여 {subject} 문제를 생성해주세요."
-    # )
+    session_id = str(uuid.uuid4())
 
-    # session_id = str(uuid.uuid4())
+    # 여러 파일의 file_id를 모두 user content에 추가
+    user_content = [{"type": "input_text", "text": user_text}]
+    for file_id in file_ids:
+        user_content.append({"type": "input_file", "file_id": file_id})
 
-    # # 여러 파일의 file_id를 모두 user content에 추가
-    # user_content = [{"type": "input_text", "text": user_text}]
-    # for file_id in file_ids:
-    #     user_content.append({"type": "input_file", "file_id": file_id})
+    logging.info(f"user_content: {user_content}")
 
-    # logging.info(f"user_content: {user_content}")
+    # GPT-4.1 호출
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=[
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": user_content,
+            },
+        ],
+        stream=False,
+    )
 
-    # # GPT-4.1 호출
-    # response = client.responses.create(
-    #     model="gpt-4.1",
-    #     input=[
-    #         {"role": "system", "content": system_prompt},
-    #         {
-    #             "role": "user",
-    #             "content": user_content,
-    #         },
-    #     ],
-    #     stream=False,
-    # )
+    # result = parse_llm_response(response.output_text)
+    result = parse_problem_html(response.output_text)
+    result["session_id"] = session_id
 
-    # # result = parse_llm_response(response.output_text)
-    # result = parse_problem_html(response.output_text)
-    # result["session_id"] = session_id
-
-    # return result
+    return result
 
 
 @app.post("/edit_problems/")
