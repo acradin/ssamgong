@@ -1,6 +1,10 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $api_url = 'http://43.200.255.42:8000';
 
 // 포인트 관련 상수 정의
@@ -37,7 +41,10 @@ try {
         
         if ($var['cv_required'] === 'Y') {
             if ($var['cv_type'] === 'file') {
-                if (!isset($_FILES[$var_key]) || $_FILES[$var_key]['error'] === UPLOAD_ERR_NO_FILE) {
+                $err = $_FILES[$var_key]['error'] ?? UPLOAD_ERR_NO_FILE;
+                $errors = is_array($err) ? $err : [ $err ];
+                // 배열 중 하나라도 UPLOAD_ERR_OK가 없다면 예외
+                if (!in_array(UPLOAD_ERR_OK, $errors, true)) {
                     throw new Exception("{$var['cv_name']} 파일을 첨부해주세요.");
                 }
             } else {
@@ -116,36 +123,63 @@ try {
         // 변수명 매핑
         $param_map = [
             '학교급' => 'school_level',
-            '학년' => 'grade',
             '출제과목' => 'subject',
-            '출제 종류' => 'exam_type',
+            '출제 종류' => 'problem_type',
             '문제 수' => 'num_problems',
             '난이도' => 'difficulty',
-            '문제종류' => 'problem_type',
-            '참고 자료' => 'file',
+            '출제 교재' => 'files',
             '기타 요구사항' => 'additional_prompt'
         ];
 
-        $api_data = [];
+        /* ── ♠ API 파라미터 컨테이너 ─────────── */
+        $api_data   = [];
+        $file_index = 0;
+
+        /* ──────────────────────────────────────────────────────────────
+        2. var_ 키를 전부 순회하며 자동 매핑
+        ─────────────────────────────────────────────────────────────── */
         foreach ($required_vars as $var) {
             $var_key = 'var_' . $var['cv_idx'];
-            $api_key = $param_map[$var['cv_name']] ?? null;
-            if (!$api_key) continue;
+            $api_key = $param_map[$var['cv_name']] ?? '';
+            if (!$api_key) continue;                    // 매핑표에 없으면 skip
 
-            if ($var['cv_type'] === 'file') {
-                if (isset($_FILES[$var_key]) && $_FILES[$var_key]['error'] === UPLOAD_ERR_OK) {
-                    $api_data[$api_key] = new CURLFile(
-                        $_FILES[$var_key]['tmp_name'],
-                        $_FILES[$var_key]['type'],
-                        $_FILES[$var_key]['name']
-                    );
+            /* 2-A. 파일 타입 ------------------------------------------------ */
+            if ($var['cv_type'] === 'file' && isset($_FILES[$var_key])) {
+                $files = $_FILES[$var_key];
+
+                if (is_array($files['name'])) {
+                    // 다중 파일인 경우
+                    $filesArr = $_FILES[$var_key];
+
+                    foreach ($filesArr['name'] as $idx => $name) {
+                        if ($filesArr['error'][$idx] !== UPLOAD_ERR_OK) continue;
+
+                        // 같은 키 'files'로 계속 추가
+                        $api_data[$api_key . "[$idx]"] = new CURLFile(
+                            $filesArr['tmp_name'][$idx],
+                            $filesArr['type'][$idx],
+                            $name
+                        );
+                    }
+                } else {
+                    // 단일 파일인 경우
+                    if ($files['error'] === UPLOAD_ERR_OK) {
+                        $api_data[$api_key . '[]'] = new CURLFile(
+                            $files['tmp_name'],
+                            $files['type'],
+                            $files['name']
+                        );
+                    }
                 }
-            } else {
-                if (isset($_POST[$var_key])) {
+            }
+            /* 2-B. 스칼라 타입 ------------------------------------------------ */
+            else {
+                if (isset($_POST[$var_key]) && trim($_POST[$var_key]) !== '') {
                     $api_data[$api_key] = $_POST[$var_key];
                 }
             }
         }
+
 
         // FastAPI 서버로 요청 전송 (generate_problems)
         $ch = curl_init($api_url . '/generate_problems/');
@@ -258,7 +292,8 @@ try {
             $value = '';
 
             if ($var['cv_type'] === 'file' && isset($_FILES[$var_key])) {
-                $value = $_FILES[$var_key]['name'];
+                $names = $_FILES[$var_key]['name'];
+                $value = is_array($names) ? implode(',', $names) : $names;
             } else if (isset($_POST[$var_key])) {
                 $value = $_POST[$var_key];
             }

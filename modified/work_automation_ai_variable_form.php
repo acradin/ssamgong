@@ -12,6 +12,7 @@ $_GET['bt_menu'] = '1'; //모바일 하단메뉴 있음1, 없음 공백
 
 include_once $_SERVER['DOCUMENT_ROOT'] . "/head.inc.php";
 
+
 if(!$_SESSION['_mt_idx']){
 
     p_alert('로그인이 필요합니다.','./login');
@@ -97,7 +98,7 @@ $category = $DB->rawQueryOne("
 
 // 하위 카테고리 조회
 $subCategories = $DB->rawQuery("
-    SELECT ct_idx, ct_name
+    SELECT ct_idx, ct_name, ct_required_point
     FROM category_t
     WHERE parent_idx = ? AND ct_status = 'Y'
     ORDER BY ct_order",
@@ -138,6 +139,7 @@ foreach ($chatSessions as $session) {
         'title' => $session['title'] ?: $session['ct_name'] // title이 null이면 카테고리 이름 사용
     ];
 }
+
 ?>
 
 <div id="ai-create-container">
@@ -179,7 +181,7 @@ foreach ($chatSessions as $session) {
         <div class="button-group text-center">
             <button type="submit" class="btn-create fw_500">생성하기</button>
             <?php if (!empty($formattedSessions)): ?>
-                <button type="button" class="btn-history fw_500" onclick="showHistory()">이전 대화 보기</button>
+                <button type="button" class="btn-history fw_500" onclick="showHistory()">이전 대화 내역</button>
             <?php endif; ?>
         </div>
     </form>
@@ -202,8 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialVariables = <?php echo json_encode($variables); ?>;
     const variablesHtml = initialVariables.map(variable => {
         let fieldHtml = `
-            <div class="ai-variable ${variable.cv_type === 'select' ? 'dropdown' : ''}">
-                <div class="title">
+            <div class="ai-variable ${variable.cv_type === 'select' ? 'dropdown' : ''} ${variable.cv_name === '기타 요구사항' ? 'special-requirement' : ''}">
+                <div class="title ${variable.cv_name === '기타 요구사항' ? 'special-title' : ''}">
                     <span>${variable.cv_name}</span>
                 </div>`;
         
@@ -264,10 +266,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input 
                         type="file" 
                         id="var_${variable.cv_idx}"
-                        name="var_${variable.cv_idx}"
-                        accept=".pdf,.doc,.docx"
+                        name="var_${variable.cv_idx}[]"
+                        accept=".pdf"
+                        multiple
                         ${variable.cv_required === 'Y' ? 'required' : ''} />
-                    <span class="file-placeholder">파일을 첨부해주세요</span>
+                    <span class="file-placeholder">PDF 파일을 첨부해주세요</span>
                 </div>`;
         }
         
@@ -306,7 +309,9 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('change', function() {
             const placeholder = this.parentElement.querySelector('.file-placeholder');
             if (this.files.length > 0) {
-                placeholder.textContent = this.files[0].name;
+                // 여러 파일 이름을 모두 표시
+                const names = Array.from(this.files).map(f => f.name).join(', ');
+                placeholder.textContent = names;
                 placeholder.classList.add('has-file');
             } else {
                 placeholder.textContent = '파일을 첨부해주세요';
@@ -341,8 +346,8 @@ $('#ai-category span').click(function() {
                 // 새로운 변수 필드들 추가
                 const variablesHtml = response.variables.map(variable => {
                     let fieldHtml = `
-                        <div class="ai-variable ${variable.cv_type === 'select' ? 'dropdown' : ''}">
-                            <div class="title">
+                        <div class="ai-variable ${variable.cv_type === 'select' ? 'dropdown' : ''}  ${variable.cv_name === '기타 요구사항' ? 'special-requirement' : ''}">
+                            <div class="title ${variable.cv_name === '기타 요구사항' ? 'special-title' : ''}">
                                 <span>${variable.cv_name}</span>
                             </div>`;
                     
@@ -353,7 +358,7 @@ $('#ai-category span').click(function() {
                                 type="text"
                                 name="var_${variable.cv_idx}"
                                 placeholder="${variable.cv_description}"
-                                ${variable.cv_required === 'Y' ? 'required' : ''}
+                                ${variable.cv_required === 'Y' ? 'required' : ''}   
                                 ${variable.cv_name.includes('문제 수') ? 'max="20" type="number"' : ''} />`;
                     }
                     else if (variable.cv_type === 'select') {
@@ -403,10 +408,11 @@ $('#ai-category span').click(function() {
                                 <input 
                                     type="file" 
                                     id="var_${variable.cv_idx}"
-                                    name="var_${variable.cv_idx}"
-                                    accept=".pdf,.doc,.docx"
+                                    name="var_${variable.cv_idx}[]"
+                                    accept=".pdf"
+                                    multiple
                                     ${variable.cv_required === 'Y' ? 'required' : ''} />
-                                <span class="file-placeholder">파일을 첨부해주세요</span>
+                                <span class="file-placeholder">PDF 파일을 첨부해주세요</span>
                             </div>`;
                     }
                     
@@ -445,10 +451,12 @@ $('#ai-category span').click(function() {
                     input.addEventListener('change', function() {
                         const placeholder = this.parentElement.querySelector('.file-placeholder');
                         if (this.files.length > 0) {
-                            placeholder.textContent = this.files[0].name;
+                            // 여러 파일 이름을 모두 표시
+                            const names = Array.from(this.files).map(f => f.name).join(', ');
+                            placeholder.textContent = names;
                             placeholder.classList.add('has-file');
                         } else {
-                            placeholder.textContent = '파일을 첨부해주세요';
+                            placeholder.textContent = 'PDF 파일을 첨부해주세요';
                             placeholder.classList.remove('has-file');
                         }
                     });
@@ -508,10 +516,12 @@ document.querySelectorAll('input[type="file"]').forEach(function(input) {
     input.addEventListener('change', function() {
         const placeholder = this.parentElement.querySelector('.file-placeholder');
         if (this.files.length > 0) {
-            placeholder.textContent = this.files[0].name;
+            // 여러 파일 이름을 모두 표시
+            const names = Array.from(this.files).map(f => f.name).join(', ');
+            placeholder.textContent = names;
             placeholder.classList.add('has-file');
         } else {
-            placeholder.textContent = '파일을 첨부해주세요';
+            placeholder.textContent = 'PDF 파일을 첨부해주세요';
             placeholder.classList.remove('has-file');
         }
     });
@@ -522,7 +532,33 @@ $('#variable-form').on('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
+    const categoryId = document.querySelector('input[name="ct_idx"]').value;
+    const remainingFree = <?= $remaining_free ?>;
+    const requiredPoint = getRequiredPointByCategoryId(categoryId);
+
+    //if (remainingFree <= 0) {
+    //    if (!confirm(`무료 사용 횟수를 모두 사용했습니다. ${requiredPoint}포인트가 차감됩니다. 계속하시겠습니까?`)) {
+    //        return;
+    //    }
+    //}
+
+    /* 모든 <input type="file"> 선택 */
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    for (const input of fileInputs) {
+        // 선택된 파일들의 총합 계산
+        const total = Array.from(input.files)
+            .reduce((sum, file) => sum + file.size, 0);
+
+        if (total > MAX_SIZE) {
+            // 기준 초과 시 안내만 하고 함수 종료 (AJAX 호출 안 함)
+            alert('파일 합계가 5MB를 초과하여 업로드할 수 없습니다.');
+            return;
+        }
+    }
     
+
     $.ajax({
         url: 'process_variables.php',
         type: 'POST',
@@ -537,7 +573,7 @@ $('#variable-form').on('submit', function(e) {
             $('#splinner_modal').modal('hide');
             if (response.success) {
                 jalert(response.message, function() {
-                    location.href = `work_automation_ai_result.php?session_id=${response.session_id}`;
+                    location.href = `work_automation_ai_result.php?session_id=${response.session_id}&ct_idx=${categoryId}`;
                 });
             } else {
                 if (response.redirect) {
@@ -557,6 +593,12 @@ $('#variable-form').on('submit', function(e) {
     });
 });
 
+function getRequiredPointByCategoryId(categoryId) {
+    const subCategories = <?= json_encode($subCategories) ?>;
+    const match = subCategories.find(item => item.ct_idx == categoryId);
+    return match ? match.ct_required_point : null;
+}
+
 // 이전 대화 모달 표시
 function showHistory() {
     $('#historyModal').modal('show');
@@ -564,8 +606,46 @@ function showHistory() {
 
 // 세션 상세 보기
 function viewSession(sessionId) {
-    location.href = `work_automation_ai_result.php?session_id=${sessionId}`;
+    const categoryId = <?= (int)$categoryId ?>;
+    location.href = `work_automation_ai_result.php?session_id=${sessionId}&ct_idx=${categoryId}`;
 }
+
+let dragCounter = 0;
+
+window.addEventListener('dragenter', function(e) {
+    dragCounter++;
+    document.getElementById('drop-overlay').style.display = 'flex';
+});
+
+window.addEventListener('dragover', function(e) {
+    e.preventDefault();
+});
+
+window.addEventListener('dragleave', function(e) {
+    dragCounter--;
+    if (dragCounter <= 0) {
+        document.getElementById('drop-overlay').style.display = 'none';
+        dragCounter = 0;
+    }
+});
+
+window.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dragCounter = 0;
+    document.getElementById('drop-overlay').style.display = 'none';
+
+    const fileInput = document.querySelector('input[type="file"][multiple]');
+    if (fileInput) {
+        // DataTransfer의 파일들을 input에 할당 (최신 브라우저 지원)
+        const dt = new DataTransfer();
+        Array.from(e.dataTransfer.files).forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+
+        // change 이벤트 강제 발생
+        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+});
+
 </script>
 
 <style>
@@ -615,6 +695,14 @@ function viewSession(sessionId) {
     border: 3px solid #1ba7b4;
     font-size: 1.9rem;
     margin-bottom: 2rem;
+}
+
+.special-requirement {
+    border: 3px solid gray;
+}
+
+.special-title {
+    background-color: #041e20!important;
 }
 
 .ai-variable div.title {
@@ -804,6 +892,13 @@ input {
     border: 2px solid #1ba7b4;
 }
 
+.btn-history:hover {
+    background-color: rgba(0,0,0,0.07);
+    color: #1ba7b4;
+    border: 2px solid #1ba7b4;
+    transition: background 0.2s;
+}
+
 /* 채팅 세션 아이템 스타일 */
 .chat-session-item {
     border: 1px solid #dee2e6;
@@ -930,6 +1025,26 @@ input {
     font-weight: 500;
     margin-top: 5px;
 }
+
+#drop-overlay {
+    position: fixed;
+    z-index: 9999;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#drop-overlay .drop-message {
+    color: #fff;
+    font-size: 2.5rem;
+    font-weight: bold;
+    background: rgba(27,167,180,0.9);
+    padding: 2.5rem 4rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.15);
+}
 </style>
 
 <!-- 이전 대화 모달 -->
@@ -961,6 +1076,21 @@ input {
         </div>
     </div>
 </div>
+
+<div id="drop-overlay" style="display:none;">
+  <div class="drop-message">파일을 내려놓으세요</div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fd = new FormData(document.querySelector('#variable-form'));
+        console.log("fd");
+        for (const [k,v] of fd) {
+            console.log(k, v);
+        }
+    });
+</script>
 
 <?php
 

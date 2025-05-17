@@ -23,7 +23,7 @@ error_log("Received session_id: " . $_GET['session_id']);
 // 챗봇 이름 가져오기
 if (isset($_GET['session_id'])) {
     $chatbot = $DB->rawQueryOne("
-        SELECT ct.ct_name, parent.ct_name as parent_name
+        SELECT ct.ct_name, parent.ct_name as parent_name, ct.ct_required_point
         FROM chat_sessions cs
         JOIN category_t ct ON cs.ct_idx = ct.ct_idx
         JOIN category_t parent ON ct.parent_idx = parent.ct_idx
@@ -32,7 +32,7 @@ if (isset($_GET['session_id'])) {
     );
 } else {
     $chatbot = $DB->rawQueryOne("
-        SELECT ct.ct_name, parent.ct_name as parent_name
+        SELECT ct.ct_name, parent.ct_name as parent_name, ct.ct_required_point
         FROM category_t ct
         JOIN category_t parent ON ct.parent_idx = parent.ct_idx
         WHERE ct.ct_idx = ?",
@@ -59,6 +59,30 @@ $monthly_usage = $DB->rawQueryOne("
 
 $usage_count = (int)$monthly_usage['usage_count'];
 $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
+$categoryId = isset($_GET['ct_idx']) ? (int)$_GET['ct_idx'] : null;
+
+// 사용자의 해당 챗봇 세션 조회
+$chatSessions = $DB->rawQuery("
+    SELECT cs.*, ct.ct_name
+    FROM chat_sessions cs
+    JOIN category_t ct ON cs.ct_idx = ct.ct_idx
+    WHERE cs.mt_idx = ? AND cs.ct_idx IN (
+        SELECT ct_idx FROM category_t WHERE parent_idx = ?
+    )
+    ORDER BY cs.created_at DESC",
+    [$_SESSION['_mt_idx'], $categoryId]
+);
+
+// 세션별로 데이터 재구성
+$formattedSessions = [];
+foreach ($chatSessions as $session) {
+    $formattedSessions[$session['session_id']] = [
+        'cs_idx' => $session['cs_idx'],
+        'created_at' => $session['created_at'],
+        'status' => $session['status'],
+        'title' => $session['title'] ?: $session['ct_name'] // title이 null이면 카테고리 이름 사용
+    ];
+}
 
 ?>
     <div class="wrap">
@@ -95,7 +119,7 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 
                     <div class="add-request-box">
                         <span class="fs_16 fw_700 title-text">추가 요청</span>
-                        <div class="box-border input-box">
+                        <div class="box-border input-box" style="border: 3px solid black;">
                             <input id="additional-request" placeholder="추가 요청사항을 입력해주세요" />
                         </div>
                     </div>
@@ -119,7 +143,8 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 
                         <div class="action-row-btn">
                             <button type="button" class="btn-create result-page fw_500" onclick="sendAdditionalRequest()">생성하기</button>
-                            <button type="button" class="btn-prev result-page fw_500" onclick="location.href='./work_automation_ai'">목록</button>
+                            <button type="button" class="btn-prev result-page fw_500" onclick="location.href='./work_automation_ai'">AI 챗봇 목록</button>
+                            <button type="button" class="btn-prev result-page fw_500" onclick="showHistory()">이전 대화 내역</button>
                         </div>
                     </div>
                 </div>
@@ -130,7 +155,7 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 <style>
 /* 메인 컨테이너 스타일 */
 #ai-create-container {
-    width: 75%;  /* result-box 클래스일 때의 너비 */
+    width: 90%;  /* result-box 클래스일 때의 너비 */
     margin: 0 auto;
 }
 
@@ -142,7 +167,7 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
 /* 히스토리-결과 박스 스타일 */
 .history-result-box {
     display: flex;
-    height: 60vh; /* 높이 증가 */
+    height: 95vh; /* 높이 증가 */
     align-items: stretch;
     margin-bottom: 3rem;
 }
@@ -255,6 +280,10 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     flex-shrink: 0; /* 버튼 크기 고정 */
 }
 
+.btn-create:hover {
+    background-color:rgb(24, 149, 161);
+}
+
 /* 목록 버튼 스타일 */
 .btn-prev.result-page {
     width: 120px;
@@ -266,6 +295,13 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     border-radius: 100px;
     text-align: center;
     flex-shrink: 0; /* 버튼 크기 고정 */
+}
+
+.btn-prev.result-page:hover {
+    background-color: rgba(0,0,0,0.15);
+    color: #4c4c4c;
+    box-shadow: 0 4px 16px rgba(27, 167, 180, 0.10);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 /* textarea 스타일 */
@@ -295,8 +331,10 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     margin-bottom: 1rem;
     padding: 1rem;
     border-radius: 8px;
-    max-width: 55%;
-    font-size: 1.6rem;
+    max-width: 85%;
+    font-size: 18px;
+    line-height: 1.5;
+    letter-spacing: 0.2px;
 }
 
 .user-message {
@@ -350,6 +388,240 @@ $remaining_free = max(0, FREE_USAGE_LIMIT - $usage_count);
     scrollbar-width: thin;
     scrollbar-color: #CCCCCC transparent;
 }
+
+
+/* 채팅 세션 아이템 스타일 */
+.chat-session-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.session-date {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.session-status {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+}
+
+.session-status.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.session-status.completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.session-status.error {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.session-variables {
+    margin: 10px 0;
+}
+
+.variable-row {
+    display: flex;
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+.variable-name {
+    font-weight: 500;
+    margin-right: 10px;
+    min-width: 120px;
+}
+
+.session-actions {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.btn-view {
+    padding: 5px 15px;
+    border: 1px solid #1ba7b4;
+    border-radius: 4px;
+    background: none;
+    color: #1ba7b4;
+    font-size: 0.9em;
+}
+
+.btn-view:hover {
+    background-color: #1ba7b4;
+    color: #fff;
+}
+
+ /* ───────── 카드 ───────── */
+ .qc-card{
+        width:100%;
+        border-radius:8px;
+        padding:24px 18px 28px;
+        font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;
+        font-size:18px;
+        line-height:1.55;
+    }
+    
+    /* ───────── 제목 ───────── */
+    .qc-card h1{
+        margin:0 0 22px;
+        font-size:23px;
+        font-weight:700;
+        color:#1BA7B4;
+        text-align:center;
+    }
+    .qc-card h2{
+        margin:22px 0 12px;
+        font-size:19px;
+        font-weight:700;
+        color:#1BA7B4;
+    }
+    
+    /* ───────── 본문 리스트 ───────── */
+    .qc-card .qc-ul{padding-left:18px;margin:0 0 12px;}
+    .qc-card .qc-li{list-style-type:'◇ ';margin-bottom:8px;}
+    .qc-card p{margin:0 0 8px;}
+    
+    /* ───────── 선택지 ①~⑤ ───────── */
+    .qc-card .qc-options,
+    .qc-card .qc-options2{padding-left:0;margin:0 0 12px;}
+    .qc-card .qc-options li,
+    .qc-card .qc-options2 li{
+        list-style:none;
+        margin-left:0;
+    }
+    
+    /* ───────── “<보기>” 직사각형 ───────── */
+    .qc-option-box{
+        position:relative;
+        border:2px solid #1BA7B4;
+        border-radius:6px;
+        padding:24px 18px 16px;
+        margin:18px 0;
+    }
+    .qc-option-box::before{
+        content:'<보기>';
+        position:absolute;
+        top:-10px;                 /* 라벨을 약간 더 위로 */
+        left:50%;
+        transform:translateX(-50%);
+        padding:0 12px;
+        font-size:13px;
+        font-weight:600;
+        color:#1BA7B4;
+        background:#f5f5f5;           /* 페이지 배경색과 동일하게 */
+        z-index:2;                 /* 가리는 사각형보다 위 */
+        line-height:1;
+    }
+
+    .qc-option-list{margin:0;padding-left:18px;}
+    .qc-option-list li{
+        list-style-type:'◇ ';
+        margin-bottom:8px;
+    }
+    
+    /* ───────── 정답표 ───────── */
+    .qc-card table{
+        width:100%;
+        border:1px solid #555;
+        border-collapse:collapse;
+        margin:6px 0 20px;
+    }
+    .qc-card th, .qc-card td{
+        border:1px solid #333;
+        padding:6px 0;
+        text-align:center;
+    }
+    .qc-card th{background:#aaa;font-weight:500;}
+    
+    /* ───────── 해설 ───────── */
+    .qc-expl-title{margin:0 0 10px;font-size:19px;font-weight:700;color:#1BA7B4;}
+    .qc-card .qc-expl p{margin-bottom:10px;font-size:17px;color:#555;}
+
+        /* ───────── 생활기록부 섹션 박스 ───────── */
+    .life-record-section {
+    margin-top: 30px;
+    padding: 24px 24px 28px;
+    background-color: #ffffff;
+    border: 2px solid #1BA7B4;
+    border-radius: 10px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.06);
+    }
+
+    /* ───────── 섹션 제목 ───────── */
+    .life-record-section-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1BA7B4;
+    margin-bottom: 18px;
+    border-bottom: 2px solid #1BA7B4;
+    padding-bottom: 6px;
+    letter-spacing: -0.2px;
+    }
+
+    /* ───────── 정보 테이블 ───────── */
+    .life-record-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background-color: #fcfcfc;
+    }
+
+    .life-record-table th,
+    .life-record-table td {
+    border: 1px solid #bbb;
+    padding: 10px 12px;
+    vertical-align: top;
+    text-align: left;
+    line-height: 1.6;
+    color: #333;
+    word-break: keep-all;
+    }
+
+    /* ───────── 제목 셀 강조 ───────── */
+    .life-record-table th {
+    background-color: #eaf6f8;
+    color: #1BA7B4;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    }
+
+    /* ───────── 줄 간격 및 폰트 안정화 ───────── */
+    .life-record-table td {
+    background-color: #fff;
+    }
+
+    /* ───────── 인쇄용 대비 보정 (선택적) ───────── */
+    @media print {
+    .life-record-section {
+        border: 1px solid #000;
+        box-shadow: none;
+    }
+
+    .life-record-section-title {
+        color: #000;
+        border-color: #000;
+    }
+
+    .life-record-table th {
+        background-color: #ddd !important;
+        color: #000 !important;
+    }
+
 </style>
 
 <script>
@@ -420,7 +692,7 @@ function updateChatUI(data) {
     if (data.history) {
         historyContainer.innerHTML = data.history.map(msg => `
             <div class="chat-message ${msg.is_bot ? 'ai-message' : 'user-message'}">
-                <div class="message-content">${msg.content}</div>
+                <div class="message-content">${removeBackslashBeforeQuote(msg.content)}</div>
                 <div class="message-time">${msg.created_at}</div>
             </div>
         `).join('');
@@ -437,12 +709,13 @@ function sendAdditionalRequest() {
     const sessionId = new URLSearchParams(window.location.search).get('session_id');
     const ctIdx = new URLSearchParams(window.location.search).get('ct_idx');
     const remainingFree = <?= $remaining_free ?>;
-    
-    if (remainingFree <= 0) {
-        if (!confirm('무료 사용 횟수를 모두 사용했습니다. 포인트가 차감됩니다. 계속하시겠습니까?')) {
-            return;
-        }
-    }
+    const requiredPoint = getRequiredPointByCategoryId(ctIdx);
+
+    //if (remainingFree <= 0) {
+    //    if (!confirm(`무료 사용 횟수를 모두 사용했습니다. ${requiredPoint}포인트가 차감됩니다. 계속하시겠습니까?`)) {
+    //        return;
+    //    }
+    //}
     
     $.ajax({
         url: 'process_additional_request.php',
@@ -480,7 +753,85 @@ function sendAdditionalRequest() {
         }
     });
 }
+
+// 이전 대화 모달 표시
+function showHistory() {
+    $('#historyModal').modal('show');
+}
+
+function removeBackslashBeforeQuote(str) {
+    // \"만 "로 변환
+    const txt = document.createElement('textarea');
+    txt.innerHTML = str.replace(/\\"/g, '"');
+    return txt.value;
+}
+
+// 세션 상세 보기
+function viewSession(sessionId) {
+    const categoryId = <?= (int)$categoryId ?>;
+    location.href = `work_automation_ai_result.php?session_id=${sessionId}&ct_idx=${categoryId}`;
+}
+
+function getRequiredPointByCategoryId(categoryId) {
+    const subCategories = <?= json_encode($chatbot) ?>;
+    console.log('subCategories');
+    console.log(subCategories);
+    console.log('categoryId');
+    console.log(categoryId);
+
+    // subCategories가 배열이 아니라 객체일 때
+    if (subCategories && typeof subCategories === 'object' && !Array.isArray(subCategories)) {
+        // ct_idx가 있을 때만 비교
+        if (subCategories.ct_idx && subCategories.ct_idx == categoryId) {
+            return subCategories.ct_required_point;
+        }
+        // ct_idx가 없으면 그냥 ct_required_point 반환 (단일 카테고리라면)
+        if (!subCategories.ct_idx) {
+            return subCategories.ct_required_point;
+        }
+        return null;
+    }
+
+    // 배열일 경우(혹시라도)
+    if (Array.isArray(subCategories)) {
+        const match = subCategories.find(item => item.ct_idx == categoryId);
+        return match ? match.ct_required_point : null;
+    }
+
+    return null;
+}
+
 </script>
+
+<!-- 이전 대화 모달 -->
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">이전 대화 목록</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <?php foreach ($formattedSessions as $sessionId => $session): ?>
+                    <div class="chat-session-item">
+                        <div class="session-header">
+                            <span class="session-date"><?= date('Y-m-d H:i', strtotime($session['created_at'])) ?></span>
+                            <span class="session-status <?= $session['status'] ?>"><?= $session['status'] === 'active' ? '진행중' : ($session['status'] === 'completed' ? '완료' : '오류') ?></span>
+                        </div>
+                        <div class="session-title">
+                            <h4><?= htmlspecialchars($session['title']) ?></h4>
+                        </div>
+                        <div class="session-actions">
+                            <button type="button" class="btn-view" onclick="viewSession('<?= $sessionId ?>')">대화 보기</button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . "/foot.inc.php";
