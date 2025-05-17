@@ -112,7 +112,14 @@ foreach ($chatSessions as $session) {
                         <div class="history-box">
                             <span class="fs_16 fw_700 title-text">대화 내역</span>
                             <div class="box-border chat-history">
-                                <!-- 대화 내역이 여기에 동적으로 추가됨 -->
+                                <button type="button" class="btn btn-light btn-sm position-absolute" 
+                                        style="top: 10px; right: 10px;" 
+                                        onclick="openFullscreenChat()">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </button>
+                                <div class="chat-messages">
+                                    <!-- 대화 내역이 여기에 동적으로 추가됨 -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -152,6 +159,7 @@ foreach ($chatSessions as $session) {
         </div>
     </div>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
 /* 메인 컨테이너 스타일 */
 #ai-create-container {
@@ -322,9 +330,28 @@ foreach ($chatSessions as $session) {
 }
 
 /* 채팅 스타일 */
-.chat-history, .chat-result {
-    overflow-y: auto;
+.chat-history {
+    position: relative;  /* 버튼의 absolute 포지셔닝을 위한 기준점 */
+}
+
+.chat-messages {
     height: 100%;
+    overflow-y: auto;
+    padding-top: 20px;  /* 버튼과 겹치지 않도록 상단 여백 추가 */
+}
+
+/* 기존 스크롤바 스타일을 .chat-messages에도 적용 */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background-color: #CCCCCC;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background-color: transparent;
 }
 
 .chat-message {
@@ -504,7 +531,7 @@ foreach ($chatSessions as $session) {
         margin-left:0;
     }
     
-    /* ───────── “<보기>” 직사각형 ───────── */
+    /* ───────── "<보기>" 직사각형 ───────── */
     .qc-option-box{
         position:relative;
         border:2px solid #1BA7B4;
@@ -622,6 +649,84 @@ foreach ($chatSessions as $session) {
         color: #000 !important;
     }
 
+/* 전체화면 버튼 스타일 */
+.fullscreen-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    z-index: 1000;
+}
+
+.fullscreen-button:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* 전체화면 모드 스타일 */
+.chat-history.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999;
+    margin: 0;
+    border-radius: 0;
+    background: white;
+}
+
+/* 전체화면 아이콘 변경 */
+.fullscreen-button.active i::before {
+    content: "\f066"; /* fa-compress 아이콘 */
+}
+
+/* 전체화면 채팅 스타일 */
+.chat-history-fullscreen {
+    height: calc(100vh - 60px); /* 모달 헤더 높이 고려 */
+    overflow-y: auto;
+    padding: 20px 30px; /* 좌우 여백 증가 */
+    background-color: #fff;
+}
+
+.modal-body {
+    padding: 20px !important; /* 모달 바디에 패딩 추가 */
+}
+
+/* 채팅 메시지 스타일 수정 */
+.chat-message {
+    margin-bottom: 1.5rem; /* 메시지 간 간격 증가 */
+    padding: 1rem 1.5rem; /* 메시지 내부 여백 증가 */
+    border-radius: 8px;
+    max-width: 85%;
+    font-size: 18px;
+    line-height: 1.5;
+    letter-spacing: 0.2px;
+}
+
+/* 모달 헤더 스타일 개선 */
+.modal-header {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-header .close {
+    padding: 1rem;
+    margin: -1rem -1rem -1rem auto;
+    font-size: 1.5rem;
+    opacity: .5;
+    transition: opacity 0.2s;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+}
+
 </style>
 
 <script>
@@ -649,6 +754,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.target.value = ''; // 파일 선택 해제
             }
         });
+    }
+
+    // 전체화면 기능 추가
+    const chatHistory = document.querySelector('.chat-history');
+    const fullscreenBtn = document.querySelector('.fullscreen-button');
+
+    fullscreenBtn.addEventListener('click', function() {
+        if (!document.fullscreenElement) {
+            // 전체화면으로 전환
+            if (chatHistory.requestFullscreen) {
+                chatHistory.requestFullscreen();
+            } else if (chatHistory.webkitRequestFullscreen) {
+                chatHistory.webkitRequestFullscreen();
+            } else if (chatHistory.msRequestFullscreen) {
+                chatHistory.msRequestFullscreen();
+            }
+            chatHistory.classList.add('fullscreen');
+            fullscreenBtn.classList.add('active');
+        } else {
+            // 전체화면 종료
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            chatHistory.classList.remove('fullscreen');
+            fullscreenBtn.classList.remove('active');
+        }
+    });
+
+    // 전체화면 변경 이벤트 감지
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    function handleFullscreenChange() {
+        if (!document.fullscreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.msFullscreenElement) {
+            chatHistory.classList.remove('fullscreen');
+            fullscreenBtn.classList.remove('active');
+        }
     }
 });
 
@@ -686,20 +837,32 @@ function loadChatHistory() {
 }
 
 function updateChatUI(data) {
-    const historyContainer = document.querySelector('.chat-history');
+    const historyContainer = document.querySelector('.chat-history .chat-messages');
+    const fullscreenContainer = document.querySelector('.chat-history-fullscreen');
     
-    // 채팅 내역 업데이트
     if (data.history) {
-        historyContainer.innerHTML = data.history.map(msg => `
+        // 채팅 내용 생성
+        const chatContent = data.history.map(msg => `
             <div class="chat-message ${msg.is_bot ? 'ai-message' : 'user-message'}">
                 <div class="message-content">${removeBackslashBeforeQuote(msg.content)}</div>
                 <div class="message-time">${msg.created_at}</div>
             </div>
         `).join('');
+        
+        // 일반 채팅창 업데이트 (버튼은 그대로 두고 메시지만 업데이트)
+        historyContainer.innerHTML = chatContent;
+        
+        // 전체화면 모달이 열려있는 경우 해당 내용도 업데이트
+        if (document.getElementById('fullscreenChatModal').classList.contains('show')) {
+            fullscreenContainer.innerHTML = chatContent;
+        }
     }
 
-    // 스크롤을 최하단으로
+    // 스크롤 최하단으로
     historyContainer.scrollTop = historyContainer.scrollHeight;
+    if (fullscreenContainer) {
+        fullscreenContainer.scrollTop = fullscreenContainer.scrollHeight;
+    }
 }
 
 function sendAdditionalRequest() {
@@ -801,6 +964,28 @@ function getRequiredPointByCategoryId(categoryId) {
     return null;
 }
 
+// 전체화면 모달 관련 함수
+function openFullscreenChat() {
+    const originalChat = document.querySelector('.chat-history');
+    const fullscreenChat = document.querySelector('.chat-history-fullscreen');
+    
+    // 현재 채팅 내용을 전체화면 모달로 복사
+    fullscreenChat.innerHTML = originalChat.innerHTML;
+    
+    // 전체화면 버튼 제거 (모달에서는 필요 없음)
+    const fullscreenBtn = fullscreenChat.querySelector('button');
+    if (fullscreenBtn) {
+        fullscreenBtn.remove();
+    }
+    
+    // 모달 표시
+    const modal = new bootstrap.Modal(document.getElementById('fullscreenChatModal'));
+    modal.show();
+    
+    // 스크롤 최하단으로
+    fullscreenChat.scrollTop = fullscreenChat.scrollHeight;
+}
+
 </script>
 
 <!-- 이전 대화 모달 -->
@@ -828,6 +1013,25 @@ function getRequiredPointByCategoryId(categoryId) {
                         </div>
                     </div>
                 <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 전체화면 모달 추가 -->
+<div class="modal fade" id="fullscreenChatModal" tabindex="-1" aria-labelledby="fullscreenChatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fullscreenChatModalLabel">대화 내역</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="chat-history-fullscreen">
+                    <!-- 대화 내역이 여기에 복사됨 -->
+                </div>
             </div>
         </div>
     </div>
