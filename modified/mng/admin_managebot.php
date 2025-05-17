@@ -141,7 +141,22 @@ function loadCategories(parentId) {
             categorySelect.innerHTML = options;
             categorySelect.disabled = false;
 
+            // 챗봇 이름 가져오기
+            const chatbotName = document.getElementById('chatbot').options[document.getElementById('chatbot').selectedIndex].text;
+
+            // 컨텐츠 영역에 챗봇 정보와 삭제 버튼 추가
             contentArea.innerHTML = `
+                <div class="form-group row align-items-center">
+                    <label class="col-sm-2 col-form-label">챗봇 이름</label>
+                    <div class="col-sm-10">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0">${chatbotName}</h5>
+                            <button class="btn btn-outline-danger" onclick="deleteChatbot(${parentId})">
+                                <i class="mdi mdi-delete"></i> 챗봇 삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="text-muted text-center py-4">
                     <i class="mdi mdi-information-outline mr-1"></i>
                     카테고리를 선택해주세요
@@ -395,6 +410,48 @@ function deleteCategory(categoryId) {
                 });
             },
             취소: function () {
+            }
+        }
+    });
+}
+
+// 챗봇 삭제 함수 추가
+function deleteChatbot(chatbotId) {
+    $.confirm({
+        title: '챗봇 삭제',
+        content: '정말 이 챗봇을 삭제하시겠습니까?<br>모든 하위 카테고리와 관련 데이터가 함께 삭제되며, 이 작업은 되돌릴 수 없습니다.',
+        type: 'red',
+        buttons: {
+            삭제: {
+                btnClass: 'btn-red',
+                action: function () {
+                    fetch('delete_chatbot.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            chatbot_id: chatbotId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            jalert('챗봇이 성공적으로 삭제되었습니다.', function() {
+                                location.reload(); // 페이지 새로고침
+                            });
+                        } else {
+                            throw new Error(result.error || '삭제에 실패했습니다.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        jalert('챗봇 삭제 중 오류가 발생했습니다.');
+                    });
+                }
+            },
+            취소: {
+                btnClass: 'btn-light'
             }
         }
     });

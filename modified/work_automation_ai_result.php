@@ -667,17 +667,18 @@ foreach ($chatSessions as $session) {
     background: rgba(0, 0, 0, 0.2);
 }
 
-/* 전체화면 모드 스타일 */
+/* 전체화면 모드 스타일 수정 */
 .chat-history.fullscreen {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw !important;
-    height: 100vh !important;
+    width: 100% !important;  /* vw 대신 % 사용 */
+    height: 100% !important; /* vh 대신 % 사용 */
     z-index: 9999;
     margin: 0;
     border-radius: 0;
     background: white;
+    max-width: none !important; /* 최대 너비 제한 제거 */
 }
 
 /* 전체화면 아이콘 변경 */
@@ -687,10 +688,10 @@ foreach ($chatSessions as $session) {
 
 /* 전체화면 채팅 스타일 */
 .chat-history-fullscreen {
-    height: calc(100vh - 60px); /* 모달 헤더 높이 고려 */
-    overflow-y: auto;
-    padding: 20px 30px; /* 좌우 여백 증가 */
-    background-color: #fff;
+    width: 100%;
+    height: calc(100vh - 60px);
+    padding: 20px;
+    max-width: none !important;
 }
 
 .modal-body {
@@ -706,6 +707,8 @@ foreach ($chatSessions as $session) {
     font-size: 18px;
     line-height: 1.5;
     letter-spacing: 0.2px;
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 /* 모달 헤더 스타일 개선 */
@@ -725,6 +728,72 @@ foreach ($chatSessions as $session) {
 
 .modal-header .close:hover {
     opacity: 1;
+}
+
+/* 전체화면 모달에 대한 스타일 덮어쓰기 */
+@media (min-width: 576px) {
+    .modal.fade .modal-dialog.modal-fullscreen,
+    #fullscreenChatModal .modal-dialog.modal-fullscreen {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        height: 100% !important;
+    }
+}
+
+/* 모든 미디어 쿼리에 대해서도 적용 */
+.modal.fade .modal-dialog.modal-fullscreen,
+#fullscreenChatModal .modal-dialog.modal-fullscreen {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    height: 100% !important;
+}
+
+.chat-history-fullscreen {
+    height: calc(100vh - 56px); /* 모달 헤더 높이를 고려한 조정 */
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* modal-dialog 스타일 덮어쓰기 */
+#fullscreenChatModal {
+    padding: 0 !important;
+}
+
+#fullscreenChatModal .modal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#fullscreenChatModal .modal-content {
+    height: 100vh !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+#fullscreenChatModal .modal-body {
+    padding: 0 !important;
+    height: calc(100vh - 56px) !important; /* 헤더 높이 제외 */
+}
+
+#fullscreenChatModal .chat-history-fullscreen {
+    height: 100% !important;
+    width: 100% !important;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* 모든 미디어쿼리에서도 동일하게 적용되도록 */
+@media all {
+    #fullscreenChatModal .modal-dialog {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
 }
 
 </style>
@@ -801,6 +870,17 @@ document.addEventListener('DOMContentLoaded', function() {
             fullscreenBtn.classList.remove('active');
         }
     }
+
+    const specificButtons = document.querySelectorAll('.specific-button-class'); // 특정 클래스를 가진 버튼만 선택
+    
+    specificButtons.forEach(button => {
+        if (button && button.nextElementSibling) { // 둘 다 존재하는지 확인
+            button.addEventListener('click', function() {
+                const nextElement = this.nextElementSibling;
+                // 여기서 nextElement를 사용하는 코드
+            });
+        }
+    });
 });
 
 function loadChatHistory() {
@@ -1020,8 +1100,8 @@ function openFullscreenChat() {
 
 <!-- 전체화면 모달 추가 -->
 <div class="modal fade" id="fullscreenChatModal" tabindex="-1" aria-labelledby="fullscreenChatModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
+    <div class="modal-dialog modal-fullscreen" style="width: 100% !important; max-width: 100% !important; margin: 0 !important;">
+        <div class="modal-content" style="border: none !important; border-radius: 0 !important;">
             <div class="modal-header">
                 <h5 class="modal-title" id="fullscreenChatModalLabel">대화 내역</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">

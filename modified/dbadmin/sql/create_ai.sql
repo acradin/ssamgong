@@ -124,15 +124,15 @@ CREATE TABLE chatbot_description_t (
 
 -- 테스트용 카테고리 데이터 추가
 INSERT INTO category_t (ct_idx, parent_idx, ct_name, ct_order, ct_required_point) VALUES
-(1, NULL, '생활기록부', 1, NULL),
-(2, NULL, '가정통신문', 2, NULL),
-(3, NULL, '문제 제작', 3, NULL),
-(4, 1, '행발', 1, 10),
-(5, 1, '교과세특', 2, 10),
-(6, 1, '창체', 3, 10),
-(7, 2, '가정통신문', 1, 10),
-(8, 3, '지필평가', 1, 10),
-(9, 3, '형성평가', 2, 10);
+(2, NULL, '생활기록부', 2, NULL),
+(3, NULL, '가정통신문', 3, NULL),
+(1, NULL, '문제 제작', 1, NULL),
+(4, 2, '행발', 1, 10),
+(5, 2, '교과세특', 2, 10),
+(6, 2, '창체', 3, 10),
+(7, 3, '가정통신문', 1, 10),
+(8, 1, '지필평가', 1, 10),
+(9, 1, '형성평가', 2, 10);
 
 -- 테스트용 변수 데이터 추가
 INSERT INTO chatbot_variable_t (
@@ -261,10 +261,10 @@ INSERT INTO chatbot_prompt_t (parent_ct_idx, ct_idx, cp_title, cp_content, cp_wd
 -- 챗봇 설명 데이터 추가
 INSERT INTO chatbot_description_t (ct_idx, cd_description, cd_wdate) VALUES
 -- 생활기록부 챗봇 설명
-(1, '생기부 작성을 자동화 시켜주는 AI입니다.', NOW()),
+(2, '생기부 작성을 자동화 시켜주는 AI입니다.', NOW()),
 
 -- 가정통신문 챗봇 설명
-(2, '가정통신문이나 학생 편지를 작성해주는 AI입니다.', NOW()),
+(3, '가정통신문이나 학생 편지를 작성해주는 AI입니다.', NOW()),
 
 -- 문제 제작 챗봇 설명
-(3, '문제(지필평가, 형성평가 등)를 만들어주는 AI입니다.', NOW());
+(1, '문제(지필평가, 형성평가 등)를 만들어주는 AI입니다.', NOW());

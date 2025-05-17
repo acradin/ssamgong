@@ -20,277 +20,542 @@ if(!$_SESSION['_mt_idx']){
 
 ?>
 
-    <div class="wrap">
+<style>
+        /* 메인 컨텐츠 */
+        .main-wrapper {
+            max-width: 1200px;
+            background: linear-gradient(to bottom, #f9fdfd, #e6f7f7);
+            border-radius: 30px;
+            margin: 30px auto;
+            padding: 30px 0;
+            box-shadow: 0 10px 30px rgba(0, 160, 160, 0.08);
+        }
 
-        <div class="sub_pg">
+        .main-shadow {
+            background: linear-gradient(145deg, #ffffff, #f6fbfc, #e0f5f5);
+            border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0, 160, 160, 0.1);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px auto;
+        }
 
-            <div class="container">
+        .main-shadow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #00a0a0, #4db6ac);
+        }
 
-                <div class="mobile_top_itembtn">
+        /* 업무 자동화 AI 섹션 */
+        .section-title {
+            font-size: 36px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #000;
+            letter-spacing: -1px;
+            position: relative;
+        }
 
-                    <ul>
+        .section-title-highlight {
+            display: block;
+            margin: 0 auto 35px auto;
+            width: 180px;
+            height: 8px;
+            background: linear-gradient(90deg, #ffe066 0%, #fff6b7 100%);
+            border-radius: 6px;
+            opacity: 0.7;
+        }
 
-                        <li class=""><a href="https://www.ssemgong.blog/8134c529-cab1-433f-85ad-a5d22ea63609" target="_blank">소개</a></li>
+        .section-title::after {
+            display: none;
+        }
 
-                        <li class=""><a href="./item_classroom">담임</a></li>
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+            padding: 0 24px; /* 좌우 여백 추가 */
+        }
 
-                        <li class="on"><a href="./item_work">업무</a></li>
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
-                        <li class="subject">
+        .card {
+            background: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
 
-                            <a><p class="fw_600">교과</p></a>
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+        }
 
-                            <div class="subject-box">
+        .card-content {
+            padding: 25px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(145deg, #ffffff, #f8f8f8);
+            transition: all 0.3s ease;
+        }
 
-                                <a href="./item_middle"><p>중등</p></a>
+        .card:hover .card-content {
+            background: linear-gradient(145deg, #ffffff, #e6f7f7);
+            box-shadow: inset 0 0 30px rgba(0, 160, 160, 0.08);
+        }
 
-                                <a href="./item_high"><p>고등</p></a>
+        .card-title {
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: #333;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
 
-                            </div>
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 2px;
+            background-color: #00A0A0;
+        }
 
-                        </li>
+        .card-description {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            line-height: 1.6;
+        }
 
-                        <li class=""><a href="./item_e_book">전자책</a></li>
+        .card-button {
+            display: inline-block;
+            background-color: #00A0A0;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            margin-top: auto;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 160, 160, 0.2);
+        }
 
-                        <li class=""><a href="./community_communication">커뮤니티</a></li>
+        .card-button:hover {
+            background-color: #008080;
+            box-shadow: 0 4px 10px rgba(0, 160, 160, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* 카드 배경색 */
+        .card:nth-child(1) .card-content {
+            background: linear-gradient(145deg, #ffffff 70%, #e6f7f7 100%);
+            box-shadow: inset 0 0 20px rgba(0, 160, 160, 0.05);
+        }
+
+        .card:nth-child(2) .card-content {
+            background: linear-gradient(145deg, #ffffff 70%, #e8f9f9 100%);
+            box-shadow: inset 0 0 20px rgba(0, 160, 160, 0.05);
+        }
+
+        .card:nth-child(3) .card-content {
+            background: linear-gradient(145deg, #ffffff 70%, #eaf8f8 100%);
+            box-shadow: inset 0 0 20px rgba(0, 160, 160, 0.05);
+        }
+
+        .card:nth-child(4) .card-content {
+            background: linear-gradient(145deg, #ffffff 70%, #ecfafa 100%);
+            box-shadow: inset 0 0 20px rgba(0, 160, 160, 0.05);
+        }
+
+        .card:nth-child(5) .card-content {
+            background: linear-gradient(145deg, #ffffff 70%, #eef9f9 100%);
+            box-shadow: inset 0 0 20px rgba(0, 160, 160, 0.05);
+        }
+
+        .card:nth-child(6) .card-content {
+            background: linear-gradient(145deg, #ffffff 70%, #f0fbfb 100%);
+            box-shadow: inset 0 0 20px rgba(0, 160, 160, 0.05);
+        }
+
+        /* 카드별 호버 효과 */
+        .card:nth-child(1):hover .card-content {
+            background: linear-gradient(145deg, #ffffff, #e6f7f7);
+        }
+
+        .card:nth-child(2):hover .card-content {
+            background: linear-gradient(145deg, #ffffff, #e8f9f9);
+        }
+
+        .card:nth-child(3):hover .card-content {
+            background: linear-gradient(145deg, #ffffff, #eaf8f8);
+        }
+
+        .card:nth-child(4):hover .card-content {
+            background: linear-gradient(145deg, #ffffff, #ecfafa);
+        }
+
+        .card:nth-child(5):hover .card-content {
+            background: linear-gradient(145deg, #ffffff, #eef9f9);
+        }
+
+        .card:nth-child(6):hover .card-content {
+            background: linear-gradient(145deg, #ffffff, #f0fbfb);
+        }
+
+        /* 평가계획서 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            background: linear-gradient(to right, #00A0A0, #00c2c2);
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .form-label {
+            background-color: #00A0A0;
+            color: white;
+            width: 150px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .form-input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .usage-info {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .usage-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00A0A0;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .usage-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .usage-warning {
+            color: #ff5252;
+            font-size: 13px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .usage-bars {
+            display: flex;
+            gap: 5px;
+        }
+
+        .usage-bar {
+            width: 6px;
+            height: 40px;
+            background-color: #00A0A0;
+            border-radius: 3px;
+        }
+
+        .bar-1 { opacity: 0.2; }
+        .bar-2 { opacity: 0.3; }
+        .bar-3 { opacity: 0.4; }
+        .bar-4 { opacity: 0.5; }
+        .bar-5 { opacity: 0.6; }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 0 20px 20px;
+        }
+
+        .submit-button, .cancel-button {
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-button {
+            background-color: #00A0A0;
+            color: white;
+            border: none;
+        }
+
+        .submit-button:hover {
+            background-color: #008080;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .cancel-button {
+            background-color: white;
+            color: #00A0A0;
+            border: 1px solid #00A0A0;
+        }
+
+        .cancel-button:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+
+<div class="wrap">
+    <div class="sub_pg">
+        <div class="container">
+            <div class="mobile_top_itembtn">
+
+                <ul>
+
+                    <li class=""><a href="https://www.ssemgong.blog/8134c529-cab1-433f-85ad-a5d22ea63609" target="_blank">소개</a></li>
+
+                    <li class=""><a href="./item_classroom">담임</a></li>
+
+                    <li class="on"><a href="./item_work">업무</a></li>
+
+                    <li class="subject">
+
+                        <a><p class="fw_600">교과</p></a>
+
+                        <div class="subject-box">
+
+                            <a href="./item_middle"><p>중등</p></a>
+
+                            <a href="./item_high"><p>고등</p></a>
+
+                        </div>
+
+                    </li>
+
+                    <li class=""><a href="./item_e_book">전자책</a></li>
+
+                    <li class=""><a href="./community_communication">커뮤니티</a></li>
+
+                </ul>
+
+            </div>
+
+            <!-- 상단 서브배너 -->
+
+            <?php
+
+            $DB->where('bt_show', 'Y');
+
+            $DB->where('bt_type', '2');
+
+            $DB->orderBy('bt_rank', 'asc');
+
+            $DB->orderBy('bt_idx', 'desc');
+
+            $banner_list = $DB->get('banner_t');
+
+            ?>
+
+            <div class="sub-top-banner relative">
+
+                <div class="swiper">
+
+                    <ul class="swiper-wrapper">
+
+                        <?php
+
+                        foreach ($banner_list AS $key => $banner_row){
+
+                            $banner_pc_img =  get_banner_url($banner_row['bt_file1']);
+
+
+
+                            if($banner_row['bt_link1']){
+
+                                $bt_url = $banner_row['bt_link1'];
+
+                                if($banner_row['bt_target1'] == '1'){
+
+                                    $target = ' target="_blank"';
+
+                                }else{
+
+                                    $target = ' target="_self"';
+
+                                }
+
+                            }else{
+
+                                $bt_url = 'javascript:void(0);';
+
+                            }
+
+                            ?>
+
+                            <li class="swiper-slide">
+
+                                <a href="<?=$bt_url?>" <?=$target?>>
+
+                                    <img src="<?=$banner_pc_img?>">
+
+                                </a>
+
+                            </li>
+
+                        <?php } ?>
 
                     </ul>
 
                 </div>
 
-                <!-- 상단 서브배너 -->
+                <div class="swiper-button-prev banner-prev"><img src="./img/prev.svg"></div>
 
-                <?php
+                <div class="swiper-button-next banner-next"><img src="./img/next.svg"></div>
 
-                $DB->where('bt_show', 'Y');
+            </div>
 
-                $DB->where('bt_type', '2');
-
-                $DB->orderBy('bt_rank', 'asc');
-
-                $DB->orderBy('bt_idx', 'desc');
-
-                $banner_list = $DB->get('banner_t');
-
-                ?>
-
-                <div class="sub-top-banner relative">
-
-                    <div class="swiper">
-
-                        <ul class="swiper-wrapper">
-
-                            <?php
-
-                            foreach ($banner_list AS $key => $banner_row){
-
-                                $banner_pc_img =  get_banner_url($banner_row['bt_file1']);
-
-
-
-                                if($banner_row['bt_link1']){
-
-                                    $bt_url = $banner_row['bt_link1'];
-
-                                    if($banner_row['bt_target1'] == '1'){
-
-                                        $target = ' target="_blank"';
-
-                                    }else{
-
-                                        $target = ' target="_self"';
-
-                                    }
-
-                                }else{
-
-                                    $bt_url = 'javascript:void(0);';
-
-                                }
-
-                                ?>
-
-                                <li class="swiper-slide">
-
-                                    <a href="<?=$bt_url?>" <?=$target?>>
-
-                                        <img src="<?=$banner_pc_img?>">
-
-                                    </a>
-
-                                </li>
-
-                            <?php } ?>
-
-                        </ul>
-
-                    </div>
-
-                    <div class="swiper-button-prev banner-prev"><img src="./img/prev.svg"></div>
-
-                    <div class="swiper-button-next banner-next"><img src="./img/next.svg"></div>
-
-                </div>
-
-                <!-- 상품리스트 -->
-
-                <div class="item_box">
-                        <style>
-                        #ai-container {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: 30px;
-    height: 100%;
-    min-height: 200px;
-} #ai-container ul {
-    display: block;
-    width: 100%;
-    height: 100%;
-    min-height: 200px;
-} #ai-container ul li {
-    width: calc((100% - 60px) / 3);
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 1.5rem 1.8rem;
-    border: 3px solid #1ba7b4;
-    border-radius: 24px;
-    height: 100%;
-    min-height: 200px;
-} #ai-container ul li .ai-name {
-    font-size: 2.9rem;
-    font-weight: 700;
-    display: block;
-    text-align: center;
-    padding-bottom: 1.3rem;
-    border-bottom: 3px solid #cccccc;
-    margin-bottom: 1rem;
-} #ai-container ul li .ai-lore {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: 1.5rem 0;
-} #ai-container ul li .ai-lore p {
-    font-size: 1.8rem;
-    padding: 0 3rem;
-    word-break: keep-all;
-    word-wrap: break-word;
-    text-align: center;
-} .btn-ai-link {
-    width: 30%;
-    margin: 0 auto;
-    padding: 1.1rem;
-    border-radius: 100px;
-    border: 0;
-    background-color: #1ba7b4;
-    color: #fff;
-    font-size: 1.8rem;
-                                text-align: center;
-}
-
-.ai-row {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 30px;
-    width: 100%;
-}
-                        </style>
-                <div class="content-wrapper">
-    <div class="row">
-        <div class="col-md-12 grid-margin stretch-card">
-            <div>
-                <div class="card-body">
-                    <h3 class="fs_30 fw_700 mb_20">업무 자동화 AI</h3>
+            <!-- 새로운 디자인 적용 -->
+            <div class="main-wrapper">
+                <div class="main-shadow">
+                    <h2 class="section-title">AI 업무자동화</h2>
+                    <span class="section-title-highlight"></span>
                     
-                    <div id="ai-container">
-                        <ul>
-                                <?php
-                            // 활성화된 챗봇 목록 조회
-                            $chatbots = $DB->rawQuery("
-                                SELECT 
-                                    c.ct_idx,
-                                    c.ct_name,
-                                    cd.cd_description
-                                FROM category_t c
-                                LEFT JOIN chatbot_description_t cd ON c.ct_idx = cd.ct_idx
-                                WHERE c.parent_idx IS NULL 
-                                AND c.ct_status = 'Y'
-                                ORDER BY c.ct_order ASC
-                            ");
+                    <div class="card-grid">
+                        <?php
+                        // 활성화된 챗봇 목록 조회
+                        $chatbots = $DB->rawQuery("
+                            SELECT 
+                                c.ct_idx,
+                                c.ct_name,
+                                cd.cd_description
+                            FROM category_t c
+                            LEFT JOIN chatbot_description_t cd ON c.ct_idx = cd.ct_idx
+                            WHERE c.parent_idx IS NULL 
+                            AND c.ct_status = 'Y'
+                            ORDER BY c.ct_order ASC
+                        ");
 
-                            $total_chatbots = count($chatbots);
-                            foreach ($chatbots as $index => $chatbot) {
-                                // 새로운 줄 시작
-                                if ($index % 3 == 0) {
-                                    echo '<div class="ai-row" style="display: flex; gap: 30px; margin-bottom: 30px; width: 100%;">';
-                                }
-                                ?>
-                                <li>
-                                    <span class="ai-name"><?= htmlspecialchars($chatbot['ct_name']) ?></span>
-                                    <div class="ai-lore">
-                                        <p class="fw_500"><?= htmlspecialchars($chatbot['cd_description']) ?></p>
-                                                    </div>
-                                    <a class="btn-ai-link fw_500" href="./work_automation_ai_variable_form.php?ct_idx=<?= $chatbot['ct_idx'] ?>">바로가기</a>
-                                        </li>
-                                    <?php
-                                // 줄 닫기 (3개 완성되었거나 마지막 항목일 때)
-                                if (($index + 1) % 3 == 0 || $index + 1 == $total_chatbots) {
-                                    echo '</div>';
-                                }
-                            }
-                            ?>
-                        </ul>
+                        foreach ($chatbots as $chatbot) {
+                        ?>
+                            <div class="card">
+                                <div class="card-content">
+                                    <h3 class="card-title"><?= htmlspecialchars($chatbot['ct_name']) ?></h3>
+                                    <p class="card-description"><?= htmlspecialchars($chatbot['cd_description']) ?></p>
+                                    <a href="./work_automation_ai_variable_form.php?ct_idx=<?= $chatbot['ct_idx'] ?>" class="card-button">바로가기</a>
+                                </div>
+                            </div>
+                        <?php
+                        }
+                        ?>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 </div>
-                            </div>
-            </div>
 
-        </div>
-
-    </div>
-
-
-
-    <script>
-
-
-
-        var swiper = new Swiper(".sub-top-banner .swiper", {
-
-            slidesPerView: 1,
-
-            loop: true,
-
-            autoplay: {
-
-                delay: 3000,
-
-                disableOnInteraction: false,
-
-            },
-
-            navigation: {
-
-                nextEl: ".banner-next",
-
-                prevEl: ".banner-prev",
-
-            },
-
-        });
-
-
-
-
-
-    </script>
+<script>
+    var swiper = new Swiper(".sub-top-banner .swiper", {
+        slidesPerView: 1,
+        loop: true,
+        autoplay: {
+            delay: 3000,
+            disableOnInteraction: false,
+        },
+        navigation: {
+            nextEl: ".banner-next",
+            prevEl: ".banner-prev",
+        },
+    });
+</script>
 
 <?php
 
