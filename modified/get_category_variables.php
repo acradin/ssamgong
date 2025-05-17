@@ -1,6 +1,8 @@
 <?php
 include_once $_SERVER['DOCUMENT_ROOT'] . "/lib.inc.php";
 
+header('Content-Type: application/json');
+
 if (!isset($_GET['ct_idx'])) {
     echo json_encode(['success' => false, 'message' => '잘못된 접근입니다.']);
     exit;
@@ -16,4 +18,4 @@ $variables = $DB->rawQuery("
     [$categoryId]
 );
 
-echo json_encode(['success' => true, 'variables' => $variables]);
+echo json_encode($variables);

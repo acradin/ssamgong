@@ -989,82 +989,96 @@ function createVariableFields(categoryId) {
     const container = document.getElementById('variables-container');
     container.innerHTML = ''; // 컨테이너 초기화
 
-    // PHP에서 이미 가져온 변수들을 사용
-    variables.forEach(variable => {
-        const formRow = document.createElement('div');
-        formRow.className = `form-row ${variable.cv_name === '기타 요구사항' ? 'optional' : ''}`;
+    // 변수들을 기타 요구사항과 일반 변수로 분리
+    const otherRequirements = variables.find(v => v.cv_name === '기타 요구사항');
+    const normalVariables = variables.filter(v => v.cv_name !== '기타 요구사항');
 
-        // 라벨 생성
-        const label = document.createElement('label');
-        label.className = 'form-label';
-        label.textContent = variable.cv_name;
-        
-        // 입력 필드 생성
-        let input;
-        switch(variable.cv_type) {
-            case 'text':
-                input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'form-input';
-                input.name = `var_${variable.cv_idx}`;
-                input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
-                break;
-
-            case 'textarea':
-                input = document.createElement('textarea');
-                input.className = 'form-input';
-                input.name = `var_${variable.cv_idx}`;
-                input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
-                input.rows = 4;
-                break;
-
-            case 'select':
-                input = document.createElement('select');
-                input.className = 'form-input';
-                input.name = `var_${variable.cv_idx}`;
-                const options = JSON.parse(variable.cv_options || '[]');
-                options.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option;
-                    optionElement.textContent = option;
-                    input.appendChild(optionElement);
-                });
-                break;
-
-            case 'date':
-                input = document.createElement('input');
-                input.type = 'date';
-                input.className = 'form-input';
-                input.name = `var_${variable.cv_idx}`;
-                break;
-
-            case 'file':
-                input = document.createElement('input');
-                input.type = 'file';
-                input.className = 'form-input';
-                input.name = `var_${variable.cv_idx}`;
-                input.accept = '.txt,.doc,.docx,.pdf';
-                break;
-        }
-
-        // 필수 필드 표시
-        if (variable.cv_required === 'Y') {
-            input.required = true;
-        }
-
-        // 설명 툴팁 추가
-        if (variable.cv_description) {
-            const tooltip = document.createElement('div');
-            tooltip.className = 'input-tooltip';
-            tooltip.innerHTML = `<i class="fas fa-info-circle"></i>`;
-            tooltip.title = variable.cv_description;
-            formRow.appendChild(tooltip);
-        }
-
-        formRow.appendChild(label);
-        formRow.appendChild(input);
-        container.appendChild(formRow);
+    // 일반 변수들 먼저 생성
+    normalVariables.forEach(variable => {
+        createVariableField(variable, container);
     });
+
+    // 기타 요구사항을 마지막에 추가
+    if (otherRequirements) {
+        createVariableField(otherRequirements, container);
+    }
+}
+
+// 개별 변수 필드 생성 함수
+function createVariableField(variable, container) {
+    const formRow = document.createElement('div');
+    formRow.className = `form-row ${variable.cv_name === '기타 요구사항' ? 'optional' : ''}`;
+
+    // 라벨 생성
+    const label = document.createElement('label');
+    label.className = 'form-label';
+    label.textContent = variable.cv_name;
+    
+    // 입력 필드 생성
+    let input;
+    switch(variable.cv_type) {
+        case 'text':
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-input';
+            input.name = `var_${variable.cv_idx}`;
+            input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
+            break;
+
+        case 'textarea':
+            input = document.createElement('textarea');
+            input.className = 'form-input';
+            input.name = `var_${variable.cv_idx}`;
+            input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
+            input.rows = 4;
+            break;
+
+        case 'select':
+            input = document.createElement('select');
+            input.className = 'form-input';
+            input.name = `var_${variable.cv_idx}`;
+            const options = JSON.parse(variable.cv_options || '[]');
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                input.appendChild(optionElement);
+            });
+            break;
+
+        case 'date':
+            input = document.createElement('input');
+            input.type = 'date';
+            input.className = 'form-input';
+            input.name = `var_${variable.cv_idx}`;
+            break;
+
+        case 'file':
+            input = document.createElement('input');
+            input.type = 'file';
+            input.className = 'form-input';
+            input.name = `var_${variable.cv_idx}`;
+            input.accept = '.txt,.doc,.docx,.pdf';
+            break;
+    }
+
+    // 필수 필드 표시
+    if (variable.cv_required === 'Y') {
+        input.required = true;
+    }
+
+    // 설명 툴팁 추가
+    if (variable.cv_description) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'input-tooltip';
+        tooltip.innerHTML = `<i class="fas fa-info-circle"></i>`;
+        tooltip.title = variable.cv_description;
+        formRow.appendChild(tooltip);
+    }
+
+    formRow.appendChild(label);
+    formRow.appendChild(input);
+    container.appendChild(formRow);
 }
 
 // 카테고리 변경 이벤트 처리
@@ -1082,13 +1096,24 @@ document.querySelectorAll('.toggle-btn').forEach(btn => {
         fetch(`get_category_variables.php?ct_idx=${categoryId}`)
             .then(response => response.json())
             .then(newVariables => {
-                // 전역 변수 업데이트
-                variables.length = 0;
-                variables.push(...newVariables);
+                // 응답이 배열인지 확인
+                if (Array.isArray(newVariables)) {
+                    // 전역 변수 업데이트
+                    variables.length = 0;
+                    newVariables.forEach(variable => variables.push(variable));
+                } else {
+                    // 배열이 아닌 경우 빈 배열로 설정
+                    console.warn('변수 데이터가 배열 형식이 아닙니다:', newVariables);
+                    variables.length = 0;
+                }
                 // 변수 필드 업데이트
                 createVariableFields(categoryId);
             })
-            .catch(error => console.error('변수 로딩 중 오류:', error));
+            .catch(error => {
+                console.error('변수 로딩 중 오류:', error);
+                // 오류 발생 시 사용자에게 알림
+                alert('변수 로딩 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+            });
     });
 });
 
