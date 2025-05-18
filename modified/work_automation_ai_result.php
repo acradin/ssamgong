@@ -967,56 +967,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 전체화면 기능 추가
-    const chatHistory = document.querySelector('.chat-history');
-    const fullscreenBtn = document.querySelector('.btn-light.btn-sm');
-
-    if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', function() {
-            if (!document.fullscreenElement) {
-                // 전체화면으로 전환
-                if (chatHistory.requestFullscreen) {
-                    chatHistory.requestFullscreen();
-                } else if (chatHistory.webkitRequestFullscreen) {
-                    chatHistory.webkitRequestFullscreen();
-                } else if (chatHistory.msRequestFullscreen) {
-                    chatHistory.msRequestFullscreen();
-                }
-                chatHistory.classList.add('fullscreen');
-                fullscreenBtn.classList.add('active');
-            } else {
-                // 전체화면 종료
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-                chatHistory.classList.remove('fullscreen');
-                fullscreenBtn.classList.remove('active');
-            }
-        });
-    }
-
-    // 전체화면 변경 이벤트 감지
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    function handleFullscreenChange() {
-        if (!document.fullscreenElement && 
-            !document.webkitFullscreenElement && 
-            !document.mozFullScreenElement && 
-            !document.msFullscreenElement) {
-            chatHistory.classList.remove('fullscreen');
-            if (fullscreenBtn) {
-                fullscreenBtn.classList.remove('active');
-            }
-        }
-    }
-
     // 햄버거 메뉴 관련 코드
     const menuBtn = document.getElementById('menuToggleBtn');
     const menu = document.getElementById('secondaryMenu');
@@ -1206,21 +1156,14 @@ function getRequiredPointByCategoryId(categoryId) {
 
 // 전체화면 모달 관련 함수
 function openFullscreenChat() {
-    const originalChat = document.querySelector('.chat-history');
+    const originalChat = document.querySelector('.chat-history .chat-messages');
     const fullscreenChat = document.querySelector('.chat-history-fullscreen');
     
     // 현재 채팅 내용을 전체화면 모달로 복사
     fullscreenChat.innerHTML = originalChat.innerHTML;
     
-    // 전체화면 버튼 제거 (모달에서는 필요 없음)
-    const fullscreenBtn = fullscreenChat.querySelector('button');
-    if (fullscreenBtn) {
-        fullscreenBtn.remove();
-    }
-    
     // 모달 표시
-    const modal = new bootstrap.Modal(document.getElementById('fullscreenChatModal'));
-    modal.show();
+    $('#fullscreenChatModal').modal('show');
     
     // 스크롤 최하단으로
     fullscreenChat.scrollTop = fullscreenChat.scrollHeight;
