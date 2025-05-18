@@ -146,46 +146,46 @@ foreach ($chatSessions as $session) {
                     <section class="chatbot-section">
                         <div class="chatbot-title"><?= htmlspecialchars($category['ct_name']) ?></div>
                         <span class="section-title-highlight"></span>
-
-                        <!-- 하위 카테고리 탭 -->
-                        <?php if (count($subCategories) > 1): ?>
+    
+    <!-- 하위 카테고리 탭 -->
+    <?php if (count($subCategories) > 1): ?>
                             <div class="toggle-group">
-                                <?php foreach ($subCategories as $subCategory): ?>
+            <?php foreach ($subCategories as $subCategory): ?>
                                     <button type="button" 
                                             class="toggle-btn <?= ($subCategory['ct_idx'] === $defaultSubCategory['ct_idx']) ? 'active' : '' ?>"
-                                            data-category-id="<?= $subCategory['ct_idx'] ?>">
-                                        <?= htmlspecialchars($subCategory['ct_name']) ?>
+                    data-category-id="<?= $subCategory['ct_idx'] ?>">
+                    <?= htmlspecialchars($subCategory['ct_name']) ?>
                                     </button>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    
                         <form id="variable-form" class="chatbot-form" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="ct_idx" value="<?= $defaultSubCategory['ct_idx'] ?>">
+        <input type="hidden" name="ct_idx" value="<?= $defaultSubCategory['ct_idx'] ?>">
                             <div id="variables-container">
                                 <!-- 변수 필드들이 JavaScript로 여기에 추가됨 -->
                             </div>
-
+        
                             <!-- 사용량 정보 -->
-                            <div class="usage-info">
+        <div class="usage-info">
                                 <span class="usage-count"><?= $remaining_free ?> 회</span>
                                 <div>
                                     <span class="usage-text">이번 달 무료 사용 가능 횟수</span>
-                                    <?php if ($remaining_free > 0): ?>
+                <?php if ($remaining_free > 0): ?>
                                         <span class="usage-text"><?= $remaining_free ?>회 남았습니다.</span>
-                                    <?php else: ?>
+                <?php else: ?>
                                         <span class="usage-warning">무료 사용 횟수를 모두 사용했습니다.</span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
+                <?php endif; ?>
+            </div>
+        </div>
+        
                             <div class="modal-buttons">
                                 <button type="submit" class="submit-button">생성하기</button>
-                                <?php if (!empty($formattedSessions)): ?>
+            <?php if (!empty($formattedSessions)): ?>
                                     <button type="button" class="cancel-button" onclick="showHistory()">이전 대화 내역</button>
-                                <?php endif; ?>
-                            </div>
-                        </form>
+            <?php endif; ?>
+        </div>
+    </form>
                     </section>
 
                     <!-- 향상된 챗봇 사용방법 섹션 -->
@@ -198,8 +198,8 @@ foreach ($chatSessions as $session) {
                                 <div class="step-title">정보 입력</div>
                                 <div class="step-description">
                                     입력 폼에 필요한 정보를 상세히 작성하세요.
-                                </div>
-                            </div>
+            </div>
+        </div>
                             <div class="guide-step">
                                 <div class="step-number">2</div>
                                 <div class="step-icon"><i class="fas fa-magic"></i></div>
@@ -222,7 +222,7 @@ foreach ($chatSessions as $session) {
             </div>
         </div>
     </div>
-</div>
+    </div>
 
 <!-- 이전 대화 모달 -->
 <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -233,7 +233,7 @@ foreach ($chatSessions as $session) {
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
-            </div>
+                </div>
             <div class="modal-body">
                 <?php foreach ($formattedSessions as $sessionId => $session): ?>
                     <div class="chat-session-item">
@@ -257,7 +257,7 @@ foreach ($chatSessions as $session) {
 <!-- 파일 드롭 오버레이 -->
 <div id="drop-overlay" style="display:none;">
     <div class="drop-message">파일을 내려놓으세요</div>
-</div>
+                </div>
 
 <!-- 스타일 및 스크립트 -->
 <style>
@@ -271,8 +271,8 @@ foreach ($chatSessions as $session) {
     
     /* 폼 요소 */
     .chatbot-form { display: flex; flex-direction: column; }
-    .form-row { display: flex; border: 1.5px solid #00a0a0; border-radius: 10px; overflow: hidden; margin-bottom: 18px; background: #fff; align-items: center; box-shadow: 0 1px 3px rgba(0,150,150,0.05); }
-    .form-label { background: linear-gradient(135deg, #00a0a0, #00b8b8); color: white; width: 150px; padding: 14px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; flex-shrink: 0; transition: background 0.2s, color 0.2s; }
+    .form-row { display: flex; align-items: center; border: 1.5px solid #00a0a0; border-radius: 10px; overflow: hidden; margin-bottom: 18px; background: #fff; min-height: 42px; }
+    .form-label { background: linear-gradient(135deg, #00a0a0, #00b8b8); color: white; width: 150px; padding: 14px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; flex-shrink: 0; }
     .form-input { flex: 1; padding: 12px; border: none; outline: none; font-size: 16px; background: #fff; color: #333; }
     .form-row.optional { border: 1.5px solid #e6c74c; background: linear-gradient(to right, #fffdf0, #fffef7); border-width: 1.5px; box-shadow: 0 2px 8px rgba(230, 199, 76, 0.08); }
     .form-row.optional .form-label { background: linear-gradient(135deg, #e6c74c, #f0d774); color: #5a4e00; font-weight: 700; }
@@ -471,7 +471,7 @@ foreach ($chatSessions as $session) {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        z-index: 101;
+        z-index: 98;
         box-shadow: 0 3px 10px rgba(0, 160, 160, 0.2);
         border: none;
     }
@@ -542,8 +542,8 @@ foreach ($chatSessions as $session) {
         background: white;
         padding: 20px;
         color: #333;
-        display: flex;
-        justify-content: center;
+    display: flex;
+    justify-content: center;
         align-items: center;
         position: relative;
         border-bottom: 1px solid #eee;
@@ -552,7 +552,7 @@ foreach ($chatSessions as $session) {
     .chat-title {
         font-size: 24px;
         font-weight: 700;
-        text-align: center;
+    text-align: center;
     }
     
     .chat-history-content {
@@ -568,7 +568,7 @@ foreach ($chatSessions as $session) {
     }
     
     .message-header {
-        display: flex;
+    display: flex;
         align-items: center;
         margin-bottom: 5px;
     }
@@ -631,7 +631,7 @@ foreach ($chatSessions as $session) {
     
     /* 햄버거 메뉴 스타일 */
     .chat-menu {
-        position: absolute;
+    position: absolute;
         top: 70px;
         right: 20px;
         background: white;
@@ -646,7 +646,7 @@ foreach ($chatSessions as $session) {
         max-height: 0;
         width: 180px;
         overflow: hidden;
-        opacity: 0;
+    opacity: 0;
         pointer-events: none;
     }
     
@@ -658,8 +658,8 @@ foreach ($chatSessions as $session) {
     }
     
     .chat-menu-item {
-        display: flex;
-        align-items: center;
+    display: flex;
+    align-items: center;
         gap: 8px;
         color: #333;
         text-decoration: none;
@@ -667,7 +667,7 @@ foreach ($chatSessions as $session) {
         border-radius: 8px;
         transition: all 0.2s;
         font-weight: 500;
-        font-size: 14px;
+    font-size: 14px;
         cursor: pointer;
     }
     
@@ -702,8 +702,8 @@ foreach ($chatSessions as $session) {
 
     .toggle-btn {
         padding: 12px 24px;
-        border: none;
-        background: none;
+    border: none;
+    background: none;
         border-radius: 10px;
         font-size: 16px;
         font-weight: 600;
@@ -735,82 +735,82 @@ foreach ($chatSessions as $session) {
     }
 
     .modal-title {
-        font-size: 1.8rem;
+    font-size: 1.8rem;
         font-weight: 600;
         color: #333;
-    }
+}
 
-    /* 채팅 세션 아이템 스타일 */
-    .chat-session-item {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
+/* 채팅 세션 아이템 스타일 */
+.chat-session-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
 
-    .session-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-    }
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
 
-    .session-date {
-        color: #666;
-        font-size: 0.9em;
-    }
+.session-date {
+    color: #666;
+    font-size: 0.9em;
+}
 
-    .session-status {
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.8em;
-    }
+.session-status {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+}
 
-    .session-status.active {
-        background-color: #e3f2fd;
-        color: #1976d2;
-    }
+.session-status.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
 
-    .session-status.completed {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-    }
+.session-status.completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
 
-    .session-status.error {
-        background-color: #ffebee;
-        color: #c62828;
-    }
+.session-status.error {
+    background-color: #ffebee;
+    color: #c62828;
+}
 
     .session-title {
-        margin: 10px 0;
-    }
+    margin: 10px 0;
+}
 
     .session-title h4 {
         font-size: 1.6rem;
-        font-weight: 500;
+    font-weight: 500;
         color: #333;
         margin: 0;
-    }
+}
 
-    .session-actions {
-        text-align: right;
-        margin-top: 10px;
-    }
+.session-actions {
+    text-align: right;
+    margin-top: 10px;
+}
 
-    .btn-view {
-        padding: 5px 15px;
-        border: 1px solid #1ba7b4;
-        border-radius: 4px;
-        background: none;
-        color: #1ba7b4;
-        font-size: 0.9em;
+.btn-view {
+    padding: 5px 15px;
+    border: 1px solid #1ba7b4;
+    border-radius: 4px;
+    background: none;
+    color: #1ba7b4;
+    font-size: 0.9em;
         cursor: pointer;
         transition: all 0.2s;
-    }
+}
 
-    .btn-view:hover {
-        background-color: #1ba7b4;
-        color: #fff;
-    }
+.btn-view:hover {
+    background-color: #1ba7b4;
+    color: #fff;
+}
 
     /* 모달 닫기 버튼 스타일 */
     .modal .close {
@@ -852,11 +852,13 @@ foreach ($chatSessions as $session) {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 160, 160, 0.8);
+        background: rgba(0, 160, 160, 0.6);
         display: none;
         justify-content: center;
         align-items: center;
         z-index: 9999;
+        pointer-events: none;
+        transition: all 0.3s ease;
     }
 
     .drop-message {
@@ -864,10 +866,11 @@ foreach ($chatSessions as $session) {
         font-size: 24px;
         font-weight: bold;
         text-align: center;
-        padding: 20px;
+        padding: 30px;
         background: rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
+        border-radius: 15px;
         backdrop-filter: blur(5px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     /* 선택된 카테고리 스타일 */
@@ -893,6 +896,74 @@ foreach ($chatSessions as $session) {
         background-color: rgba(0, 160, 160, 0.1);
         margin: 10px 15px;
     }
+
+    /* 모바일 화면 스타일 */
+    @media (max-width: 768px) {
+        .form-label { background: linear-gradient(135deg, #00a0a0, #00b8b8); color: white; width: 100px; padding: 14px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; flex-shrink: 0; transition: background 0.2s, color 0.2s; }
+        .form-input { flex: 1; padding: 12px; border: none; outline: none; font-size: 12px; background: #fff; color: #333; }
+        .usage-count { font-size: 20px; font-weight: 800; color: #00a0a0; margin-right: 6px; }
+        .submit-button, .cancel-button { padding: 20px 20px; border-radius: 25px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-size: 16px; }
+        .toggle-btn {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+    color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+    }
+
+    /* 파일 입력 필드 커스텀 스타일 */
+    .file-input-wrapper {
+        position: relative;
+        flex: 1;
+        min-height: 42px;
+    }
+
+    .custom-file-button {
+        width: 100%;
+        padding: 12px;
+        background: #fff;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        position: relative;
+        text-align: left;
+        font-family: inherit;
+        opacity: 1;
+    }
+
+    .file-placeholder {
+        color: #333;
+        font-size: 16px;
+        margin-right: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+    }
+
+    .upload-icon {
+        color: #00a0a0;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+        .file-placeholder {
+            font-size: 12px;
+        }
+        
+        .upload-icon {
+            font-size: 14px;
+        }
+    }
 </style>
 
 <!-- 기존 JavaScript 코드 유지 -->
@@ -902,10 +973,19 @@ foreach ($chatSessions as $session) {
     const menu = document.getElementById('secondaryMenu');
     let isOpen = false;
 
-    menuBtn.addEventListener('click', function() {
+    // 햄버거 메뉴 클릭 이벤트
+    menuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();  // 이벤트 전파 중단
         isOpen = !isOpen;
         menu.classList.toggle('open', isOpen);
         menuBtn.innerHTML = isOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+    });
+
+    // 아이콘에 대한 이벤트도 처리
+    menuBtn.querySelector('i')?.addEventListener('click', function(e) {
+        e.stopPropagation();  // 이벤트 전파 중단
+        const clickEvent = new Event('click');
+        menuBtn.dispatchEvent(clickEvent);
     });
 
     // 메뉴 외부 클릭 시 닫기
@@ -1054,26 +1134,59 @@ function createVariableField(variable, container) {
             break;
 
         case 'file':
-            input = document.createElement('input');
-            input.type = 'file';
-            input.className = 'form-input';
-            input.name = `var_${variable.cv_idx}`;
-            input.accept = '.txt,.doc,.docx,.pdf';
+            const fileWrapper = document.createElement('div');
+            fileWrapper.className = 'file-input-wrapper';
+            
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.className = 'form-input file-input';
+            fileInput.name = `var_${variable.cv_idx}`;
+            fileInput.accept = '.txt,.doc,.docx,.pdf';
+            fileInput.setAttribute('multiple', '');
+            fileInput.id = `file_${variable.cv_idx}`;
+            fileInput.style.display = 'none';
+            
+            const customFileInput = document.createElement('div');
+            customFileInput.className = 'custom-file-button';
+            
+            const placeholderSpan = document.createElement('span');
+            placeholderSpan.className = 'file-placeholder';
+            placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+            
+            const uploadIcon = document.createElement('i');
+            uploadIcon.className = 'fas fa-upload upload-icon';
+            
+            customFileInput.appendChild(placeholderSpan);
+            customFileInput.appendChild(uploadIcon);
+            fileWrapper.appendChild(fileInput);
+            fileWrapper.appendChild(customFileInput);
+            
+            customFileInput.onclick = function(e) {
+                e.preventDefault();
+                fileInput.click();
+            };
+            
+            fileInput.onchange = function() {
+                const selectedFiles = Array.from(this.files);
+                const placeholder = fileWrapper.querySelector('.file-placeholder');
+                if (selectedFiles.length > 0) {
+                    if (selectedFiles.length === 1) {
+                        placeholder.textContent = selectedFiles[0].name;
+                    } else {
+                        placeholder.textContent = `${selectedFiles.length}개의 파일 선택됨`;
+                    }
+                } else {
+                    placeholder.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+                }
+            };
+            
+            input = fileWrapper;
             break;
     }
 
     // 필수 필드 표시
     if (variable.cv_required === 'Y') {
         input.required = true;
-    }
-
-    // 설명 툴팁 추가
-    if (variable.cv_description) {
-        const tooltip = document.createElement('div');
-        tooltip.className = 'input-tooltip';
-        tooltip.innerHTML = `<i class="fas fa-info-circle"></i>`;
-        tooltip.title = variable.cv_description;
-        formRow.appendChild(tooltip);
     }
 
     formRow.appendChild(label);
@@ -1126,9 +1239,9 @@ if (variables.length > 0) {
 const dropOverlay = document.getElementById('drop-overlay');
 const form = document.getElementById('variable-form');
 
+// 드래그 이벤트 처리
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    form.addEventListener(eventName, preventDefaults, false);
-    document.body.addEventListener(eventName, preventDefaults, false);
+    document.addEventListener(eventName, preventDefaults, false);
 });
 
 function preventDefaults(e) {
@@ -1136,38 +1249,92 @@ function preventDefaults(e) {
     e.stopPropagation();
 }
 
-['dragenter', 'dragover'].forEach(eventName => {
-    form.addEventListener(eventName, () => {
+// 드래그 오버레이 표시/숨김 처리
+let dragCounter = 0;
+
+document.addEventListener('dragenter', function(e) {
+    dragCounter++;
+    if (dragCounter === 1) {
         dropOverlay.style.display = 'flex';
-    }, false);
-});
+    }
+}, false);
 
-['dragleave', 'drop'].forEach(eventName => {
-    form.addEventListener(eventName, () => {
+document.addEventListener('dragleave', function(e) {
+    dragCounter--;
+    if (dragCounter === 0) {
         dropOverlay.style.display = 'none';
-    }, false);
-});
+    }
+}, false);
 
-form.addEventListener('drop', handleDrop, false);
-
-function handleDrop(e) {
+document.addEventListener('drop', function(e) {
+    dragCounter = 0;
+    dropOverlay.style.display = 'none';
+    
     const dt = e.dataTransfer;
     const files = dt.files;
-
-    // 파일 입력 필드 찾기
-    const fileInputs = form.querySelectorAll('input[type="file"]');
-    fileInputs.forEach(input => {
-        if (files.length > 0) {
-            input.files = files;
-            // 파일 선택 이벤트 발생
+    
+    if (files.length > 0) {
+        // 현재 활성화된 파일 입력 필드 찾기
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+            // 파일 입력에 파일 할당
+            const dataTransfer = new DataTransfer();
+            Array.from(files).forEach(file => {
+                // 파일 확장자 검사
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                if (['.txt', '.doc', '.docx', '.pdf'].includes('.' + fileExt)) {
+                    dataTransfer.items.add(file);
+                }
+            });
+            fileInput.files = dataTransfer.files;
+            
+            // change 이벤트 발생시키기
             const event = new Event('change', { bubbles: true });
-            input.dispatchEvent(event);
+            fileInput.dispatchEvent(event);
         }
-    });
-}
+    }
+}, false);
+
+// CSS 수정
+const style = document.createElement('style');
+style.textContent = `
+    #drop-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 160, 160, 0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+
+    .drop-message {
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        flex: 1;
+        min-height: 42px;
+    }
+`;
+document.head.appendChild(style);
 
 // 폼 제출 처리
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('variable-form');
     form.addEventListener('submit', function(e) {
         e.preventDefault();

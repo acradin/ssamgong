@@ -74,7 +74,7 @@ try {
             $nextOrder = ($maxOrder['max_order'] ?? 0) + 1;
 
             // 새 챗봇 추가
-            $DB->rawQuery("INSERT INTO category_t (ct_name, ct_order, ct_status) VALUES (?, ?, ?, 'Y')", 
+            $DB->rawQuery("INSERT INTO category_t (ct_name, ct_order, ct_status) VALUES (?, ?, 'Y')", 
                 [$botName, $nextOrder]);
             $parentId = $DB->getInsertId();
         }

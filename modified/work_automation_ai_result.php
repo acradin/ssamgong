@@ -85,79 +85,213 @@ foreach ($chatSessions as $session) {
 }
 
 ?>
-    <div class="wrap">
-        <div class="sub_pg">
-            <div class="container">
-                <div class="mobile_top_itembtn">
-                    <ul>
-                        <li class=""><a href="https://www.ssemgong.blog/8134c529-cab1-433f-85ad-a5d22ea63609" target="_blank">소개</a></li>
-                        <li class=""><a href="./item_classroom">담임</a></li>
-                        <li class="on"><a href="./item_work">업무</a></li>
-                        <li class="subject">
-                            <a><p class="fw_600">교과</p></a>
-                            <div class="subject-box">
-                                <a href="./item_middle"><p>중등</p></a>
-                                <a href="./item_high"><p>고등</p></a>
-                            </div>
-                        </li>
-                        <li class=""><a href="./item_e_book">전자책</a></li>
-                        <li class=""><a href="./community_communication">커뮤니티</a></li>
-                    </ul>
-                </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-                <div id="ai-create-container" class="result-box">
+<!-- 스타일 시트를 head 섹션에 추가 -->
+<style type="text/css">
+/* 햄버거 메뉴 버튼 스타일 */
+#menuToggleBtn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background-color: #00a0a0;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 98;
+    box-shadow: 0 3px 10px rgba(0, 160, 160, 0.2);
+    border: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+}
+
+#menuToggleBtn:hover {
+    background-color: #008a8a;
+}
+
+#menuToggleBtn i {
+    font-size: 18px;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+}
+
+/* 보조 메뉴 스타일 */
+#secondaryMenu {
+    position: absolute;
+    top: 65px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(5px);
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 160, 160, 0.15);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    border: 1px solid rgba(0, 160, 160, 0.1);
+}
+
+#secondaryMenu.open {
+    max-height: 400px;
+    padding: 15px;
+    opacity: 1;
+    pointer-events: all;
+}
+
+#secondaryMenu a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: all 0.2s;
+    font-weight: 500;
+    font-size: 14px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+#secondaryMenu a:hover {
+    background-color: #e0f7fa;
+    color: #00a0a0;
+}
+
+#secondaryMenu a.active {
+    background-color: #e0f7fa;
+    color: #00a0a0;
+    font-weight: 600;
+}
+</style>
+
+<div class="wrap">
+    <div class="sub_pg">
+        <div class="container">
+            <div class="mobile_top_itembtn">
+                <ul>
+                    <li class=""><a href="https://www.ssemgong.blog/8134c529-cab1-433f-85ad-a5d22ea63609" target="_blank">소개</a></li>
+                    <li class=""><a href="./item_classroom">담임</a></li>
+                    <li class="on"><a href="./item_work">업무</a></li>
+                    <li class="subject">
+                        <a><p class="fw_600">교과</p></a>
+                        <div class="subject-box">
+                            <a href="./item_middle"><p>중등</p></a>
+                            <a href="./item_high"><p>고등</p></a>
+                        </div>
+                    </li>
+                    <li class=""><a href="./item_e_book">전자책</a></li>
+                    <li class=""><a href="./community_communication">커뮤니티</a></li>
+                </ul>
+            </div>
+
+            <div id="ai-create-container" class="result-box">
+                <div style="position: relative;">
                     <h3 class="fs_40 fw_700 mt_20"><?= htmlspecialchars($chatbot['parent_name']) ?> - <?= htmlspecialchars($chatbot['ct_name']) ?></h3>
                     
-                    <div class="history-result-box">
-                        <div class="history-box">
-                            <span class="fs_16 fw_700 title-text">대화 내역</span>
-                            <div class="box-border chat-history">
-                                <button type="button" class="btn btn-light btn-sm position-absolute" 
-                                        style="top: 10px; right: 10px;" 
-                                        onclick="openFullscreenChat()">
-                                    <i class="bi bi-arrows-fullscreen"></i>
-                                </button>
-                                <div class="chat-messages">
-                                    <!-- 대화 내역이 여기에 동적으로 추가됨 -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="add-request-box">
-                        <span class="fs_16 fw_700 title-text">추가 요청</span>
-                        <div class="box-border input-box" style="border: 3px solid black;">
-                            <input id="additional-request" placeholder="추가 요청사항을 입력해주세요" />
-                        </div>
-                    </div>
+                    <!-- 햄버거 메뉴 버튼 -->
+                    <button class="menu-toggle-btn" id="menuToggleBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     
-                    <!-- 남은 무료 사용 횟수 표시 -->
-                    <div class="action-row">
-                        <div class="usage-info">
-                            <div class="usage-count">
-                                <span class="count"><?= $remaining_free ?></span>
-                                <span class="label">회</span>
-                            </div>
-                            <div class="usage-text">
-                                <p>이번 달 무료 사용 가능 횟수</p>
-                                <?php if ($remaining_free > 0): ?>
-                                    <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
-                                <?php else: ?>
-                                    <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+                    <!-- 보조 메뉴 -->
+                    <div class="secondary-menu" id="secondaryMenu">
+                        <?php
+                        // 활성화된 챗봇 목록 조회 (수정된 쿼리)
+                        $chatbots = $DB->rawQuery("
+                            SELECT 
+                                c.ct_idx,
+                                c.ct_name,
+                                cd.cd_description
+                            FROM category_t c
+                            LEFT JOIN chatbot_description_t cd ON c.ct_idx = cd.ct_idx
+                            WHERE c.parent_idx IS NULL 
+                            AND c.ct_status = 'Y'
+                            ORDER BY c.ct_order ASC"
+                        );
 
-                        <div class="action-row-btn">
-                            <button type="button" class="btn-create result-page fw_500" onclick="sendAdditionalRequest()">생성하기</button>
-                            <button type="button" class="btn-prev result-page fw_500" onclick="location.href='./work_automation_ai'">AI 챗봇 목록</button>
-                            <button type="button" class="btn-prev result-page fw_500" onclick="showHistory()">이전 대화 내역</button>
+                        // 현재 선택된 챗봇의 ct_idx
+                        $current_ct_idx = isset($_GET['ct_idx']) ? $_GET['ct_idx'] : null;
+
+                        foreach ($chatbots as $chatbot_item) {
+                            $isActive = ($current_ct_idx == $chatbot_item['ct_idx']) ? 'active' : '';
+                        ?>
+                            <a href="work_automation_ai_variable_form.php?ct_idx=<?= $chatbot_item['ct_idx'] ?>" 
+                               class="secondary-menu-item <?= $isActive ?>">
+                                <span><?= htmlspecialchars($chatbot_item['ct_name']) ?></span>
+                            </a>
+                        <?php } ?>
+                        
+                        <!-- 고정 메뉴 항목들 -->
+                        <a href="work_automation_ai.php" class="secondary-menu-item">
+                            <span>메인으로</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="history-result-box">
+                    <div class="history-box">
+                        <span class="fs_16 fw_700 title-text">대화 내역</span>
+                        <div class="box-border chat-history">
+                            <button type="button" class="btn btn-light btn-sm position-absolute" 
+                                    style="top: 10px; right: 10px;" 
+                                    onclick="openFullscreenChat()">
+                                <i class="bi bi-arrows-fullscreen"></i>
+                            </button>
+                            <div class="chat-messages">
+                                <!-- 대화 내역이 여기에 동적으로 추가됨 -->
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="add-request-box">
+                    <span class="fs_16 fw_700 title-text">추가 요청</span>
+                    <div class="box-border input-box" style="border: 3px solid black;">
+                        <input id="additional-request" placeholder="추가 요청사항을 입력해주세요" />
+                    </div>
+                </div>
+                
+                <!-- 남은 무료 사용 횟수 표시 -->
+                <div class="action-row">
+                    <div class="usage-info">
+                        <div class="usage-count">
+                            <span class="count"><?= $remaining_free ?></span>
+                            <span class="label">회</span>
+                        </div>
+                        <div class="usage-text">
+                            <p>이번 달 무료 사용 가능 횟수</p>
+                            <?php if ($remaining_free > 0): ?>
+                                <p class="remaining"><?= $remaining_free ?>회 남았습니다.</p>
+                            <?php else: ?>
+                                <p class="no-remaining">무료 사용 횟수를 모두 사용했습니다.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="action-row-btn">
+                        <button type="button" class="btn-create result-page fw_500" onclick="sendAdditionalRequest()">생성하기</button>
+                        <button type="button" class="btn-prev result-page fw_500" onclick="location.href='./work_automation_ai'">AI 챗봇 목록</button>
+                        <button type="button" class="btn-prev result-page fw_500" onclick="showHistory()">이전 대화 내역</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
@@ -277,6 +411,7 @@ foreach ($chatSessions as $session) {
 
 /* 생성하기 버튼 스타일 */
 .btn-create.result-page {
+    margin-bottom: 5px;
     width: 120px;
     padding: 1rem;
     font-size: 1.6rem;
@@ -294,6 +429,7 @@ foreach ($chatSessions as $session) {
 
 /* 목록 버튼 스타일 */
 .btn-prev.result-page {
+    margin-bottom: 5px;
     width: 120px;
     padding: 1rem;
     font-size: 1.6rem;
@@ -796,6 +932,12 @@ foreach ($chatSessions as $session) {
     }
 }
 
+@media (max-width: 768px) {
+    .fs_40 {
+        font-size: 3rem;
+    }
+}
+
 </style>
 
 <script>
@@ -817,7 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) {
         fileInput.addEventListener('change', function(e) {
-            const maxSize = 5 * 1024 * 1024; // 10MB
+            const maxSize = 5 * 1024 * 1024; // 5MB
             if (e.target.files[0] && e.target.files[0].size > maxSize) {
                 alert('파일 크기는 5MB를 초과할 수 없습니다.');
                 e.target.value = ''; // 파일 선택 해제
@@ -827,33 +969,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 전체화면 기능 추가
     const chatHistory = document.querySelector('.chat-history');
-    const fullscreenBtn = document.querySelector('.fullscreen-button');
+    const fullscreenBtn = document.querySelector('.btn-light.btn-sm');
 
-    fullscreenBtn.addEventListener('click', function() {
-        if (!document.fullscreenElement) {
-            // 전체화면으로 전환
-            if (chatHistory.requestFullscreen) {
-                chatHistory.requestFullscreen();
-            } else if (chatHistory.webkitRequestFullscreen) {
-                chatHistory.webkitRequestFullscreen();
-            } else if (chatHistory.msRequestFullscreen) {
-                chatHistory.msRequestFullscreen();
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                // 전체화면으로 전환
+                if (chatHistory.requestFullscreen) {
+                    chatHistory.requestFullscreen();
+                } else if (chatHistory.webkitRequestFullscreen) {
+                    chatHistory.webkitRequestFullscreen();
+                } else if (chatHistory.msRequestFullscreen) {
+                    chatHistory.msRequestFullscreen();
+                }
+                chatHistory.classList.add('fullscreen');
+                fullscreenBtn.classList.add('active');
+            } else {
+                // 전체화면 종료
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                chatHistory.classList.remove('fullscreen');
+                fullscreenBtn.classList.remove('active');
             }
-            chatHistory.classList.add('fullscreen');
-            fullscreenBtn.classList.add('active');
-        } else {
-            // 전체화면 종료
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-            chatHistory.classList.remove('fullscreen');
-            fullscreenBtn.classList.remove('active');
-        }
-    });
+        });
+    }
 
     // 전체화면 변경 이벤트 감지
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -867,20 +1011,36 @@ document.addEventListener('DOMContentLoaded', function() {
             !document.mozFullScreenElement && 
             !document.msFullscreenElement) {
             chatHistory.classList.remove('fullscreen');
-            fullscreenBtn.classList.remove('active');
+            if (fullscreenBtn) {
+                fullscreenBtn.classList.remove('active');
+            }
         }
     }
 
-    const specificButtons = document.querySelectorAll('.specific-button-class'); // 특정 클래스를 가진 버튼만 선택
+    // 햄버거 메뉴 관련 코드
+    const menuBtn = document.getElementById('menuToggleBtn');
+    const menu = document.getElementById('secondaryMenu');
     
-    specificButtons.forEach(button => {
-        if (button && button.nextElementSibling) { // 둘 다 존재하는지 확인
-            button.addEventListener('click', function() {
-                const nextElement = this.nextElementSibling;
-                // 여기서 nextElement를 사용하는 코드
-            });
-        }
-    });
+    if (menuBtn && menu) {
+        let isOpen = false;
+
+        // 햄버거 메뉴 클릭 이벤트
+        menuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();  // 이벤트 전파 중단
+            isOpen = !isOpen;
+            menu.classList.toggle('open', isOpen);
+            menuBtn.innerHTML = isOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+        });
+
+        // 메뉴 외부 클릭 시 닫기
+        document.addEventListener('click', function(e) {
+            if (!menu.contains(e.target) && !menuBtn.contains(e.target) && isOpen) {
+                isOpen = false;
+                menu.classList.remove('open');
+                menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            }
+        });
+    }
 });
 
 function loadChatHistory() {

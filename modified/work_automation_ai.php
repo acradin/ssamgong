@@ -404,7 +404,7 @@ if(!$_SESSION['_mt_idx']){
 
                     <li class=""><a href="./item_classroom">담임</a></li>
 
-                    <li class="on"><a href="./item_work">업무</a></li>
+                    <li class=""><a href="./item_work">업무</a></li>
 
                     <li class="subject">
 
@@ -423,6 +423,8 @@ if(!$_SESSION['_mt_idx']){
                     <li class=""><a href="./item_e_book">전자책</a></li>
 
                     <li class=""><a href="./community_communication">커뮤니티</a></li>
+
+                    <li class="on"><a href="./work_automation_ai">업무 자동화</a></li>
 
                 </ul>
 
