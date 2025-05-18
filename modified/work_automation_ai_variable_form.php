@@ -1421,11 +1421,6 @@ document.head.appendChild(style);
         const ALLOWED_TYPES = ['.pdf'];
 
         for (const input of fileInputs) {
-            // 파일이 선택되지 않았는지 확인
-            if (input.files.length === 0) {
-                alert('파일을 첨부해주세요.');
-                return;
-            }
 
             // 파일 크기 체크
             const total = Array.from(input.files)

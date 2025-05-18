@@ -40,14 +40,8 @@ try {
         $var_key = 'var_' . $var['cv_idx'];
         
         if ($var['cv_required'] === 'Y') {
-            if ($var['cv_type'] === 'file') {
-                $err = $_FILES[$var_key]['error'] ?? UPLOAD_ERR_NO_FILE;
-                $errors = is_array($err) ? $err : [ $err ];
-                // 배열 중 하나라도 UPLOAD_ERR_OK가 없다면 예외
-                if (!in_array(UPLOAD_ERR_OK, $errors, true)) {
-                    throw new Exception("{$var['cv_name']} 파일을 첨부해주세요.");
-                }
-            } else {
+            // 파일 타입이 아닌 경우만 필수 검증
+            if ($var['cv_type'] !== 'file') {
                 if (!isset($_POST[$var_key]) || trim($_POST[$var_key]) === '') {
                     throw new Exception("{$var['cv_name']}을(를) 입력해주세요.");
                 }
@@ -146,25 +140,33 @@ try {
             /* 2-A. 파일 타입 ------------------------------------------------ */
             if ($var['cv_type'] === 'file' && isset($_FILES[$var_key])) {
                 $files = $_FILES[$var_key];
-
+            
                 if (is_array($files['name'])) {
                     // 다중 파일인 경우
-                    $filesArr = $_FILES[$var_key];
-
-                    foreach ($filesArr['name'] as $idx => $name) {
-                        if ($filesArr['error'][$idx] !== UPLOAD_ERR_OK) continue;
-
-                        // 같은 키 'files'로 계속 추가
-                        $api_data[$api_key . "[$idx]"] = new CURLFile(
-                            $filesArr['tmp_name'][$idx],
-                            $filesArr['type'][$idx],
+                    foreach ($files['name'] as $idx => $name) {
+                        if ($files['error'][$idx] !== UPLOAD_ERR_OK) continue;
+            
+                        // 파일 정보 로깅 추가
+                        error_log("Processing file: " . $name);
+                        error_log("File type: " . $files['type'][$idx]);
+                        error_log("Temp name: " . $files['tmp_name'][$idx]);
+            
+                        // API 요청에 파일 추가
+                        $api_data['files[' . $idx . ']'] = new CURLFile(
+                            $files['tmp_name'][$idx],
+                            $files['type'][$idx],
                             $name
                         );
                     }
                 } else {
                     // 단일 파일인 경우
                     if ($files['error'] === UPLOAD_ERR_OK) {
-                        $api_data[$api_key . '[]'] = new CURLFile(
+                        // 파일 정보 로깅 추가
+                        error_log("Processing single file: " . $files['name']);
+                        error_log("File type: " . $files['type']);
+                        error_log("Temp name: " . $files['tmp_name']);
+            
+                        $api_data['files[0]'] = new CURLFile(
                             $files['tmp_name'],
                             $files['type'],
                             $files['name']
