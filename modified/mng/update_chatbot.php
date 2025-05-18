@@ -77,15 +77,21 @@ try {
             );
         }
 
-        // 3. 삭제된 변수 처리 (상태만 변경)
+        // 3. 삭제된 변수 처리 - 실제 삭제로 변경
         if (!empty($deletedVariables)) {
+            // 먼저 삭제될 변수와 관련된 chat_variable_values 삭제
             $placeholders = str_repeat('?,', count($deletedVariables) - 1) . '?';
-            $params = array_merge($deletedVariables, [$categoryId]);
             $DB->rawQuery("
-                UPDATE chatbot_variable_t 
-                SET cv_status = 'N'
-                WHERE cv_idx IN ($placeholders) AND ct_idx = ?",
-                $params
+                DELETE FROM chat_variable_values 
+                WHERE cv_idx IN ($placeholders)",
+                $deletedVariables
+            );
+
+            // 그 다음 변수 자체를 삭제
+            $DB->rawQuery("
+                DELETE FROM chatbot_variable_t 
+                WHERE cv_idx IN ($placeholders)",
+                $deletedVariables
             );
         }
 
