@@ -964,6 +964,47 @@ foreach ($chatSessions as $session) {
             font-size: 14px;
         }
     }
+
+    /* flatpickr 캘린더 스타일 커스터마이징 */
+    .flatpickr-calendar {
+        border-radius: 10px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .flatpickr-day.selected {
+        background: #00a0a0;
+        border-color: #00a0a0;
+    }
+
+    .flatpickr-day.selected:hover {
+        background: #008080;
+        border-color: #008080;
+    }
+
+    .flatpickr-input {
+        cursor: pointer;
+    }
+
+    .clear-icon {
+        color: #ff4444;
+        font-size: 18px;
+        margin-right: 10px;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: none;
+    }
+
+    .clear-icon:hover {
+        color: #cc0000;
+    }
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+        .clear-icon {
+            font-size: 14px;
+            margin-right: 8px;
+        }
+    }
 </style>
 
 <!-- 기존 JavaScript 코드 유지 -->
@@ -1087,7 +1128,7 @@ function createVariableFields(categoryId) {
 // 개별 변수 필드 생성 함수
 function createVariableField(variable, container) {
     const formRow = document.createElement('div');
-    formRow.className = `form-row ${variable.cv_name === '기타 요구사항' ? 'optional' : ''}`;
+    formRow.className = `form-row ${variable.cv_required === 'N' ? 'optional' : ''}`;
 
     // 라벨 생성
     const label = document.createElement('label');
@@ -1128,9 +1169,22 @@ function createVariableField(variable, container) {
 
         case 'date':
             input = document.createElement('input');
-            input.type = 'date';
+            input.type = 'text'; // date에서 text로 변경
             input.className = 'form-input';
             input.name = `var_${variable.cv_idx}`;
+            input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
+            
+            // flatpickr 초기화를 위해 setTimeout 사용
+            setTimeout(() => {
+                flatpickr(input, {
+                    locale: 'ko',
+                    dateFormat: 'Y-m-d',
+                    disableMobile: false,
+                    onChange: function(selectedDates, dateStr, instance) {
+                        // 선택된 날짜 처리 (필요한 경우)
+                    }
+                });
+            }, 0);
             break;
 
         case 'file':
@@ -1156,27 +1210,43 @@ function createVariableField(variable, container) {
             const uploadIcon = document.createElement('i');
             uploadIcon.className = 'fas fa-upload upload-icon';
             
+            // X 아이콘 추가
+            const clearIcon = document.createElement('i');
+            clearIcon.className = 'fas fa-times clear-icon';
+            clearIcon.style.display = 'none'; // 초기에는 숨김
+            
             customFileInput.appendChild(placeholderSpan);
+            customFileInput.appendChild(clearIcon);
             customFileInput.appendChild(uploadIcon);
             fileWrapper.appendChild(fileInput);
             fileWrapper.appendChild(customFileInput);
             
             customFileInput.onclick = function(e) {
-                e.preventDefault();
+                if (e.target === clearIcon) {
+                    e.stopPropagation(); // 이벤트 전파 중단
+                    fileInput.value = ''; // 파일 선택 초기화
+                    placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+                    clearIcon.style.display = 'none';
+                    uploadIcon.style.display = 'block';
+                    return;
+                }
                 fileInput.click();
             };
             
             fileInput.onchange = function() {
                 const selectedFiles = Array.from(this.files);
-                const placeholder = fileWrapper.querySelector('.file-placeholder');
                 if (selectedFiles.length > 0) {
                     if (selectedFiles.length === 1) {
-                        placeholder.textContent = selectedFiles[0].name;
+                        placeholderSpan.textContent = selectedFiles[0].name;
                     } else {
-                        placeholder.textContent = `${selectedFiles.length}개의 파일 선택됨`;
+                        placeholderSpan.textContent = `${selectedFiles.length}개의 파일 선택됨`;
                     }
+                    clearIcon.style.display = 'block';
+                    uploadIcon.style.display = 'none';
                 } else {
-                    placeholder.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+                    placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+                    clearIcon.style.display = 'none';
+                    uploadIcon.style.display = 'block';
                 }
             };
             
