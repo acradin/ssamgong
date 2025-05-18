@@ -1195,7 +1195,8 @@ function createVariableField(variable, container) {
             fileInput.type = 'file';
             fileInput.className = 'form-input file-input';
             fileInput.name = `var_${variable.cv_idx}`;
-            fileInput.accept = '.txt,.doc,.docx,.pdf';
+            // fileInput.accept = '.txt,.doc,.docx,.pdf';
+            fileInput.accept = '.pdf';
             fileInput.setAttribute('multiple', '');
             fileInput.id = `file_${variable.cv_idx}`;
             fileInput.style.display = 'none';
@@ -1352,7 +1353,8 @@ document.addEventListener('drop', function(e) {
             Array.from(files).forEach(file => {
                 // 파일 확장자 검사
                 const fileExt = file.name.split('.').pop().toLowerCase();
-                if (['.txt', '.doc', '.docx', '.pdf'].includes('.' + fileExt)) {
+                // if (['.txt', '.doc', '.docx', '.pdf'].includes('.' + fileExt)) {
+                if (['.pdf'].includes('.' + fileExt)) {
                     dataTransfer.items.add(file);
                 }
             });
@@ -1415,7 +1417,8 @@ document.head.appendChild(style);
         // 파일 크기 체크
         const fileInputs = document.querySelectorAll('input[type="file"]');
         const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-        const ALLOWED_TYPES = ['.txt', '.doc', '.docx', '.pdf'];
+        // const ALLOWED_TYPES = ['.txt', '.doc', '.docx', '.pdf'];
+        const ALLOWED_TYPES = ['.pdf'];
 
         for (const input of fileInputs) {
             // 파일이 선택되지 않았는지 확인
@@ -1440,7 +1443,8 @@ document.head.appendChild(style);
                 ));
             
             if (invalidFiles.length > 0) {
-                alert('허용된 파일 형식만 업로드 가능합니다. (.txt, .doc, .docx, .pdf)');
+                // alert('허용된 파일 형식만 업로드 가능합니다. (.txt, .doc, .docx, .pdf)');
+                alert('허용된 파일 형식만 업로드 가능합니다. (.pdf)');
                 return;
             }
         }
