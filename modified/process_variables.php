@@ -121,8 +121,8 @@ try {
             '출제 종류' => 'problem_type',
             '문제 수' => 'num_problems',
             '난이도' => 'difficulty',
-            '출제 교재' => 'files',
-            '기타 요구사항' => 'additional_prompt'
+            '출제선택(선택)' => 'files',
+            '출제 내용(선택)' => 'additional_prompt'
         ];
 
         /* ── ♠ API 파라미터 컨테이너 ─────────── */
