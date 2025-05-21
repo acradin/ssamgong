@@ -271,8 +271,8 @@ foreach ($chatSessions as $session) {
     
     /* 폼 요소 */
     .chatbot-form { display: flex; flex-direction: column; }
-    .form-row { display: flex; align-items: center; border: 1.5px solid #00a0a0; border-radius: 10px; overflow: hidden; margin-bottom: 18px; background: #fff; min-height: 42px; }
-    .form-label { background: linear-gradient(135deg, #00a0a0, #00b8b8); color: white; width: 150px; padding: 14px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; flex-shrink: 0; }
+    .form-row { display: flex; align-items: stretch; border: 1.5px solid #00a0a0; border-radius: 10px; overflow: hidden; margin-bottom: 18px; background: #fff; min-height: 42px; }
+    .form-label { background: linear-gradient(135deg, #00a0a0, #00b8b8); color: white; width: 150px; padding: 14px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; flex-shrink: 0; align-self: stretch; }
     .form-input { flex: 1; padding: 12px; border: none; outline: none; font-size: 16px; background: #fff; color: #333; }
     .form-row.optional { border: 1.5px solid #e6c74c; background: linear-gradient(to right, #fffdf0, #fffef7); border-width: 1.5px; box-shadow: 0 2px 8px rgba(230, 199, 76, 0.08); }
     .form-row.optional .form-label { background: linear-gradient(135deg, #e6c74c, #f0d774); color: #5a4e00; font-weight: 700; }
@@ -1137,122 +1137,128 @@ function createVariableField(variable, container) {
     
     // 입력 필드 생성
     let input;
-    switch(variable.cv_type) {
-        case 'text':
-            input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'form-input';
-            input.name = `var_${variable.cv_idx}`;
-            input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
-            break;
-
-        case 'textarea':
-            input = document.createElement('textarea');
-            input.className = 'form-input';
-            input.name = `var_${variable.cv_idx}`;
-            input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
-            input.rows = 4;
-            break;
-
-        case 'select':
-            input = document.createElement('select');
-            input.className = 'form-input';
-            input.name = `var_${variable.cv_idx}`;
-            const options = JSON.parse(variable.cv_options || '[]');
-            options.forEach(option => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option;
-                optionElement.textContent = option;
-                input.appendChild(optionElement);
-            });
-            break;
-
-        case 'date':
-            input = document.createElement('input');
-            input.type = 'text'; // date에서 text로 변경
-            input.className = 'form-input';
-            input.name = `var_${variable.cv_idx}`;
-            input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
-            
-            // flatpickr 초기화를 위해 setTimeout 사용
-            setTimeout(() => {
-                flatpickr(input, {
-                    locale: 'ko',
-                    dateFormat: 'Y-m-d',
-                    disableMobile: false,
-                    onChange: function(selectedDates, dateStr, instance) {
-                        // 선택된 날짜 처리 (필요한 경우)
-                    }
+    if (variable.cv_name === '출제 내용(선택)') {
+        // 출제 내용(선택)인 경우 textarea로 생성
+        input = document.createElement('textarea');
+        input.className = 'form-input';
+        input.name = `var_${variable.cv_idx}`;
+        input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
+        input.rows = 4; // 기본 높이 설정
+    } else {
+        // 기존 로직 유지
+        switch(variable.cv_type) {
+            case 'text':
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-input';
+                input.name = `var_${variable.cv_idx}`;
+                input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
+                break;
+            case 'textarea':
+                input = document.createElement('textarea');
+                input.className = 'form-input';
+                input.name = `var_${variable.cv_idx}`;
+                input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
+                input.rows = 4;
+                break;
+            case 'select':
+                input = document.createElement('select');
+                input.className = 'form-input';
+                input.name = `var_${variable.cv_idx}`;
+                const options = JSON.parse(variable.cv_options || '[]');
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    optionElement.textContent = option;
+                    input.appendChild(optionElement);
                 });
-            }, 0);
-            break;
-
-        case 'file':
-            const fileWrapper = document.createElement('div');
-            fileWrapper.className = 'file-input-wrapper';
-            
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.className = 'form-input file-input';
-            fileInput.name = `var_${variable.cv_idx}`;
-            // fileInput.accept = '.txt,.doc,.docx,.pdf';
-            fileInput.accept = '.pdf';
-            fileInput.setAttribute('multiple', '');
-            fileInput.id = `file_${variable.cv_idx}`;
-            fileInput.style.display = 'none';
-            
-            const customFileInput = document.createElement('div');
-            customFileInput.className = 'custom-file-button';
-            
-            const placeholderSpan = document.createElement('span');
-            placeholderSpan.className = 'file-placeholder';
-            placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
-            
-            const uploadIcon = document.createElement('i');
-            uploadIcon.className = 'fas fa-upload upload-icon';
-            
-            // X 아이콘 추가
-            const clearIcon = document.createElement('i');
-            clearIcon.className = 'fas fa-times clear-icon';
-            clearIcon.style.display = 'none'; // 초기에는 숨김
-            
-            customFileInput.appendChild(placeholderSpan);
-            customFileInput.appendChild(clearIcon);
-            customFileInput.appendChild(uploadIcon);
-            fileWrapper.appendChild(fileInput);
-            fileWrapper.appendChild(customFileInput);
-            
-            customFileInput.onclick = function(e) {
-                if (e.target === clearIcon) {
-                    e.stopPropagation(); // 이벤트 전파 중단
-                    fileInput.value = ''; // 파일 선택 초기화
-                    placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
-                    clearIcon.style.display = 'none';
-                    uploadIcon.style.display = 'block';
-                    return;
-                }
-                fileInput.click();
-            };
-            
-            fileInput.onchange = function() {
-                const selectedFiles = Array.from(this.files);
-                if (selectedFiles.length > 0) {
-                    if (selectedFiles.length === 1) {
-                        placeholderSpan.textContent = selectedFiles[0].name;
-                    } else {
-                        placeholderSpan.textContent = `${selectedFiles.length}개의 파일 선택됨`;
+                break;
+            case 'date':
+                input = document.createElement('input');
+                input.type = 'text'; // date에서 text로 변경
+                input.className = 'form-input';
+                input.name = `var_${variable.cv_idx}`;
+                input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
+                
+                // flatpickr 초기화를 위해 setTimeout 사용
+                setTimeout(() => {
+                    flatpickr(input, {
+                        locale: 'ko',
+                        dateFormat: 'Y-m-d',
+                        disableMobile: false,
+                        onChange: function(selectedDates, dateStr, instance) {
+                            // 선택된 날짜 처리 (필요한 경우)
+                        }
+                    });
+                }, 0);
+                break;
+            case 'file':
+                const fileWrapper = document.createElement('div');
+                fileWrapper.className = 'file-input-wrapper';
+                
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.className = 'form-input file-input';
+                fileInput.name = `var_${variable.cv_idx}`;
+                // fileInput.accept = '.txt,.doc,.docx,.pdf';
+                fileInput.accept = '.pdf';
+                fileInput.setAttribute('multiple', '');
+                fileInput.id = `file_${variable.cv_idx}`;
+                fileInput.style.display = 'none';
+                
+                const customFileInput = document.createElement('div');
+                customFileInput.className = 'custom-file-button';
+                
+                const placeholderSpan = document.createElement('span');
+                placeholderSpan.className = 'file-placeholder';
+                placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+                
+                const uploadIcon = document.createElement('i');
+                uploadIcon.className = 'fas fa-upload upload-icon';
+                
+                // X 아이콘 추가
+                const clearIcon = document.createElement('i');
+                clearIcon.className = 'fas fa-times clear-icon';
+                clearIcon.style.display = 'none'; // 초기에는 숨김
+                
+                customFileInput.appendChild(placeholderSpan);
+                customFileInput.appendChild(clearIcon);
+                customFileInput.appendChild(uploadIcon);
+                fileWrapper.appendChild(fileInput);
+                fileWrapper.appendChild(customFileInput);
+                
+                customFileInput.onclick = function(e) {
+                    if (e.target === clearIcon) {
+                        e.stopPropagation(); // 이벤트 전파 중단
+                        fileInput.value = ''; // 파일 선택 초기화
+                        placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+                        clearIcon.style.display = 'none';
+                        uploadIcon.style.display = 'block';
+                        return;
                     }
-                    clearIcon.style.display = 'block';
-                    uploadIcon.style.display = 'none';
-                } else {
-                    placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
-                    clearIcon.style.display = 'none';
-                    uploadIcon.style.display = 'block';
-                }
-            };
-            
-            input = fileWrapper;
-            break;
+                    fileInput.click();
+                };
+                
+                fileInput.onchange = function() {
+                    const selectedFiles = Array.from(this.files);
+                    if (selectedFiles.length > 0) {
+                        if (selectedFiles.length === 1) {
+                            placeholderSpan.textContent = selectedFiles[0].name;
+                        } else {
+                            placeholderSpan.textContent = `${selectedFiles.length}개의 파일 선택됨`;
+                        }
+                        clearIcon.style.display = 'block';
+                        uploadIcon.style.display = 'none';
+                    } else {
+                        placeholderSpan.textContent = variable.cv_description || `${variable.cv_name} 입력`;
+                        clearIcon.style.display = 'none';
+                        uploadIcon.style.display = 'block';
+                    }
+                };
+                
+                input = fileWrapper;
+                break;
+        }
     }
 
     // 필수 필드 표시
@@ -1370,6 +1376,7 @@ document.addEventListener('drop', function(e) {
 // CSS 수정
 const style = document.createElement('style');
 style.textContent = `
+    /* 기존 스타일 유지 */
     #drop-overlay {
         position: fixed;
         top: 0;
@@ -1402,6 +1409,48 @@ style.textContent = `
         flex: 1;
         min-height: 42px;
     }
+
+    /* form-row와 form-label 스타일 수정 */
+    .form-row {
+        display: flex;
+        align-items: stretch; /* stretch로 변경하여 자식 요소들이 높이를 채우도록 함 */
+        border: 1.5px solid #00a0a0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 18px;
+        background: #fff;
+        min-height: 42px;
+    }
+
+    .form-label {
+        background: linear-gradient(135deg, #00a0a0, #00b8b8);
+        color: white;
+        width: 150px;
+        padding: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 16px;
+        flex-shrink: 0;
+        align-self: stretch; /* 라벨이 부모 높이를 채우도록 설정 */
+    }
+
+    .form-input {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        background: #fff;
+        color: #333;
+    }
+
+    /* textarea 스타일 수정 */
+    textarea.form-input {
+        resize: vertical;
+        min-height: 100px;
+    }
 `;
 document.head.appendChild(style);
 
@@ -1414,23 +1463,11 @@ document.head.appendChild(style);
         const formData = new FormData(this);
         const categoryId = document.querySelector('input[name="ct_idx"]').value;
 
-        // 파일 크기 체크
+        // 파일 형식 체크만 유지
         const fileInputs = document.querySelectorAll('input[type="file"]');
-        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-        // const ALLOWED_TYPES = ['.txt', '.doc', '.docx', '.pdf'];
         const ALLOWED_TYPES = ['.pdf'];
 
         for (const input of fileInputs) {
-
-            // 파일 크기 체크
-            const total = Array.from(input.files)
-                .reduce((sum, file) => sum + file.size, 0);
-
-            if (total > MAX_SIZE) {
-                alert('파일 합계가 5MB를 초과하여 업로드할 수 없습니다.');
-                return;
-            }
-
             // 파일 형식 체크
             const invalidFiles = Array.from(input.files)
                 .filter(file => !ALLOWED_TYPES.some(type => 
@@ -1438,7 +1475,6 @@ document.head.appendChild(style);
                 ));
             
             if (invalidFiles.length > 0) {
-                // alert('허용된 파일 형식만 업로드 가능합니다. (.txt, .doc, .docx, .pdf)');
                 alert('허용된 파일 형식만 업로드 가능합니다. (.pdf)');
                 return;
             }
