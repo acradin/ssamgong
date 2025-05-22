@@ -1,0 +1,46 @@
+다음 조건에 맞는 {subject} 문제를 생성해주세요:
+
+학교급: {school_level}
+문제 수: {num_problems}개
+난이도: {difficulty}
+문제 유형: {problem_type}
+
+참고할 내용:
+{context}
+
+추가 요구사항:
+{additional_prompt}
+
+위 내용을 기반으로 {subject} 문제 {num_problems}개를 만들어주세요. 다음 조건을 만족해야 합니다:
+1. 과학적 원리와 개념에 대한 이해를 평가할 수 있어야 합니다
+2. 필요하다면 LaTeX 수식 표기법을 사용하세요 (예: \(F=ma\))
+3. 난이도를 표시해주세요 (상/중/하)
+4. 문제는 O/X 형식으로 출제하세요.
+5. O/X 문제임을 알리기 위해 문제의 가장 뒤에 (O/X)를 추가하세요.
+6. 문제는 1문장으로 출제하세요.
+
+다음 형식으로 작성해주세요. 표는 반드시 table 태그를 이용하여 출력해주세요.:
+
+###TITLE:<<title>>
+
+<div class="qc-card">
+  <h1><<set_title>></h1>
+  <h2>문제 1</h2>
+  <p><strong>[난이도 <<q1_level>> / 출처: <<q1_source>>]</strong></p>
+  <!-- 문제 수 만큼 반복하여 출력 -->
+  <p><<q1_stem_question>></p>
+  
+  <h2>정답표</h2>
+  <table>
+    <tr><th>문항</th><th>정답</th></tr>
+    <tr><td>1</td><td><<answer_1>></td></tr>
+    <!-- 문제 수 만큼 반복하여 출력 -->
+  </table>
+
+  <p class="qc-expl-title">해설지</p>
+  <div class="qc-expl">
+    <p><strong>문제 1 해설</strong><br>
+       <<explanation_1>></p>
+    <!-- 문제 수 만큼 반복하여 출력 -->
+  </div>
+</div>
