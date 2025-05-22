@@ -112,6 +112,7 @@ os.makedirs(EXPORT_DIR, exist_ok=True)
 @app.post("/generate_problems/")
 async def generate_problems(
     request: Request,
+    name: str = Form(...),
     subject: str = Form(...),
     school_level: str = Form(...),
     num_problems: int = Form(...),
@@ -163,6 +164,7 @@ async def generate_problems(
 
     # 모든 변수 로그 출력
     logging.info(f"files: {files}")
+    logging.info(f"name: {name}")
     logging.info(f"subject: {subject}")
     logging.info(f"school_level: {school_level}")
     logging.info(f"num_problems: {num_problems}")
@@ -185,20 +187,23 @@ async def generate_problems(
     logging.info(f"file_ids: {file_ids}")
 
     # 프롬프트 파일명 결정 및 읽기
-    if subject == "수학":
-        prompt_file = "math_problem_html.txt"
-    elif subject == "국어":
-        prompt_file = "korean_problem_html.txt"
-    elif subject == "영어":
-        prompt_file = "english_problem_html.txt"
-    elif subject == "과학":
-        prompt_file = "science_problem_html.txt"
-    elif subject == "사회":
-        prompt_file = "social_problem_html.txt"
-    elif subject == "역사":
-        prompt_file = "history_problem_html.txt"
+    if name == "지필평가":
+        if subject == "수학":
+            prompt_file = "math_problem_html.txt"
+        elif subject == "국어":
+            prompt_file = "korean_problem_html.txt"
+        elif subject == "영어":
+            prompt_file = "english_problem_html.txt"
+        elif subject == "과학":
+            prompt_file = "science_problem_html.txt"
+        elif subject == "사회":
+            prompt_file = "social_problem_html.txt"
+        elif subject == "역사":
+            prompt_file = "history_problem_html.txt"
+        else:
+            prompt_file = "etc_problem_html.txt"
     else:
-        prompt_file = "etc_problem_html.txt"
+        prompt_file = "ox_problem_html.txt"
 
     with open(os.path.join(PROMPTS_DIR, prompt_file), encoding="utf-8") as f:
         prompt_template = f.read()
@@ -220,7 +225,7 @@ async def generate_problems(
     user_text = (
         additional_prompt
         if additional_prompt
-        else f"주어진 PDF 파일을 분석하여 {subject} 문제를 생성해주세요."
+        else f"파일이 있다면 주어진 PDF 파일을 분석하여 {subject} 문제를 생성해주세요. 파일이 없다면 요구사항을 바탕으로 {subject} 문제를 생성해주세요."
     )
 
     session_id = str(uuid.uuid4())
@@ -511,4 +516,4 @@ async def generate_problems_with_rag(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="debug", reload=False)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="debug", reload=True)
