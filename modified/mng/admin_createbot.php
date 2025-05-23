@@ -73,7 +73,7 @@ include $_SERVER['DOCUMENT_ROOT'] . "/mng/head_menu.inc.php";
                             <label class="col-sm-2 col-form-label">프롬프트 <b class="text-danger">*</b></label>
                             <div class="col-sm-10">
                                 <input type="text" class="form-control mb-2" name="prompt_title" placeholder="프롬프트 제목" />
-                                <textarea class="form-control" name="prompt_content" rows="4" placeholder="프롬프트 내용"></textarea>
+                                <textarea class="form-control" name="prompt_content" rows="4" placeholder="프롬프트 내용" style="resize: vertical;"></textarea>
                             </div>
                         </div>
 

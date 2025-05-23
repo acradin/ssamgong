@@ -64,6 +64,12 @@ $variableTypeMap = [
                     .variable-item:hover {
                         background-color: #f8f9fa;
                     }
+
+                    /* textarea 스타일 */
+                    textarea.form-control {
+                        resize: vertical;
+                        min-height: 100px;
+                    }
                     </style>
 
                     <!-- 필터 영역 -->
@@ -221,7 +227,7 @@ function loadCategoryData(chatbotId, categoryId) {
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">챗봇 설명</label>
                         <div class="col-sm-10">
-                            <textarea class="form-control" rows="3" readonly>${botDescription}</textarea>
+                            <textarea class="form-control" rows="3" readonly style="resize: vertical;">${botDescription}</textarea>
                         </div>
                     </div>
 
@@ -253,7 +259,7 @@ function loadCategoryData(chatbotId, categoryId) {
                         <label class="col-sm-2 col-form-label">프롬프트</label>
                         <div class="col-sm-10">
                             <input type="text" class="form-control mb-2" value="${promptTitle}" readonly />
-                            <textarea class="form-control" rows="4" readonly>${promptContent}</textarea>
+                            <textarea class="form-control" rows="4" readonly style="resize: vertical;">${promptContent}</textarea>
                         </div>
                     </div>
 

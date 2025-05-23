@@ -121,12 +121,14 @@ try {
             '출제 종류' => 'problem_type',
             '문제 수' => 'num_problems',
             '난이도' => 'difficulty',
-            '출제선택(선택)' => 'files',
-            '출제 내용(선택)' => 'additional_prompt'
+            // '출제선택(선택)' => 'files',  // 주석 처리됨
+            '출제 교재 내용' => 'additional_prompt'
         ];
 
         /* ── ♠ API 파라미터 컨테이너 ─────────── */
-        $api_data   = [];
+        $api_data = [
+            'name' => $category['ct_name']  // 카테고리명 추가
+        ];
         $file_index = 0;
 
         /* ──────────────────────────────────────────────────────────────

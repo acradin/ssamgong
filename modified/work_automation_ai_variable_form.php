@@ -1110,6 +1110,13 @@ function createVariableFields(categoryId) {
     const container = document.getElementById('variables-container');
     container.innerHTML = ''; // 컨테이너 초기화
 
+    // 카테고리명을 hidden input으로 추가
+    const categoryNameInput = document.createElement('input');
+    categoryNameInput.type = 'hidden';
+    categoryNameInput.name = 'category_name';
+    categoryNameInput.value = subCategories.find(cat => cat.ct_idx === categoryId)?.ct_name || '';
+    container.appendChild(categoryNameInput);
+
     // 변수들을 기타 요구사항과 일반 변수로 분리
     const otherRequirements = variables.find(v => v.cv_name === '기타 요구사항');
     const normalVariables = variables.filter(v => v.cv_name !== '기타 요구사항');
@@ -1137,13 +1144,51 @@ function createVariableField(variable, container) {
     
     // 입력 필드 생성
     let input;
-    if (variable.cv_name === '출제 내용(선택)') {
-        // 출제 내용(선택)인 경우 textarea로 생성
+    if (variable.cv_name === '출제 교재 내용') {
+        // textarea를 감싸는 div 생성
+        const textareaWrapper = document.createElement('div');
+        textareaWrapper.style.position = 'relative';
+        textareaWrapper.style.flex = '1';
+        textareaWrapper.style.display = 'block';  // flex에서 block으로 변경
+        textareaWrapper.style.overflow = 'visible';
+
+        // textarea 생성
         input = document.createElement('textarea');
         input.className = 'form-input';
         input.name = `var_${variable.cv_idx}`;
-        input.placeholder = variable.cv_description || `${variable.cv_name} 입력`;
-        input.rows = 4; // 기본 높이 설정
+        input.placeholder = '출제할 내용을 입력해주세요 ( 예: 교과서 파일 → 내용 복사 → 붙이기 )';
+        input.style.cssText = `
+            height: 100px;
+            min-height: 100px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 16px;
+            color: #333;
+            padding-bottom: 25px;
+            resize: vertical;
+            overflow: auto;
+            width: 100%;  // 추가: 너비를 100%로 설정
+        `;
+
+        // 드래그 안내 메시지 div 생성
+        const dragMessage = document.createElement('div');
+        dragMessage.style.cssText = `
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            color: #00a0a0;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        `;
+        dragMessage.innerHTML = '<i class="fas fa-arrows-alt-v" style="margin-right: 5px;"></i><span>드래그하여 크기 조절</span>';
+
+        // textarea와 드래그 메시지를 wrapper에 추가
+        textareaWrapper.appendChild(input);
+        textareaWrapper.appendChild(dragMessage);
+
+        // input을 wrapper로 대체
+        input = textareaWrapper;
     } else {
         // 기존 로직 유지
         switch(variable.cv_type) {
@@ -1263,7 +1308,11 @@ function createVariableField(variable, container) {
 
     // 필수 필드 표시
     if (variable.cv_required === 'Y') {
-        input.required = true;
+        if (input.tagName === 'DIV') {
+            input.querySelector('textarea').required = true;
+        } else {
+            input.required = true;
+        }
     }
 
     formRow.appendChild(label);
