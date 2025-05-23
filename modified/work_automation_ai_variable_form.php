@@ -1210,6 +1210,16 @@ function createVariableField(variable, container) {
                 input = document.createElement('select');
                 input.className = 'form-input';
                 input.name = `var_${variable.cv_idx}`;
+                
+                // description을 placeholder로 추가
+                const placeholderOption = document.createElement('option');
+                placeholderOption.value = '';
+                placeholderOption.textContent = variable.cv_description;
+                placeholderOption.disabled = true;
+                placeholderOption.selected = true;
+                input.appendChild(placeholderOption);
+                
+                // 기존 옵션들 추가
                 const options = JSON.parse(variable.cv_options || '[]');
                 options.forEach(option => {
                     const optionElement = document.createElement('option');
