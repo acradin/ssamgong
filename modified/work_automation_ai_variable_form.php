@@ -317,6 +317,7 @@ foreach ($chatSessions as $session) {
         flex-direction: column;
         gap: 10px;
         transition: all 0.3s ease;
+        max-width: 200px;
     }
     .secondary-menu-item {
         display: flex;
@@ -329,6 +330,7 @@ foreach ($chatSessions as $session) {
         transition: all 0.2s;
         font-weight: 500;
         font-size: 14px;
+        width: 100%;
     }
     .secondary-menu-item:hover {
         background: #e0f7fa;
@@ -487,7 +489,7 @@ foreach ($chatSessions as $session) {
         overflow: hidden;
         opacity: 0;
         top: 65px;
-        right: 20px;
+        right: 10px;
         margin-top: 0;
         transition: all 0.3s ease;
         pointer-events: none;
@@ -687,7 +689,7 @@ foreach ($chatSessions as $session) {
         color: white;
     }
 
-    /* 토글 그룹 스타일 */
+    /* 토글 그룹 스타일 수정 */
     .toggle-group {
         display: flex;
         justify-content: center;
@@ -698,18 +700,29 @@ foreach ($chatSessions as $session) {
         border-radius: 15px;
         width: fit-content;
         margin: 0 auto 30px;
+        overflow-x: auto;  /* 가로 스크롤 추가 */
+        -webkit-overflow-scrolling: touch;  /* iOS 스크롤 부드럽게 */
+        scrollbar-width: none;  /* Firefox 스크롤바 숨김 */
+        -ms-overflow-style: none;  /* IE/Edge 스크롤바 숨김 */
+        white-space: nowrap;  /* 텍스트 줄바꿈 방지 */
+    }
+
+    /* Chrome/Safari 스크롤바 숨김 */
+    .toggle-group::-webkit-scrollbar {
+        display: none;
     }
 
     .toggle-btn {
         padding: 12px 24px;
-    border: none;
-    background: none;
+        border: none;
+        background: none;
         border-radius: 10px;
         font-size: 16px;
         font-weight: 600;
         color: #666;
         cursor: pointer;
         transition: all 0.3s ease;
+        flex-shrink: 0;  /* 버튼이 줄어들지 않도록 설정 */
     }
 
     .toggle-btn:hover {
@@ -721,6 +734,17 @@ foreach ($chatSessions as $session) {
         background: #00a0a0;
         color: white;
         box-shadow: 0 2px 8px rgba(0, 160, 160, 0.2);
+    }
+    @media (max-width: 768px) {
+        .toggle-group {
+            margin: 0 10px 30px 10px;  /* 좌우 여백 추가 */
+            width: auto;  /* 너비 자동 조정 */
+        }
+        
+        .toggle-btn {
+            padding: 10px 20px;  /* 패딩 약간 축소 */
+            font-size: 14px;  /* 글자 크기 축소 */
+        }
     }
 
     /* 모달 스타일 */
@@ -1333,11 +1357,23 @@ function createVariableField(variable, container) {
 // 카테고리 변경 이벤트 처리
 document.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        // 선택된 카테고리 스타일 변경
+        // 기존 코드 유지
         document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
 
-        // 카테고리 ID 업데이트
+        // active 버튼이 보이도록 스크롤 조정 코드 추가
+        const toggleGroup = document.querySelector('.toggle-group');
+        const activeBtn = this;
+        const groupRect = toggleGroup.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+        
+        if (btnRect.left < groupRect.left) {
+            toggleGroup.scrollLeft -= (groupRect.left - btnRect.left);
+        } else if (btnRect.right > groupRect.right) {
+            toggleGroup.scrollLeft += (btnRect.right - groupRect.right);
+        }
+
+        // 나머지 기존 코드 유지
         const categoryId = this.dataset.categoryId;
         document.querySelector('input[name="ct_idx"]').value = categoryId;
 
@@ -1364,6 +1400,22 @@ document.querySelectorAll('.toggle-btn').forEach(btn => {
                 alert('변수 로딩 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
             });
     });
+});
+
+// 페이지 로드 시 active 버튼 스크롤 조정
+document.addEventListener('DOMContentLoaded', function() {
+    const activeBtn = document.querySelector('.toggle-btn.active');
+    if (activeBtn) {
+        const toggleGroup = document.querySelector('.toggle-group');
+        const groupRect = toggleGroup.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+        
+        if (btnRect.left < groupRect.left) {
+            toggleGroup.scrollLeft -= (groupRect.left - btnRect.left);
+        } else if (btnRect.right > groupRect.right) {
+            toggleGroup.scrollLeft += (btnRect.right - groupRect.right);
+        }
+    }
 });
 
 // 초기 변수 필드 생성
