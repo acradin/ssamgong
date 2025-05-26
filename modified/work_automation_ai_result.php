@@ -185,7 +185,7 @@ foreach ($chatSessions as $session) {
                 <ul>
                     <li class=""><a href="https://www.ssemgong.blog/8134c529-cab1-433f-85ad-a5d22ea63609" target="_blank">소개</a></li>
                     <li class=""><a href="./item_classroom">담임</a></li>
-                    <li class="on"><a href="./item_work">업무</a></li>
+                    <li class=""><a href="./item_work">업무</a></li>
                     <li class="subject">
                         <a><p class="fw_600">교과</p></a>
                         <div class="subject-box">
